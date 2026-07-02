@@ -1,0 +1,112 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kakeibo_app/data/backup/backup_data.dart';
+import 'package:kakeibo_app/data/backup/backup_codec.dart';
+import 'package:kakeibo_app/data/backup/backup_service.dart';
+import 'package:kakeibo_app/data/db/database.dart';
+import 'package:kakeibo_app/data/db/enums.dart';
+import 'package:kakeibo_app/domain/money/civil_date.dart';
+import '../support/test_db.dart';
+
+/// 最小の正当payload: システム未分類2 + 通常カテゴリ1 + 取引1（任意ID）
+BackupPayload minimalPayload() => BackupPayload(
+      formatVersion: BackupCodec.formatVersion,
+      exportedAt: DateTime.utc(2026, 7, 3),
+      categories: const [
+        BackupCategory(
+            id: 100, name: '食費(旧端末)', type: CategoryType.expense,
+            icon: null, sortOrder: 0, isArchived: false, isSystem: false),
+        BackupCategory(
+            id: 101, name: '未分類', type: CategoryType.expense,
+            icon: null, sortOrder: 1, isArchived: false, isSystem: true),
+        BackupCategory(
+            id: 102, name: '未分類', type: CategoryType.income,
+            icon: null, sortOrder: 2, isArchived: false, isSystem: true),
+      ],
+      transactions: [
+        BackupTxn(
+          id: 500, type: TxnType.expense, amount: 4980,
+          date: const CivilDate(2026, 6, 15), categoryId: 100,
+          paymentMethod: null, memo: '旧端末の記録',
+          source: TxnSource.manual, imagePath: null,
+          createdAt: DateTime.utc(2026, 6, 15, 3),
+          updatedAt: DateTime.utc(2026, 6, 15, 3),
+        ),
+      ],
+    );
+
+void main() {
+  late AppDatabase db;
+  late BackupService service;
+
+  setUp(() {
+    db = newMemoryDb();
+    service = BackupService(db);
+  });
+  tearDown(() => db.close());
+
+  Future<int> seedOneTx() async {
+    final all = await db.categoryDao.allCategories();
+    final foodId = all.firstWhere((c) => c.name == '食費').id;
+    return db.transactionDao.insertTransaction(TransactionsCompanion.insert(
+      type: TxnType.expense,
+      amount: 999,
+      date: const CivilDate(2026, 7, 1),
+      categoryId: foodId,
+      source: TxnSource.manual,
+    ));
+  }
+
+  test('applyRestore replaces everything and preserves ids verbatim', () async {
+    await seedOneTx(); // 既存データ（プリセット20カテゴリ + 取引1）
+
+    await service.applyRestore(minimalPayload());
+
+    final cats = await db.categoryDao.allCategories();
+    // プリセットの残骸なし＝payloadのカテゴリだけ（再シードも走らない）
+    expect(cats.length, 3);
+    expect(cats.map((c) => c.id).toSet(), {100, 101, 102});
+
+    final txs = await db.select(db.transactions).get();
+    final tx = txs.single;
+    expect(tx.id, 500); // ID逐語保存
+    expect(tx.categoryId, 100); // FKも逐語（再割当なし）
+    expect(tx.amount, 4980);
+    expect(tx.createdAt.toUtc(), DateTime.utc(2026, 6, 15, 3)); // 瞬間保存
+  });
+
+  test('export -> restore -> export is byte-identical (full fidelity)', () async {
+    await seedOneTx();
+    const codec = BackupCodec();
+    final before = await service.exportJson();
+
+    await service.applyRestore(codec.decode(before));
+    final after = await service.exportJson();
+
+    // exportedAt だけは現在時刻で変わるため、それ以外を比較
+    String stripExportedAt(String s) =>
+        s.replaceFirst(RegExp('"exportedAt": "[^"]*"'), '"exportedAt": "X"');
+    expect(stripExportedAt(after), stripExportedAt(before));
+  });
+
+  test('mid-swap failure rolls back everything (atomicity)', () async {
+    final keepId = await seedOneTx();
+
+    // codecを迂回して不正payload（取引ID重複=PK衝突）を直接swapに流す
+    final bad = minimalPayload();
+    final dup = BackupPayload(
+      formatVersion: bad.formatVersion,
+      exportedAt: bad.exportedAt,
+      categories: bad.categories,
+      transactions: [...bad.transactions, ...bad.transactions], // id 500 が2回
+    );
+
+    await expectLater(service.applyRestore(dup), throwsA(anything));
+
+    // 既存データが無傷（delete-allはロールバックされた）
+    final cats = await db.categoryDao.allCategories();
+    expect(cats.length, 20);
+    final txs = await db.select(db.transactions).get();
+    expect(txs.single.id, keepId);
+    expect(txs.single.amount, 999);
+  });
+}
