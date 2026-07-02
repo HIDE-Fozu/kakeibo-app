@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # createdAt/updatedAt を ISO-8601 テキストで保存（タイムゾーン安全）
+          store_date_time_values_as_text: true
