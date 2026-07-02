@@ -255,7 +255,9 @@ String normalizeOcrText(String s) {
     }
   }
   // 数トークン内の空白を潰す: 「¥ 1, 234」→「¥1,234」
-  // （数字/カンマ/¥ の直後の空白列で、次が数字/カンマのもの）
+  // （カンマ/¥ の直後の空白列で、次が数字/カンマのもの。
+  //  左辺に \d を入れると「12/28 18:05」の日付-時刻間まで接着して
+  //  日付抽出を壊すため、¥ と , のみ）
   var out = sb.toString();
   out = out.replaceAllMapped(
     _numGap,
@@ -264,7 +266,7 @@ String normalizeOcrText(String s) {
   return out;
 }
 
-final _numGap = RegExp(r'([¥\d,])[ \t]+(?=[\d,])');
+final _numGap = RegExp(r'([¥,])[ \t]+(?=[\d,])');
 
 /// 数字文脈のOCR誤読修復（O→0, l/I→1, B→8, S→5）。
 /// 数字に隣接する1文字だけを直し、単語中の文字は触らない。
@@ -718,7 +720,7 @@ git commit -m "feat: tiered amount tokenization with pitfall guards (tel/postal/
     - **税抜合計+消費税 の合成**: 税込系候補ゼロ かつ `税抜合計`と`消費税`行があるなら `total = 税抜 + Σ税`（medium）
     - **フォールバック**: キーワード候補ゼロなら、除外行以外の Tier A/B 非負トークンの**最大値**（medium）。`小計`があれば `小計+Σ税` に最近傍の候補を優先
     - **現金恒等式**: `お預り T`と`お釣り C`があれば `T−C` を検証に使い、キーワード候補ゼロなら `T−C` 自体を候補に（recovery, medium）
-    - 確信度: キーワード行 high ／ フォールバック・合成・recovery medium ／ 裸数字のみ low
+    - 確信度: キーワード行 high（**ただし金額が裸数字トークンなら low**）／ フォールバック・合成・recovery medium
     - `candidates` はスコア降順（UI切替用、最大5件、重複円値は除去）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -953,7 +955,10 @@ TotalExtraction extractTotal(List<ReceiptRow> rows) {
       info.index,
       AmountCandidate(
         yen: amount,
-        confidence: ExtractionConfidence.high,
+        // キーワード行でも金額が裸数字（通貨手がかりなし）なら low
+        confidence: token.tier == AmountTier.bare
+            ? ExtractionConfidence.low
+            : ExtractionConfidence.high,
         sourceText: text,
         reason: 'keyword(score=$score)',
       )
@@ -1078,8 +1083,8 @@ git commit -m "feat: tax-inclusive total selection (keyword scoring, fallback, c
     - regex: 西暦4桁 / 和暦（`令和/平成/昭和/R/H/S`＋`元`対応、変換 2018/1988/1925+N）/ 短年 `Y{1,2}.M.D`（**時代推定**: 2桁→西暦20YY候補と和暦2018+YY候補の両方を生成し、**未来でなく今日に近い方**を採用。1桁は和暦のみ）/ **MM/DDのみは同一行に時刻がある場合だけ**（年=今日を超えない直近年）
     - 検証: 暦妥当（`CivilDate.isValid`）・**未来棄却**（today+1日超）・**古すぎ棄却**（year<2000）
     - 除外: 行に `期限/有効/まで/~` があれば棄却（ポイント有効期限・キャンペーン）
-    - 選択スコア: 同一行に時刻 +50 ／ 上部ほど加点 `(1−centerY)*20` ／ 行に `発行/取引/ご利用/日時` +15
-    - 確信度: 時刻同居のフル日付 high ／ 時代推定・短年 medium ／ MM/DDのみ・**今日既定** low
+    - 選択スコア: 同一行に時刻 +50 ／ 上部ほど加点 `(1−centerY)*20` ／ 行に `発行/取引/ご利用/日時/レジ` +15
+    - 確信度: 時刻同居のフル日付 high（**時刻非同居のフル日付は medium に降格**）／ 時代推定・短年 medium ／ MM/DDのみ・**今日既定** low
     - 候補ゼロ → `best = DateCandidate(today, low, '', 'default-today')`
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -1342,9 +1347,11 @@ DateExtraction extractDate(List<ReceiptRow> rows, CivilDate today) {
       if (hasTime) score += 50;
       score += (1 - row.centerY) * 20;
       if (_reIssueCue.hasMatch(text)) score += 15;
-      final conf = hasTime && raw.confidence == ExtractionConfidence.high
-          ? ExtractionConfidence.high
-          : raw.confidence;
+      // フル日付でも時刻非同居なら medium に降格（時刻同居が最強の取引手がかり）
+      final conf =
+          (raw.confidence == ExtractionConfidence.high && !hasTime)
+              ? ExtractionConfidence.medium
+              : raw.confidence;
       found.add((
         score,
         order++,
