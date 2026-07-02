@@ -13,9 +13,7 @@ class BackupService {
   final AutoBackupStore? _store;
 
   BackupService(this._db,
-      {BackupCodec codec = const BackupCodec(), AutoBackupStore? store})
-      : _codec = codec,
-        _store = store;
+      {this._codec = const BackupCodec(), this._store});
 
   Future<BackupPayload> exportPayload() async {
     final cats = await (_db.select(_db.categories)

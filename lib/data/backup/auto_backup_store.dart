@@ -16,11 +16,10 @@ class AutoBackupStore {
 
   AutoBackupStore(
     this.dir, {
-    BackupCodec codec = const BackupCodec(),
-    DateTime Function() now = DateTime.now,
+    this._codec = const BackupCodec(),
+    this._now = DateTime.now,
     this.maxGenerations = 10,
-  })  : _codec = codec,
-        _now = now;
+  });
 
   static final _nameRe = RegExp(r'^backup-(\d{19})\.json$');
 
