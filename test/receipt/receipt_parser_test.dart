@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/domain/services/ocr/ocr_types.dart';
 import 'package:kakeibo_app/domain/services/receipt/receipt_parser.dart';
-import 'package:kakeibo_app/domain/services/receipt/total.dart'
-    show ExtractionConfidence;
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 
 const fixedToday = CivilDate(2026, 7, 3);
