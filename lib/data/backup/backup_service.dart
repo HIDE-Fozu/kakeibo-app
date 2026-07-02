@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../db/database.dart';
+import 'auto_backup_store.dart';
 import 'backup_codec.dart';
 import 'backup_data.dart';
 
@@ -8,9 +9,12 @@ import 'backup_data.dart';
 class BackupService {
   final AppDatabase _db;
   final BackupCodec _codec;
+  final AutoBackupStore? _store;
 
-  BackupService(this._db, {BackupCodec codec = const BackupCodec()})
-      : _codec = codec;
+  BackupService(this._db,
+      {BackupCodec codec = const BackupCodec(), AutoBackupStore? store})
+      : _codec = codec,
+        _store = store;
 
   Future<BackupPayload> exportPayload() async {
     final cats = await (_db.select(_db.categories)
@@ -54,6 +58,26 @@ class BackupService {
   }
 
   Future<String> exportJson() async => _codec.encode(await exportPayload());
+
+  /// バックアップJSONからの復元（置換）。順序が生命線:
+  /// 1) 完全検証 → 2) 空チェック → 3) 現在DBのスナップショット(検証付き) → 4) アトミックswap
+  /// 1〜3のどこで失敗してもDBは無傷。4は単一トランザクションで途中失敗は全ロールバック。
+  Future<void> restoreFromJson(String json, {bool allowEmpty = false}) async {
+    final payload = _codec.decode(json); // 不正ならここで型付き例外
+
+    if (payload.transactions.isEmpty && !allowEmpty) {
+      throw EmptyBackupError(
+          '取引が0件のバックアップです。本当に復元する場合は明示的な確認が必要です');
+    }
+
+    final store = _store;
+    if (store == null) {
+      throw StateError('復元には AutoBackupStore の設定が必要です');
+    }
+    await store.writeVerified(await exportJson()); // 失敗=AutoBackupWriteError→中止
+
+    await applyRestore(payload);
+  }
 
   /// 検証済みpayloadでDB全体を置換する。単一トランザクション＝途中失敗は全ロールバック。
   /// 呼び出し前に codec.decode を通すこと（検証はcodecの責務）。
