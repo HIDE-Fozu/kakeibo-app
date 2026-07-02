@@ -63,4 +63,102 @@ void main() {
     expect(tx.containsKey('imagePath'), isTrue);
     expect(tx['imagePath'], isNull);
   });
+
+  group('decode', () {
+    test('round-trips an encoded payload exactly', () {
+      final original = samplePayload();
+      final decoded = codec.decode(codec.encode(original));
+      // 忠実度はエンコード結果の同値で比較（フィールド網羅かつ簡潔）
+      expect(codec.encode(decoded), codec.encode(original));
+    });
+
+    test('malformed JSON -> BackupFormatError', () {
+      expect(() => codec.decode('{not json'), throwsA(isA<BackupFormatError>()));
+      expect(() => codec.decode('[1,2,3]'), throwsA(isA<BackupFormatError>()));
+    });
+
+    String mutate(void Function(Map<String, dynamic> root) f) {
+      final root = jsonDecode(codec.encode(samplePayload())) as Map<String, dynamic>;
+      f(root);
+      return jsonEncode(root);
+    }
+
+    test('missing / invalid / newer formatVersion -> BackupVersionError', () {
+      expect(() => codec.decode(mutate((r) => r.remove('formatVersion'))),
+          throwsA(isA<BackupVersionError>()));
+      expect(() => codec.decode(mutate((r) => r['formatVersion'] = 0)),
+          throwsA(isA<BackupVersionError>()));
+      expect(
+        () => codec.decode(mutate((r) => r['formatVersion'] = 99)),
+        throwsA(isA<BackupVersionError>()
+            .having((e) => e.newerThanApp, 'newerThanApp', isTrue)),
+      );
+    });
+
+    test('negative amount -> BackupValidationError', () {
+      expect(
+        () => codec.decode(mutate(
+            (r) => ((r['transactions'] as List).first as Map)['amount'] = -1)),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('unknown enum value -> BackupValidationError', () {
+      expect(
+        () => codec.decode(mutate(
+            (r) => ((r['transactions'] as List).first as Map)['type'] = 'loan')),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('invalid civil date -> BackupValidationError', () {
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['transactions'] as List).first as Map)['date'] = '2026-02-30')),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('unresolvable categoryId -> BackupValidationError', () {
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['transactions'] as List).first as Map)['categoryId'] = 777)),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('duplicate transaction / category ids -> BackupValidationError', () {
+      expect(
+        () => codec.decode(mutate((r) {
+          final txs = r['transactions'] as List;
+          txs.add(Map<String, dynamic>.from(txs.first as Map)); // 同じid
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          final cats = r['categories'] as List;
+          cats.add(Map<String, dynamic>.from(cats.first as Map)); // 同じid
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('missing system (未分類) category for a type -> BackupValidationError',
+        () {
+      expect(
+        () => codec.decode(mutate((r) {
+          (r['categories'] as List)
+              .removeWhere((c) => (c as Map)['isSystem'] == true);
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('empty transactions decode fine (empty-reject is the restore API job)',
+        () {
+      final p = codec.decode(mutate((r) => r['transactions'] = <dynamic>[]));
+      expect(p.transactions, isEmpty);
+    });
+  });
 }
