@@ -76,17 +76,19 @@
 
 ### 4.1 テーブル
 
+> **enum保存は `textEnum`（`.name`文字列）**。理由: 長期運用でenumに要素を挿入/並べ替えしても既存行が壊れない（`intEnum`の`.index`はシフトで破損）。以下の「enum」列は全てtextEnum。
+
 **Transaction（取引）**
 | 列 | 型 | 説明 |
 |----|----|------|
 | id | INTEGER PK | |
-| type | INT enum | expense / income |
+| type | TEXT enum | expense / income |
 | amount | INTEGER | **整数円・非負**。符号はtypeで持つ（§4.4） |
-| date | TEXT `YYYY-MM-DD` | **civil date**（§4.2） |
+| date | TEXT `YYYY-MM-DD` | **civil date**（§4.2）。`CivilDate`値型をTypeConverterで保存 |
 | categoryId | INTEGER FK NOT NULL | Category.id、`ON DELETE RESTRICT` |
-| paymentMethod | INT enum **nullable** | 【確定 §14-B】列は残し**v1入力UIには出さない**（将来マイグレ不要） |
+| paymentMethod | TEXT enum **nullable** | 【確定 §14-B】列は残し**v1入力UIには出さない**（将来マイグレ不要） |
 | memo | TEXT | 店名・自由記述 |
-| source | INT enum | manual / receiptOcr（**由来。編集しても不変**） |
+| source | TEXT enum | manual / receiptOcr（**由来。編集しても不変**） |
 | imagePath | TEXT nullable | 【確定 §14-C】既定は破棄。設定「ローカル保持」ON時のみ値が入る |
 | createdAt | TEXT ISO-8601 UTC | |
 | updatedAt | TEXT ISO-8601 UTC | 全更新経路で必ず更新（§9のリポジトリで一元化） |
