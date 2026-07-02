@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'database.dart';
 import 'tables.dart';
+import 'enums.dart';
 
 part 'daos.g.dart';
 
@@ -15,5 +16,14 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
 class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {
   CategoryDao(super.db);
-  // 読み書きは Task 5, 9 で追加する。
+
+  Future<List<CategoryRow>> allCategories() =>
+      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+
+  Future<int> uncategorizedId(CategoryType type) async {
+    final row = await (select(categories)
+          ..where((c) => c.isSystem.equals(true) & c.type.equalsValue(type)))
+        .getSingle();
+    return row.id;
+  }
 }
