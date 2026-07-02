@@ -3,6 +3,7 @@ import '../db/database.dart';
 import 'auto_backup_store.dart';
 import 'backup_codec.dart';
 import 'backup_data.dart';
+import 'csv_exporter.dart';
 
 /// バックアップ／復元のオーケストレーション。
 /// 検証は BackupCodec に集約されており、本クラスはDBとの読み書きに徹する。
@@ -58,6 +59,9 @@ class BackupService {
   }
 
   Future<String> exportJson() async => _codec.encode(await exportPayload());
+
+  /// 閲覧用CSV（エクスポート専用・復元不可）。
+  Future<String> exportCsv() async => buildTransactionsCsv(await exportPayload());
 
   /// バックアップJSONからの復元（置換）。順序が生命線:
   /// 1) 完全検証 → 2) 空チェック → 3) 現在DBのスナップショット(検証付き) → 4) アトミックswap
