@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/db/database.dart';
 import 'package:kakeibo_app/data/db/enums.dart';

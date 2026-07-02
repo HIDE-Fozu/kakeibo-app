@@ -7,6 +7,9 @@ abstract interface class TransactionRepository {
   Future<List<TransactionEntity>> forMonth(int year, int month);
   Future<MonthlySummary> summary(int year, int month);
   Future<List<CategorySpendRow>> spendingByCategory(int year, int month);
+
+  /// 既存取引を更新する（tx.id 必須）。updatedAt は実装が更新し、source は不変。
+  Future<void> update(TransactionEntity tx);
 }
 
 abstract interface class CategoryRepository {

@@ -35,7 +35,7 @@ void main() {
 
     final month = await repo.forMonth(2026, 7);
     expect(month.length, 2);
-    expect(month.every((t) => t is TransactionEntity), isTrue);
+    expect(month.map((t) => t.amountYen).toSet(), {1200, 300000});
 
     final summary = await repo.summary(2026, 7);
     expect(summary.expense, 1200);

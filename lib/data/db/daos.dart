@@ -23,6 +23,28 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   Future<int> insertTransaction(TransactionsCompanion c) =>
       into(transactions).insert(c);
 
+  /// 編集で変わりうるフィールドだけを更新し、updatedAt を現在時刻に。
+  /// type / source / createdAt は触らない（source は由来として不変）。
+  Future<void> updateFields(
+    int id, {
+    required int amount,
+    required CivilDate date,
+    required int categoryId,
+    PaymentMethod? paymentMethod,
+    String? memo,
+  }) async {
+    await (update(transactions)..where((t) => t.id.equals(id))).write(
+      TransactionsCompanion(
+        amount: Value(amount),
+        date: Value(date),
+        categoryId: Value(categoryId),
+        paymentMethod: Value(paymentMethod),
+        memo: Value(memo),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
   Future<List<TransactionRow>> transactionsInMonth(int year, int month) {
     return (select(transactions)
           ..where((t) => _inMonth(year, month))

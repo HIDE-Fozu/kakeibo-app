@@ -42,6 +42,23 @@ class DriftTransactionRepository implements TransactionRepository {
   Future<List<CategorySpendRow>> spendingByCategory(int year, int month) =>
       _db.transactionDao.spendingByCategory(year, month);
 
+  @override
+  Future<void> update(TransactionEntity tx) {
+    final id = tx.id;
+    if (id == null) {
+      throw ArgumentError('update requires a persisted transaction (id != null)');
+    }
+    assert(tx.amountYen >= 0, 'amount must be non-negative');
+    return _db.transactionDao.updateFields(
+      id,
+      amount: tx.amountYen,
+      date: tx.date,
+      categoryId: tx.categoryId,
+      paymentMethod: tx.paymentMethod,
+      memo: tx.memo,
+    );
+  }
+
   TransactionEntity _toEntity(TransactionRow r) => TransactionEntity(
         id: r.id,
         type: r.type,
