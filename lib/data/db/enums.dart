@@ -1,0 +1,10 @@
+/// 永続化される enum。順序変更に強い textEnum(.name) で保存する。
+/// 要素の追加は末尾/任意位置に可（.name 保存のため既存行は壊れない）。
+/// 要素の「リネーム」は既存データを壊すのでマイグレーション必須。
+enum TxnType { expense, income }
+
+enum CategoryType { expense, income }
+
+enum PaymentMethod { cash, creditCard, eMoney, bankDraft, other }
+
+enum TxnSource { manual, receiptOcr }
