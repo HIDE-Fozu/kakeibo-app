@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'database.dart';
 import 'tables.dart';
 import 'enums.dart';
+import '../../domain/money/civil_date.dart';
 
 part 'daos.g.dart';
 
@@ -9,7 +10,25 @@ part 'daos.g.dart';
 class TransactionDao extends DatabaseAccessor<AppDatabase>
     with _$TransactionDaoMixin {
   TransactionDao(super.db);
-  // 読み書き/集計は Task 6, 7 で追加する。
+
+  /// 半開区間 [firstOfMonth, firstOfNextMonth) を ISO 文字列比較で表現。
+  /// date 列はゼロ埋め YYYY-MM-DD なので辞書順比較＝日付順比較。
+  Expression<bool> _inMonth(int year, int month) {
+    final startIso = CivilDate.firstOfMonthIso(year, month);
+    final endIso = CivilDate.firstOfNextMonthIso(year, month);
+    return transactions.date.isBiggerOrEqualValue(startIso) &
+        transactions.date.isSmallerThanValue(endIso);
+  }
+
+  Future<int> insertTransaction(TransactionsCompanion c) =>
+      into(transactions).insert(c);
+
+  Future<List<TransactionRow>> transactionsInMonth(int year, int month) {
+    return (select(transactions)
+          ..where((t) => _inMonth(year, month))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
 }
 
 @DriftAccessor(tables: [Categories])
