@@ -817,7 +817,6 @@ git commit -m "feat: BackupService export (DB -> payload -> JSON, id-faithful)"
 
 Create `test/backup/backup_restore_test.dart`:
 ```dart
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/backup/backup_data.dart';
 import 'package:kakeibo_app/data/backup/backup_codec.dart';
@@ -1255,7 +1254,6 @@ git commit -m "feat: AutoBackupStore (silent rolling-generation snapshots with w
 Create `test/backup/backup_service_flow_test.dart`:
 ```dart
 import 'dart:io';
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/backup/auto_backup_store.dart';
 import 'package:kakeibo_app/data/backup/backup_codec.dart';
@@ -1471,7 +1469,6 @@ Create `test/backup/csv_exporter_test.dart`:
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/backup/backup_service.dart';
-import 'package:kakeibo_app/data/backup/csv_exporter.dart';
 import 'package:kakeibo_app/data/db/database.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
