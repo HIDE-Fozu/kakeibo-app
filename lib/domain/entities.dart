@@ -29,3 +29,22 @@ class MonthlySummary {
   const MonthlySummary({required this.income, required this.expense});
   int get net => income - expense;
 }
+
+class CategoryEntity {
+  final int id;
+  final String name;
+  final CategoryType type;
+  final String? icon;
+  final int sortOrder;
+  final bool isArchived;
+  final bool isSystem;
+  const CategoryEntity({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.icon,
+    required this.sortOrder,
+    required this.isArchived,
+    required this.isSystem,
+  });
+}

@@ -77,7 +77,7 @@ class CategorySpendRow {
   });
 }
 
-@DriftAccessor(tables: [Categories])
+@DriftAccessor(tables: [Categories, Transactions])
 class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {
   CategoryDao(super.db);
@@ -90,5 +90,30 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
           ..where((c) => c.isSystem.equals(true) & c.type.equalsValue(type)))
         .getSingle();
     return row.id;
+  }
+
+  Future<List<CategoryRow>> activeCategories() =>
+      (select(categories)
+            ..where((c) => c.isArchived.equals(false))
+            ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)]))
+          .get();
+
+  Future<int> countTransactionsFor(int categoryId) async {
+    final cnt = transactions.id.count();
+    final q = selectOnly(transactions)
+      ..addColumns([cnt])
+      ..where(transactions.categoryId.equals(categoryId));
+    final row = await q.getSingle();
+    return row.read(cnt) ?? 0;
+  }
+
+  Future<void> archive(int categoryId) async {
+    await (update(categories)..where((c) => c.id.equals(categoryId)))
+        .write(const CategoriesCompanion(isArchived: Value(true)));
+  }
+
+  Future<void> setType(int categoryId, CategoryType type) async {
+    await (update(categories)..where((c) => c.id.equals(categoryId)))
+        .write(CategoriesCompanion(type: Value(type)));
   }
 }
