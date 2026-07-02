@@ -29,6 +29,52 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .get();
   }
+
+  Future<Map<TxnType, int>> totalsByType(int year, int month) async {
+    final amountSum = transactions.amount.sum();
+    final query = selectOnly(transactions)
+      ..addColumns([transactions.type, amountSum])
+      ..where(_inMonth(year, month))
+      ..groupBy([transactions.type]);
+    final rows = await query.get();
+    return {
+      for (final row in rows)
+        row.readWithConverter(transactions.type)!: row.read(amountSum) ?? 0,
+    };
+  }
+
+  Future<List<CategorySpendRow>> spendingByCategory(int year, int month) async {
+    final amountSum = transactions.amount.sum();
+    final query = selectOnly(transactions).join([
+      innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
+          useColumns: false),
+    ])
+      ..addColumns([categories.id, categories.name, amountSum])
+      ..where(_inMonth(year, month) &
+          transactions.type.equalsValue(TxnType.expense))
+      ..groupBy([transactions.categoryId])
+      ..orderBy([OrderingTerm.desc(amountSum)]);
+    final rows = await query.get();
+    return [
+      for (final row in rows)
+        CategorySpendRow(
+          categoryId: row.read(categories.id)!,
+          categoryName: row.read(categories.name)!,
+          total: row.read(amountSum) ?? 0,
+        ),
+    ];
+  }
+}
+
+class CategorySpendRow {
+  final int categoryId;
+  final String categoryName;
+  final int total;
+  const CategorySpendRow({
+    required this.categoryId,
+    required this.categoryName,
+    required this.total,
+  });
 }
 
 @DriftAccessor(tables: [Categories])
