@@ -1,4 +1,4 @@
-<title>家計簿UIモック v2</title>
+<title>家計簿UIモック v3</title>
 <style>
   :root{
     --paper:#F6F5F0; --card:#FFFFFF; --ink:#20241F; --muted:#6F756A;
@@ -206,9 +206,10 @@
 </style>
 
 <div class="top">
-  <h1>家計簿 UIモック <span style="color:var(--primary)">v2</span></h1>
+  <h1>家計簿 UIモック <span style="color:var(--primary)">v3</span></h1>
   <div class="sub">
-    <b>v2の変更</b>: ①セル略記を万表記（0.3万/1.2万）に ②子カテゴリ（食費タップ→内訳が出る・再タップで格納） ③サマリは入れ子を積み上げバー＋タップ展開 ④カテゴリ管理に子カテゴリ作成。
+    <b>v3の変更</b>: 階層の呼称を「親子」から<b>「カテゴリ／内訳」</b>に統一（例:「食費の内訳を追加」）。<br>
+    v2: ①万表記（0.3万/1.2万） ②内訳チップ（食費タップ→出現・再タップで格納） ③サマリの積み上げバー＋展開 ④カテゴリ管理で内訳作成。
   </div>
   <div class="chips" id="screenChips" role="tablist"></div>
   <div class="cellsel" id="cellSel">
@@ -379,7 +380,7 @@ function vSummary(){
       <div class="sumline"><span>支出</span><span class="v money ex">-${yen(a.ex)}</span></div>
       <div class="sumline net"><span>差引</span><span class="v money">${netStr}</span></div>
     </div>
-    <div class="sechead">カテゴリ別支出（子カテゴリありは積み上げ・タップで内訳）</div>
+    <div class="sechead">カテゴリ別支出（内訳のあるカテゴリは積み上げ・タップで展開）</div>
     ${cats.map(([c,v])=>{
       const pct = Math.round(v/a.ex*100);
       const subs = a.bySub[c] ? Object.entries(a.bySub[c]).sort((x,y)=>y[1]-x[1]) : [];
@@ -417,7 +418,7 @@ function vSettings(){
     <div class="stile"><span class="si">♻️</span><div class="sc"><div class="st">復元</div><div class="ss">全データを置き換えます</div></div></div>
     <div style="height:10px; border-bottom:1px solid var(--line)"></div>
     <div class="stile"><span class="si">🧾</span><div class="sc"><div class="st">レシート画像をローカル保持</div><div class="ss">既定では保存後に破棄します</div></div><span class="switch" data-switch></span></div>
-    <div class="stile" data-goto="cats"><span class="si">🗂</span><div class="sc"><div class="st">カテゴリ管理</div><div class="ss">子カテゴリの作成もこちら</div></div><span style="color:var(--muted)">›</span></div>
+    <div class="stile" data-goto="cats"><span class="si">🗂</span><div class="sc"><div class="st">カテゴリ管理</div><div class="ss">カテゴリの内訳もここで作成</div></div><span style="color:var(--muted)">›</span></div>
     <div style="height:10px; border-bottom:1px solid var(--line)"></div>
     <div class="stile"><span class="si">🔒</span><div class="sc"><div class="st">データの取り扱いについて</div></div></div>`;
 }
@@ -434,7 +435,7 @@ function vCats(){
     ${list.map(c=>{
       const parent = `<div class="crow"><span class="h">≡</span>
         <span class="nm"><span>${c.e}</span><span>${esc(c.n)}</span></span>
-        <button class="act" title="子カテゴリを追加" data-newkid="${esc(c.n)}">＋子</button>
+        <button class="act" title="内訳を追加" data-newkid="${esc(c.n)}">＋内訳</button>
         <button class="act" title="改名">✏️</button><button class="act" title="アーカイブ">📥</button></div>`;
       const kids = (c.kids||[]).map(([k,ke])=>`<div class="crow child"><span class="tree">└</span>
         <span class="nm"><span>${ke}</span><span>${esc(k)}</span></span>
@@ -522,27 +523,28 @@ const NOTES = {
     <li>トグルでドット/バー案とも比較可。実機45px幅の可読性で最終決定</li>
     <li>月ヘッダ3値・バナーの存在感は引き続き要判断</li></ul>`,
   entry: `<ul>
-    <li><b>子カテゴリ（v2）</b>: 「食費」「趣味・娯楽」に▼マーク。タップで内訳チップが<b>グリッドの直上</b>に出ます（テンキーとの被り回避でこの位置に。もっと上=金額の下に出す案も）</li>
-    <li>もう一度親をタップ→内訳を格納（選択は親のまま維持）。内訳未選択で保存すれば親に計上</li>
-    <li>子選択中は親ボタンのラベルが子名に変わる（例: 食費→外食）。分かりやすい？</li>
+    <li><b>内訳（旧・子カテゴリ）</b>: 「食費」「趣味・娯楽」に▼マーク。タップで内訳チップが<b>グリッドの直上</b>に出ます（テンキーとの被り回避でこの位置。金額の下に出す案も）</li>
+    <li>もう一度カテゴリをタップ→内訳を格納（選択は維持）。内訳を選ばず保存すれば「食費」のまま計上</li>
+    <li>内訳選択中はカテゴリボタンのラベルが内訳名に変わる（例: 食費→外食）。分かりやすい？</li>
     <li>テンキー・保存は実動。保存するとカレンダーに反映されます</li></ul>`,
   receipt: `<ul>
     <li>確信度ハイライト: 金額=合計行(緑)/最大値(琥珀)。候補チップで切替</li>
-    <li>レシートでも子カテゴリ選択は同じ挙動（食費▼→外食）</li>
+    <li>レシートでも内訳の選択は同じ挙動（食費▼→外食）</li>
     <li>読み取り失敗時は赤の注記＋¥0で手入力へ（モック省略）</li></ul>`,
   summary: `<ul>
-    <li><b>入れ子グラフ（v2）</b>: 子カテゴリ持ちは積み上げバー＋「▼内訳」タップで展開。食費を開いてみてください</li>
-    <li>親に直接つけた分は「（内訳なし）」表示。名称これでいい？（例:「食費（直接）」）</li>
-    <li>積み上げの配色は深緑の濃淡5段。子が6個以上なら循環</li>
+    <li><b>入れ子グラフ</b>: 内訳のあるカテゴリは積み上げバー＋「▼内訳」タップで展開。食費を開いてみてください</li>
+    <li>カテゴリ本体に直接つけた分は「（内訳なし）」表示。名称これでいい？</li>
+    <li>積み上げの配色は深緑の濃淡5段。内訳6個以上なら循環</li>
     <li>展開をアコーディオン（同時1個）にするか複数開けるか（現状:複数可）</li></ul>`,
   settings: `<ul>
-    <li>「カテゴリ管理」のサブ文言に子カテゴリ導線を追記（v2）</li>
+    <li>「カテゴリ管理」のサブ文言は「カテゴリの内訳もここで作成」に（v3）</li>
     <li>並び順・二重表示（ステータス行+バナー）は引き続き要判断</li></ul>`,
   cats: `<ul>
-    <li><b>子カテゴリ作成（v2）</b>: 親行の「＋子」から作成、右上「＋」は親カテゴリ作成。導線これで迷わない？</li>
-    <li>子は└でネスト表示。ドラッグ並べ替えは親内でのみ（子を別親へ移動は要議論）</li>
-    <li>階層は2段まで（孫は作らない）でいい？</li>
-    <li>実装影響: categories に parentId 追加＝DBマイグレーション＋バックアップ形式v2＋集計クエリ変更。Phase 4.5として1フェーズ分の工事になります</li></ul>`,
+    <li><b>呼称はカテゴリ／内訳に統一（v3）</b>。参考: マネーフォワード=大項目/中項目、Zaim=カテゴリ/ジャンル。「食費の内訳」と読める日常語を採用</li>
+    <li>内訳の作成: カテゴリ行の「＋内訳」、右上「＋」は新しいカテゴリ。導線これで迷わない？</li>
+    <li>内訳は└でネスト表示。並べ替えは同じカテゴリ内のみ（別カテゴリへの移動は要議論）</li>
+    <li>階層は「カテゴリ＞内訳」の2段まで（内訳の内訳は作らない）</li>
+    <li>実装影響: categories に parentId 追加＝DBマイグレーション＋バックアップ形式v2＋集計クエリ変更。Phase 4.5として1フェーズ分の工事</li></ul>`,
 };
 
 /* ============ chrome / nav ============ */
@@ -608,7 +610,7 @@ document.addEventListener('click', (ev)=>{
   if (d.edit !== undefined){ toast('編集画面へ（モックでは省略）'); return; }
   if (d.sumrow){ S.sumOpen[d.sumrow] = !S.sumOpen[d.sumrow]; return render(); }
   if (d.newcat !== undefined){ toast('カテゴリ作成ダイアログ（モックでは省略）'); return; }
-  if (d.newkid){ toast(`「${d.newkid}」に子カテゴリを追加（モックでは省略）`); return; }
+  if (d.newkid){ toast(`「${d.newkid}」に内訳を追加（モックでは省略）`); return; }
   if (d.switch !== undefined){ t.classList.toggle('on'); return; }
   if (d.scan !== undefined){ startEntry(true); return render(); }
 
