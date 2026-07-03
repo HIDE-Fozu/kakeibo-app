@@ -3,6 +3,18 @@
 Windows側の仕込みは完了済み。このファイルの手順をMacで上から実行すればTestFlight配信に到達する。
 MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handoff.md` を読ませれば続きから動ける。
 
+## Mac側の進捗（2026-07-03）
+
+| Step | 状態 | メモ |
+|---|---|---|
+| 1 環境構築 | ✅ 完了 | Flutter 3.44.4 / Dart 3.12.2・Xcode 26.6・CocoaPods 1.16.2・gh認証済み（全て導入済みだった） |
+| 2 クローンとテスト | ✅ 完了 | `flutter analyze` 0 issues・`flutter test` **256本全緑**・`flutter doctor` iOS toolchain緑 |
+| 3 Podfile | ⏭ 該当なし | SPM構成のためPodfile無し（下記§3参照） |
+| 4 署名 | ⏳ **ユーザー作業** | 証明書2枚（Dev/Distribution）・Apple ID・Team `Q7T6APPS23` は確認済み。XcodeでTeam選択が残り |
+| 5 スモーク確認 | ◐ 一部 | iPhone 17シミュレータ(iOS 26.4)でビルド＆起動成功・テーマ/カレンダー描画OK・DB初期化OK。UIタップ確認はユーザーで |
+| 6 App Store Connect | ⏳ **ユーザー作業** | App ID登録＋App作成（Web・Apple ID必須） |
+| 7 build ipa→配信 | ⏳ 4・6の後 | 署名設定後に `flutter build ipa` はこちらで実行可。アップロードはTransporter（ユーザー） |
+
 ## Windows側で設定済みのもの（2026-07-03）
 
 | 項目 | 値 | 変更する場合 |
@@ -40,10 +52,14 @@ flutter test        # 期待: 256本全緑（Windowsと同じ）
 flutter doctor      # iOS toolchainが緑であること
 ```
 
-## 3. Podfileのdeployment target（初回ビルド時に生成される）
+## 3. Podfileのdeployment target — 【該当なし: SPM構成】
 
-初回の `flutter build` / `pod install` で `ios/Podfile` が生成される。生成されたら先頭付近の
-`# platform :ios, '13.0'` のコメントを外して **`platform :ios, '16.0'`** に変更してコミット。
+> **【2026-07-03 Mac側で判明】このプロジェクトはCocoaPodsではなくSwift Package Manager (SPM) を使う。**
+> `project.pbxproj` にSPM参照がコミット済み（Windows側 d82a7c1）で、`flutter build` しても `ios/Podfile` は**生成されない**（Pods/ ディレクトリも無い）。
+> - deployment targetは Podfile ではなく **pbxprojの `IPHONEOS_DEPLOYMENT_TARGET = 16.0`（3箇所・設定済み）** が支配する。編集不要。
+> - 標準プラグイン（`path_provider_foundation` / `shared_preferences_foundation`）はSPM統合。`sqlite3_flutter_libs` は native assets 機構で自動バンドル（プラグイン一覧には出ない）。
+> - `flutter build ios --config-only` 実行時に `.gitignore` へ `.build/` `.swiftpm/` が自動追記される（コミット済み）。
+> - **→ この節はスキップして Step 4 へ。**
 
 ## 4. 署名設定（Xcode）
 
@@ -53,9 +69,14 @@ open ios/Runner.xcworkspace
 
 1. 左ペインで Runner プロジェクト → TARGETS Runner → **Signing & Capabilities**
 2. 「Automatically manage signing」をON
-3. **Team** に自分のApple Developer Programチームを選択
+3. **Team** に自分のApple Developer Programチームを選択（**確認済み Team ID = `Q7T6APPS23`（Hideaki Sato）**）
 4. Bundle Identifier が `com.hidefozu.kakeibo` であること（変えるなら**この時点まで**に）
 5. RunnerTests ターゲットも同様にTeamを設定
+
+> **【2026-07-03 Mac側で判明】署名の土台は既に用意されている:**
+> - Apple ID は Xcode にサインイン済み。証明書は `Apple Development` と **`Apple Distribution`（配布=TestFlight用）** の2枚がキーチェーンに存在。Team ID = **`Q7T6APPS23`**。
+> - ただし pbxprojの Runner ターゲットには `DEVELOPMENT_TEAM` 未設定・`CODE_SIGN_STYLE` 未指定（デフォルトの "iPhone Developer"）。**このStep 4でTeamを選ぶと自動でAutomaticになりTeamが入る**。プロビジョニングプロファイルもこの時点でXcodeが取得/作成する。
+> - CLIで済ませたい場合は pbxproj の Runner 3コンフィグに `CODE_SIGN_STYLE = Automatic;` と `DEVELOPMENT_TEAM = Q7T6APPS23;` を追記して `flutter build ipa --export-options-plist` でも可だが、初回はXcode GUIが確実（App IDの自動登録・プロファイル取得を任せられる）。
 
 ## 5. シミュレータ/実機でスモーク確認
 
