@@ -7,6 +7,7 @@ import '../../../core/format.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../application/calendar_providers.dart';
+import 'backup_banner.dart';
 import 'day_transaction_list.dart';
 
 class CalendarScreen extends ConsumerWidget {
@@ -25,6 +26,7 @@ class CalendarScreen extends ConsumerWidget {
     return SafeArea(
       child: Column(
         children: [
+          const BackupBanner(),
           _MonthHeader(year: year, month: month, summary: summary),
           TableCalendar<int>(
             firstDay: DateTime(2000, 1, 1),

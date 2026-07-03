@@ -62,7 +62,12 @@ class TestHarness {
 
   void dispose() {
     db.close();
-    if (root.existsSync()) root.deleteSync(recursive: true);
+    try {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    } on FileSystemException {
+      // Windowsのファイルハンドル解放遅延で稀に失敗する。
+      // 一時ディレクトリなのでOSのクリーンアップに任せる。
+    }
   }
 }
 

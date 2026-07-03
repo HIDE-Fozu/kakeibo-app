@@ -62,20 +62,21 @@ class BackupController extends Notifier<void> {
     return true;
   }
 
+  // ファイルIOは同期API: 小ファイルであり、widgetテスト(FakeAsync)では
+  // 非同期IOの完了イベントが配送されず永久に固まるため。
   Future<File> exportJson({String? passphrase}) async {
     final json = await ref.read(backupServiceProvider).exportJson();
     if (passphrase == null || passphrase.isEmpty) {
-      return _writeExport(
-          'json', (f) async => f.writeAsString(json, flush: true));
+      return _writeExport('json', (f) => f.writeAsStringSync(json, flush: true));
     }
     final bytes =
         await ref.read(backupCryptoProvider).encrypt(json, passphrase);
-    return _writeExport('kkbk', (f) async => f.writeAsBytes(bytes, flush: true));
+    return _writeExport('kkbk', (f) => f.writeAsBytesSync(bytes, flush: true));
   }
 
   Future<File> exportCsv() async {
     final csv = await ref.read(backupServiceProvider).exportCsv();
-    return _writeExport('csv', (f) async => f.writeAsString(csv, flush: true));
+    return _writeExport('csv', (f) => f.writeAsStringSync(csv, flush: true));
   }
 
   List<RestoreSource> listRestoreSources() {
@@ -117,9 +118,9 @@ class BackupController extends Notifier<void> {
       }
       json = await ref
           .read(backupCryptoProvider)
-          .decrypt(await src.file.readAsBytes(), passphrase);
+          .decrypt(src.file.readAsBytesSync(), passphrase);
     } else {
-      json = await src.file.readAsString();
+      json = src.file.readAsStringSync();
     }
     await ref
         .read(backupServiceProvider)
@@ -127,8 +128,7 @@ class BackupController extends Notifier<void> {
     ref.invalidate(lastBackupProvider);
   }
 
-  Future<File> _writeExport(
-      String ext, Future<void> Function(File) write) async {
+  File _writeExport(String ext, void Function(File) write) {
     final dir = ref.read(exportsDirProvider)..createSync(recursive: true);
     final now = ref.read(utcNowProvider)();
     final base =
@@ -137,7 +137,7 @@ class BackupController extends Notifier<void> {
     for (var n = 2; file.existsSync(); n++) {
       file = File('$base-$n.$ext'); // 同秒内の連続エクスポートを上書きしない
     }
-    await write(file);
+    write(file);
     return file;
   }
 

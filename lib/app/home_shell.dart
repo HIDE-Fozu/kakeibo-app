@@ -5,6 +5,8 @@ import '../features/calendar/application/calendar_providers.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
+import '../features/settings/application/backup_controller.dart';
+import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
@@ -18,13 +20,25 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 起動時バックアップ（spec §2.1「定期」）。失敗しても起動を妨げない。
+      ref
+          .read(backupControllerProvider.notifier)
+          .runStartupBackupIfStale()
+          .catchError((_) => false);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) => Scaffold(
         body: IndexedStack(
           index: _index,
           children: const [
             CalendarScreen(),
             SummaryScreen(),
-            _PlaceholderTab('(設定 準備中)'), // Task 12 で SettingsScreen に差し替え
+            SettingsScreen(),
           ],
         ),
         floatingActionButton: _index == 0
@@ -54,12 +68,4 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           ],
         ),
       );
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final String label;
-  const _PlaceholderTab(this.label);
-
-  @override
-  Widget build(BuildContext context) => Center(child: Text(label));
 }

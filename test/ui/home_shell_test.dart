@@ -19,6 +19,6 @@ void main() {
 
     await tester.tap(find.text('設定'));
     await tester.pumpAndSettle();
-    expect(find.text('(設定 準備中)'), findsOneWidget);
+    expect(find.byKey(const Key('backup-now')), findsOneWidget);
   });
 }
