@@ -80,7 +80,10 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
           useColumns: false),
     ])
-      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
+      ..addColumns([
+        categories.id, categories.name, categories.isArchived,
+        categories.parentId, amountSum,
+      ])
       ..where(_inMonth(year, month) &
           transactions.type.equalsValue(TxnType.expense))
       ..groupBy([transactions.categoryId])
@@ -91,6 +94,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
               categoryId: row.read(categories.id)!,
               categoryName: row.read(categories.name)!,
               isArchived: row.read(categories.isArchived)!,
+              parentId: row.read(categories.parentId),
               total: row.read(amountSum) ?? 0,
             ),
         ]);
@@ -130,7 +134,10 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
           useColumns: false),
     ])
-      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
+      ..addColumns([
+        categories.id, categories.name, categories.isArchived,
+        categories.parentId, amountSum,
+      ])
       ..where(_inMonth(year, month) &
           transactions.type.equalsValue(TxnType.expense))
       ..groupBy([transactions.categoryId])
@@ -142,6 +149,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
           categoryId: row.read(categories.id)!,
           categoryName: row.read(categories.name)!,
           isArchived: row.read(categories.isArchived)!,
+          parentId: row.read(categories.parentId),
           total: row.read(amountSum) ?? 0,
         ),
     ];
@@ -152,11 +160,13 @@ class CategorySpendRow {
   final int categoryId;
   final String categoryName;
   final bool isArchived;
+  final int? parentId; // 非null=このカテゴリは内訳
   final int total;
   const CategorySpendRow({
     required this.categoryId,
     required this.categoryName,
     required this.isArchived,
+    required this.parentId,
     required this.total,
   });
 }
