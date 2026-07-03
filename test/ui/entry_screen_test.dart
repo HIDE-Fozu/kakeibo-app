@@ -276,6 +276,27 @@ void main() {
     expect(tileTexts.any((t) => t.data == 'カフェ ▾'), isTrue);
   });
 
+  testWidgets('カテゴリの右送りボタン: タップで続きのカテゴリが見える', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // 末尾側のカテゴリは画面外（未レンダリング）
+    expect(find.text('その他'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('cat-scroll-right')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('cat-scroll-right')));
+    await tester.pumpAndSettle();
+    expect(find.text('その他'), findsOneWidget); // 右送りで到達
+  });
+
   testWidgets('内訳未選択のまま保存すると親カテゴリに計上される', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();

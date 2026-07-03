@@ -84,7 +84,10 @@ class EntryScreen extends ConsumerWidget {
                 ReceiptReviewPanel(state: state),
               Container(
                 key: const Key('amount-display'),
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
                 alignment: Alignment.centerRight,
                 decoration: BoxDecoration(
                   color: state.mode == EntryMode.receiptConfirm
@@ -94,37 +97,38 @@ class EntryScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   state.amountYen == 0 ? '¥0' : formatYen(state.amountYen),
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineLarge
-                      ?.copyWith(fontFeatures: kTabularFigures),
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontFeatures: kTabularFigures,
+                  ),
                 ),
               ),
               // 内訳チップは押したタイルの真上（＝グリッド直上）に被せて出す。
               // テンキー下端に重なるが画面は動かない（数字を打ちながら内訳は選ばない）
-              Stack(children: [
-                Numpad(
-                  onDigit: ctrl.tapDigit,
-                  onDoubleZero: ctrl.tapDoubleZero,
-                  onBackspace: ctrl.backspace,
-                ),
-                if (state.expandedParentId != null)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      key: const Key('subcategory-overlay'),
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      padding: const EdgeInsets.only(top: 4),
-                      child: SubcategoryChips(
-                        parentId: state.expandedParentId!,
-                        selectedId: state.categoryId,
-                        onToggle: ctrl.toggleSubcategory,
+              Stack(
+                children: [
+                  Numpad(
+                    onDigit: ctrl.tapDigit,
+                    onDoubleZero: ctrl.tapDoubleZero,
+                    onBackspace: ctrl.backspace,
+                  ),
+                  if (state.expandedParentId != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        key: const Key('subcategory-overlay'),
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        padding: const EdgeInsets.only(top: 4),
+                        child: SubcategoryChips(
+                          parentId: state.expandedParentId!,
+                          selectedId: state.categoryId,
+                          onToggle: ctrl.toggleSubcategory,
+                        ),
                       ),
                     ),
-                  ),
-              ]),
+                ],
+              ),
               const SizedBox(height: 8),
               CategoryGrid(
                 type: state.type,
@@ -150,38 +154,41 @@ class EntryScreen extends ConsumerWidget {
                   label: const Text('メモを追加'),
                 ),
               const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                  child: FilledButton(
-                    key: const Key('save-btn'),
-                    onPressed: state.canSave
-                        ? () async {
-                            await ctrl.save();
-                            if (context.mounted) Navigator.pop(context);
-                          }
-                        : null,
-                    child: const Text('保存'),
-                  ),
-                ),
-                if (state.mode != EntryMode.edit) ...[
-                  // create + receiptConfirm（spec §7.4 分割入力）
-                  const SizedBox(width: 8),
+              Row(
+                children: [
                   Expanded(
-                    child: OutlinedButton(
-                      key: const Key('save-continue-btn'),
+                    child: FilledButton(
+                      key: const Key('save-btn'),
                       onPressed: state.canSave
                           ? () async {
-                              final messenger = ScaffoldMessenger.of(context);
-                              await ctrl.saveAndContinue();
-                              messenger.showSnackBar(
-                                  const SnackBar(content: Text('保存しました')));
+                              await ctrl.save();
+                              if (context.mounted) Navigator.pop(context);
                             }
                           : null,
-                      child: const Text('保存して続ける'),
+                      child: const Text('保存'),
                     ),
                   ),
+                  if (state.mode != EntryMode.edit) ...[
+                    // create + receiptConfirm（spec §7.4 分割入力）
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const Key('save-continue-btn'),
+                        onPressed: state.canSave
+                            ? () async {
+                                final messenger = ScaffoldMessenger.of(context);
+                                await ctrl.saveAndContinue();
+                                messenger.showSnackBar(
+                                  const SnackBar(content: Text('保存しました')),
+                                );
+                              }
+                            : null,
+                        child: const Text('保存して続ける'),
+                      ),
+                    ),
+                  ],
                 ],
-              ]),
+              ),
             ],
           ),
         ),
@@ -197,7 +204,8 @@ class EntryScreen extends ConsumerWidget {
     final path = await ref.read(receiptCaptureProvider).capture();
     if (path == null) {
       messenger.showSnackBar(
-          const SnackBar(content: Text('この端末ではレシート撮影を利用できません')));
+        const SnackBar(content: Text('この端末ではレシート撮影を利用できません')),
+      );
       return;
     }
     try {
@@ -219,11 +227,13 @@ class EntryScreen extends ConsumerWidget {
         content: const Text('この取引を削除します。'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('キャンセル')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('キャンセル'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('削除')),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('削除'),
+          ),
         ],
       ),
     );
