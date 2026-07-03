@@ -199,10 +199,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
   }
 
   /// 内訳チップのタップ。選択中チップの再タップは親（チップ列の親）に戻す。
+  /// どちらの場合もチップ列は格納する（オーバーレイを閉じて即テンキーに戻る）。
   void toggleSubcategory(int subId) {
     final parent = _s.expandedParentId;
     if (parent == null) return; // チップ列が閉じているときは呼ばれない
-    state = _s.copyWith(categoryId: _s.categoryId == subId ? parent : subId);
+    state = _s.copyWith(
+      categoryId: _s.categoryId == subId ? parent : subId,
+      expandedParentId: null,
+    );
   }
 
   void setDate(CivilDate date) => state = _s.copyWith(date: date);
