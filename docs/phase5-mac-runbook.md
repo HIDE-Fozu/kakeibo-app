@@ -13,7 +13,7 @@ MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handof
 | 4 署名 | ⏳ **ユーザー作業** | 証明書2枚（Dev/Distribution）・Apple ID・Team `Q7T6APPS23` は確認済み。XcodeでTeam選択が残り |
 | 5 スモーク確認 | ◐ 一部 | iPhone 17シミュレータ(iOS 26.4)でビルド＆起動成功・テーマ/カレンダー描画OK・DB初期化OK。UIタップ確認はユーザーで |
 | 6 App Store Connect | ⏳ **ユーザー作業** | App ID登録＋App作成（Web・Apple ID必須） |
-| 7 build ipa→配信 | ⏳ 4・6の後 | 署名設定後に `flutter build ipa` はこちらで実行可。アップロードはTransporter（ユーザー） |
+| 7 build ipa→配信 | ⏳ 4・6の後 | **release device build（arm64）は署名なしで検証済み**（`flutter build ios --release --no-codesign` 成功20.2MB・`sqlite3.framework`バンドル確認）。残るは署名→`flutter build ipa`（こちらで実行可）→Transporter（ユーザー） |
 
 ## Windows側で設定済みのもの（2026-07-03）
 
