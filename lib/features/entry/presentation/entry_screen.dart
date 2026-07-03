@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/providers.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
@@ -8,6 +9,7 @@ import '../../../domain/money/civil_date.dart';
 import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
+import 'receipt_review_panel.dart';
 
 class EntryScreen extends ConsumerWidget {
   const EntryScreen({super.key});
@@ -28,6 +30,12 @@ class EntryScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(title),
         actions: [
+          if (state.mode == EntryMode.create)
+            IconButton(
+              key: const Key('scan-receipt'),
+              icon: const Icon(Icons.receipt_long),
+              onPressed: () => _scanReceipt(context, ref),
+            ),
           if (state.mode == EntryMode.edit)
             IconButton(
               key: const Key('delete-entry'),
@@ -57,6 +65,9 @@ class EntryScreen extends ConsumerWidget {
                 dense: true,
                 leading: const Icon(Icons.event),
                 title: Text(_dateLabel(state.date)),
+                tileColor: state.mode == EntryMode.receiptConfirm
+                    ? confidenceTint(state.matchedDateCandidate?.confidence)
+                    : null,
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
@@ -67,10 +78,18 @@ class EntryScreen extends ConsumerWidget {
                   if (picked != null) ctrl.setDate(civilOfDateTime(picked));
                 },
               ),
+              if (state.mode == EntryMode.receiptConfirm)
+                ReceiptReviewPanel(state: state),
               Container(
                 key: const Key('amount-display'),
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 alignment: Alignment.centerRight,
+                decoration: BoxDecoration(
+                  color: state.mode == EntryMode.receiptConfirm
+                      ? confidenceTint(state.matchedTotalCandidate?.confidence)
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Text(
                   state.amountYen == 0 ? '¥0' : formatYen(state.amountYen),
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -147,6 +166,25 @@ class EntryScreen extends ConsumerWidget {
 
   String _dateLabel(CivilDate date) =>
       '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+
+  Future<void> _scanReceipt(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final path = await ref.read(receiptCaptureProvider).capture();
+    if (path == null) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('この端末ではレシート撮影を利用できません')));
+      return;
+    }
+    try {
+      final blocks = await ref.read(ocrServiceProvider).recognize(path);
+      final parsed = ref.read(receiptParserProvider).parse(blocks);
+      ref
+          .read(entryFormControllerProvider.notifier)
+          .startReceipt(parsed, imagePath: path);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('読み取りに失敗しました: $e')));
+    }
+  }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final ok = await showDialog<bool>(

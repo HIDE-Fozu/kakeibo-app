@@ -99,6 +99,14 @@ Future<T> waitForData<T>(
   return completer.future.whenComplete(sub.close);
 }
 
+/// テスト用: 固定パスを返す撮影スタブ。
+class FakeReceiptCapture implements ReceiptCapture {
+  final String? path;
+  const FakeReceiptCapture(this.path);
+  @override
+  Future<String?> capture() async => path;
+}
+
 /// iPhone相当の論理サイズ（390x844）。縦長フォームのoverflow検知のため必ず使う。
 void setPhoneSurface(WidgetTester tester) {
   tester.view.physicalSize = const Size(1170, 2532);
