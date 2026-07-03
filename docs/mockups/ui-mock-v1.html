@@ -1,0 +1,576 @@
+<title>家計簿UIモック v1</title>
+<style>
+  :root{
+    --paper:#F6F5F0; --card:#FFFFFF; --ink:#20241F; --muted:#6F756A;
+    --line:#E3E2D8; --primary:#1E6B5A; --primary-soft:#E4EFE9;
+    --expense:#B8433A; --expense-soft:#F7E9E7; --income:#2E6E93; --income-soft:#E7EFF5;
+    --amber:#A8741A; --amber-soft:#F6EDDC; --good-soft:#E2F0E6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{background:#ECEAE3; color:var(--ink);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
+  button:focus-visible{outline:2px solid var(--primary); outline-offset:2px}
+
+  /* ==== page chrome ==== */
+  .top{max-width:1080px; margin:0 auto; padding:20px 16px 8px}
+  .top h1{font-size:16px; font-weight:700; letter-spacing:.02em}
+  .top .sub{font-size:12px; color:var(--muted); margin-top:2px}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+  .chip{padding:6px 14px; border-radius:999px; border:1px solid var(--line);
+    background:var(--card); font-size:13px; color:var(--muted)}
+  .chip[aria-pressed="true"]{background:var(--primary); border-color:var(--primary); color:#fff}
+  .cellsel{display:none; align-items:center; gap:8px; margin-top:10px; font-size:12px; color:var(--muted)}
+  .cellsel.show{display:flex}
+  .cellsel .chip{padding:4px 10px; font-size:12px}
+
+  main{max-width:1080px; margin:0 auto; padding:12px 16px 48px;
+    display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; justify-content:center}
+
+  /* ==== phone frame ==== */
+  .phone{width:390px; height:800px; background:var(--paper); border-radius:44px;
+    border:1px solid #D8D5CB; box-shadow:0 24px 60px rgba(32,36,31,.18), 0 2px 8px rgba(32,36,31,.08);
+    overflow:hidden; display:flex; flex-direction:column; flex:none; position:relative}
+  .statusbar{height:44px; flex:none; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:13px; font-weight:600}
+  .content{flex:1; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column}
+  .tabbar{flex:none; height:74px; border-top:1px solid var(--line); background:var(--card);
+    display:flex; padding-bottom:12px}
+  .tabbar button{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; font-size:10px; color:var(--muted)}
+  .tabbar button[aria-current="true"]{color:var(--primary); font-weight:700}
+  .tabbar .ticon{font-size:20px; line-height:1}
+  .fab{position:absolute; right:18px; bottom:96px; width:58px; height:58px; border-radius:20px;
+    background:var(--primary); color:#fff; font-size:28px; font-weight:300; line-height:1;
+    box-shadow:0 8px 20px rgba(30,107,90,.4); display:flex; align-items:center; justify-content:center}
+
+  /* ==== shared bits ==== */
+  .banner{display:flex; align-items:center; gap:6px; padding:5px 16px; font-size:11px;
+    color:var(--muted); background:#EFEEE6; border-bottom:1px solid var(--line)}
+  .money{font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+  .ex{color:var(--expense)} .in{color:var(--income)}
+  .appbar{display:flex; align-items:center; gap:4px; padding:10px 8px; flex:none}
+  .appbar .title{flex:1; text-align:center; font-size:15px; font-weight:700}
+  .appbar .icon{width:44px; height:44px; font-size:20px; display:flex; align-items:center; justify-content:center;
+    border-radius:12px}
+  .appbar .icon:hover{background:rgba(32,36,31,.05)}
+  .toast{position:absolute; left:50%; transform:translateX(-50%); bottom:110px;
+    background:var(--ink); color:#fff; font-size:13px; padding:10px 18px; border-radius:10px;
+    opacity:0; pointer-events:none; transition:opacity .18s}
+  @media (prefers-reduced-motion: reduce){ .toast{transition:none} }
+  .toast.show{opacity:.94}
+
+  /* ==== calendar ==== */
+  .mhead{display:flex; align-items:center; padding:4px 6px}
+  .mhead .nav{width:44px; height:44px; font-size:22px; color:var(--muted); border-radius:12px}
+  .mhead .mid{flex:1; text-align:center}
+  .mhead .ym{font-size:16px; font-weight:800; letter-spacing:.04em}
+  .mhead .tot{font-size:11px; color:var(--muted); margin-top:2px}
+  .mhead .tot b{font-weight:700}
+  .dow{display:grid; grid-template-columns:repeat(7,1fr); padding:0 8px; font-size:10px;
+    color:var(--muted); text-align:center; letter-spacing:.08em}
+  .dow .su{color:#B5645E} .dow .sa{color:#5F7D9A}
+  .grid{display:grid; grid-template-columns:repeat(7,1fr); padding:2px 8px 6px; row-gap:2px}
+  .cell{height:56px; border-radius:10px; display:flex; flex-direction:column; align-items:center;
+    padding-top:6px; position:relative; font-size:13px}
+  .cell:hover{background:rgba(32,36,31,.04)}
+  .cell .d{line-height:1; font-weight:500}
+  .cell.today .d{color:var(--primary); font-weight:800}
+  .cell.sel{background:var(--primary-soft); box-shadow:inset 0 0 0 1.5px var(--primary)}
+  .cell .amt{font-size:9.5px; margin-top:5px; color:var(--expense); font-weight:600;
+    font-variant-numeric:tabular-nums}
+  .cell .dot{border-radius:999px; background:var(--expense); margin-top:7px; opacity:.75}
+  .cell .dot.s{width:4px;height:4px} .cell .dot.m{width:7px;height:7px} .cell .dot.l{width:10px;height:10px}
+  .cell .bar{position:absolute; bottom:5px; left:14%; height:3.5px; border-radius:2px; background:var(--expense); opacity:.7}
+  .daylist{flex:1; border-top:1px solid var(--line); background:var(--card); min-height:150px}
+  .daylist .dl-head{font-size:11px; color:var(--muted); padding:10px 16px 2px; letter-spacing:.06em}
+  .row{display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #F0EFE8}
+  .row:hover{background:#FBFAF6}
+  .row .ci{width:36px; height:36px; border-radius:10px; background:var(--paper);
+    display:flex; align-items:center; justify-content:center; font-size:18px; flex:none}
+  .row .rc{flex:1; min-width:0}
+  .row .rn{font-size:13.5px; font-weight:600}
+  .row .rm{font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .row .ra{font-size:14.5px; font-weight:700}
+  .empty{display:flex; flex-direction:column; align-items:center; gap:8px; padding:28px 0; color:var(--muted); font-size:13px}
+  .empty .add{color:var(--primary); font-weight:700; font-size:13.5px}
+
+  /* ==== entry ==== */
+  .seg{display:flex; margin:2px 16px 10px; border:1.5px solid var(--primary); border-radius:12px; overflow:hidden}
+  .seg button{flex:1; padding:9px 0; font-size:13.5px; font-weight:700; color:var(--primary)}
+  .seg button[aria-pressed="true"]{background:var(--primary); color:#fff}
+  .daterow{display:flex; align-items:center; gap:8px; margin:0 16px; padding:8px 10px;
+    border-radius:10px; font-size:13.5px}
+  .daterow:hover{background:rgba(32,36,31,.04)}
+  .amount{margin:2px 16px; padding:10px 14px; text-align:right; font-size:38px; font-weight:800;
+    border-radius:12px; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  .amount.hi{background:var(--good-soft)} .amount.md{background:var(--amber-soft)} .amount.lo{background:var(--expense-soft)}
+  .numpad{display:grid; grid-template-columns:repeat(3,1fr); margin:0 10px}
+  .numpad button{height:54px; font-size:23px; font-weight:500; border-radius:12px}
+  .numpad button:hover{background:rgba(32,36,31,.05)}
+  .catgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:10px 16px}
+  .cat{border-radius:10px; background:#EFEEE6; padding:8px 2px 7px; display:flex; flex-direction:column;
+    align-items:center; gap:2px}
+  .cat .ce{font-size:17px; line-height:1} .cat .cn{font-size:10px; white-space:nowrap; overflow:hidden; max-width:100%; text-overflow:ellipsis}
+  .cat[aria-pressed="true"]{background:var(--primary-soft); box-shadow:inset 0 0 0 1.5px var(--primary); font-weight:700}
+  .memobtn{margin:2px 16px; font-size:13px; color:var(--primary); font-weight:600; text-align:left; padding:6px 0}
+  .memofield{margin:6px 16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    font-size:13.5px; width:calc(100% - 32px); background:var(--card); font-family:inherit}
+  .saverow{display:flex; gap:8px; margin:12px 16px 20px}
+  .saverow .primary{flex:1; background:var(--primary); color:#fff; padding:13px 0; border-radius:12px;
+    font-size:14.5px; font-weight:700}
+  .saverow .secondary{flex:1; border:1.5px solid var(--primary); color:var(--primary); padding:13px 0;
+    border-radius:12px; font-size:14.5px; font-weight:700}
+  .saverow .disabled{opacity:.35; pointer-events:none}
+
+  /* ==== receipt ==== */
+  .rimg{margin:4px 16px; background:#FDFDFB; border:1px solid var(--line); border-radius:10px;
+    padding:12px 18px; font-size:11.5px; line-height:1.9; color:#3A3E38;
+    font-variant-numeric:tabular-nums; box-shadow:inset 0 -14px 18px -16px rgba(32,36,31,.25)}
+  .rimg .rrow{display:flex; justify-content:space-between}
+  .rimg .hlt{background:var(--good-soft); border-radius:4px; padding:0 4px; margin:0 -4px; font-weight:700}
+  .chiprow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 16px 0; align-items:center}
+  .chiprow .lbl{font-size:10.5px; color:var(--muted); letter-spacing:.06em; width:100%}
+  .pchip{border-radius:999px; padding:5px 12px; font-size:12.5px; border:1px solid var(--line);
+    background:var(--card); font-variant-numeric:tabular-nums}
+  .pchip[aria-pressed="true"]{border-color:var(--primary); background:var(--primary-soft); font-weight:700}
+  .pchip .conf{font-size:9.5px; margin-left:5px; color:var(--muted)}
+
+  /* ==== summary ==== */
+  .sumcard{margin:8px 16px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 18px}
+  .sumline{display:flex; justify-content:space-between; padding:4px 0; font-size:14px}
+  .sumline .v{font-weight:700; font-variant-numeric:tabular-nums}
+  .sumline.net{border-top:1px solid var(--line); margin-top:8px; padding-top:10px; font-size:15.5px}
+  .sechead{font-size:11px; color:var(--muted); letter-spacing:.08em; margin:16px 18px 6px}
+  .sprow{margin:0 16px 12px; font-size:13px}
+  .sprow .l1{display:flex; align-items:baseline; gap:8px}
+  .sprow .nm{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .sprow .v{font-weight:700; font-variant-numeric:tabular-nums}
+  .sprow .pct{width:36px; text-align:right; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .sprow .track{height:6px; background:#ECEBE2; border-radius:3px; margin-top:5px}
+  .sprow .fill{height:100%; border-radius:3px; background:var(--primary)}
+
+  /* ==== settings / cats ==== */
+  .stile{display:flex; align-items:center; gap:14px; padding:13px 18px; border-bottom:1px solid #EFEEE6; font-size:13.5px}
+  .stile:hover{background:#FBFAF6}
+  .stile .si{width:24px; text-align:center; font-size:17px; flex:none}
+  .stile .sc{flex:1; min-width:0}
+  .stile .st{font-weight:600}
+  .stile .ss{font-size:11px; color:var(--muted); margin-top:1px}
+  .switch{width:44px; height:26px; border-radius:13px; background:#D9D7CC; position:relative; flex:none}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px;
+    border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .15s}
+  .switch.on{background:var(--primary)} .switch.on::after{left:21px}
+  .cattabs{display:flex; border-bottom:1px solid var(--line)}
+  .cattabs button{flex:1; padding:11px 0; font-size:13.5px; font-weight:700; color:var(--muted);
+    border-bottom:2.5px solid transparent}
+  .cattabs button[aria-pressed="true"]{color:var(--primary); border-bottom-color:var(--primary)}
+  .crow{display:flex; align-items:center; gap:12px; padding:11px 16px; border-bottom:1px solid #F0EFE8; font-size:13.5px}
+  .crow .h{color:#C9C6B9; cursor:grab; font-size:15px}
+  .crow .nm{flex:1; display:flex; gap:8px; align-items:center}
+  .crow .act{color:var(--muted); font-size:16px; padding:4px 6px; border-radius:8px}
+  .crow .act:hover{background:rgba(32,36,31,.06)}
+  .archhead{font-size:12px; color:var(--muted); padding:12px 16px 4px}
+  .crow.arch{opacity:.62}
+
+  /* ==== notes ==== */
+  aside{width:300px; flex:1 1 280px; max-width:340px; padding-top:8px}
+  aside h2{font-size:12px; letter-spacing:.1em; color:var(--muted); font-weight:700; margin-bottom:10px}
+  aside .note{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; font-size:12.5px; line-height:1.75}
+  aside .note ul{padding-left:16px; display:flex; flex-direction:column; gap:6px}
+  aside .note li::marker{color:var(--primary)}
+  aside .foot{font-size:11px; color:var(--muted); margin-top:12px; line-height:1.7}
+</style>
+
+<div class="top">
+  <h1>家計簿 UIモック <span style="color:var(--primary)">v1</span></h1>
+  <div class="sub">2026-07-03 ／ 実装済みFlutter UIを土台にした調整用モック。テンキー・保存・候補切替は動きます。</div>
+  <div class="chips" id="screenChips" role="tablist"></div>
+  <div class="cellsel" id="cellSel">
+    <span>日セルの支出表示（spec §13の宿題・3案比較）:</span>
+  </div>
+</div>
+
+<main>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>📶 ⚡︎ 100%</span></div>
+    <div class="content" id="content"></div>
+    <div id="chrome"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <aside>
+    <h2>詰めどころ（この画面）</h2>
+    <div class="note" id="notes"></div>
+    <div class="foot">
+      デザイン提案: 地=生成り #F6F5F0／主=深緑 #1E6B5A（実装seed #2E7D6B の調整）／支出=紅 #B8433A・収入=藍 #2E6E93。<br>
+      OKが出た配色・寸法はFlutterのThemeにそのまま移植します。
+    </div>
+  </aside>
+</main>
+
+<script>
+'use strict';
+/* ============ data ============ */
+const CATS_EX = [['食費','🍚'],['外食','🍜'],['日用品','🧻'],['水道光熱費','💡'],['通信費','📶'],['交通費','🚃'],['交際費','🍻'],['趣味・娯楽','🎮'],['衣服・美容','👕'],['医療・健康','💊'],['住居','🏠'],['教育','📚'],['特別費','🎁'],['その他','📦']];
+const CATS_IN = [['給与','💼'],['賞与','🎉'],['副収入','💹'],['その他','📦']];
+const ICONS = Object.fromEntries([...CATS_EX, ...CATS_IN]);
+let txns = [
+  {d:1,c:'食費',a:1238,t:'ex',m:'スーパー田中'},
+  {d:1,c:'交通費',a:420,t:'ex',m:''},
+  {d:2,c:'外食',a:980,t:'ex',m:'昼 らーめん'},
+  {d:2,c:'日用品',a:2680,t:'ex',m:'ドラッグストア'},
+  {d:3,c:'食費',a:3421,t:'ex',m:'週末まとめ買い'},
+  {d:3,c:'趣味・娯楽',a:1650,t:'ex',m:'書籍'},
+  {d:5,c:'交際費',a:4800,t:'ex',m:'飲み会'},
+  {d:8,c:'水道光熱費',a:8940,t:'ex',m:'電気 6月分'},
+  {d:10,c:'食費',a:2115,t:'ex',m:''},
+  {d:12,c:'医療・健康',a:1320,t:'ex',m:'薬局'},
+  {d:15,c:'通信費',a:4378,t:'ex',m:'スマホ'},
+  {d:18,c:'外食',a:12800,t:'ex',m:'記念日ディナー'},
+  {d:22,c:'衣服・美容',a:5990,t:'ex',m:''},
+  {d:25,c:'給与',a:285000,t:'in',m:'7月分'},
+  {d:28,c:'食費',a:1876,t:'ex',m:''},
+];
+const TODAY = 3;
+const S = { screen:'calendar', selDay:TODAY, cell:'compact', entry:null, catTab:'ex' };
+
+/* ============ helpers ============ */
+const $ = (id) => document.getElementById(id);
+const yen = (n) => '¥' + n.toLocaleString('ja-JP');
+function compactYen(n){
+  if (n <= 0) return '';
+  if (n < 1000) return '¥' + n;
+  if (n < 10000) { const s = (Math.floor(n/100)/10).toFixed(1).replace(/\.0$/,''); return '¥' + s + 'k'; }
+  if (n < 1000000) return '¥' + Math.floor(n/1000) + 'k';
+  return '¥' + (Math.floor(n/100000)/10).toFixed(1).replace(/\.0$/,'') + 'M';
+}
+function agg(){
+  let ex=0, inc=0; const byDay={}, byCat={};
+  for (const t of txns){
+    if (t.t==='ex'){ ex+=t.a; byDay[t.d]=(byDay[t.d]||0)+t.a; byCat[t.c]=(byCat[t.c]||0)+t.a; }
+    else inc+=t.a;
+  }
+  return {ex, inc, net:inc-ex, byDay, byCat};
+}
+function toast(msg){
+  const el=$('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'), 1600);
+}
+function esc(s){ return s.replace(/[&<>"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+
+/* ============ receipt sample (パーサ出力の模擬) ============ */
+const RECEIPT = {
+  totals: [ {yen:1080, conf:'hi', why:'合計行'}, {yen:980, conf:'md', why:'最大値'} ],
+  dates:  [ {d:'2026-07-03', conf:'hi', why:'発行日'}, {d:'2026-06-28', conf:'md', why:'別候補'} ],
+};
+
+/* ============ screens ============ */
+function vCalendar(){
+  const a = agg();
+  const maxDay = Math.max(1, ...Object.values(a.byDay));
+  const net = a.net; const netStr = (net>=0?'+':'') + yen(Math.abs(net)).replace('¥', net>=0?'¥':'-¥');
+  let cells = '';
+  for (let i=0;i<3;i++) cells += '<div></div>';                     /* 7/1 = 水曜 */
+  for (let d=1; d<=31; d++){
+    const amt = a.byDay[d]||0;
+    let mark = '';
+    if (amt>0){
+      if (S.cell==='compact') mark = `<span class="amt">${compactYen(amt)}</span>`;
+      else if (S.cell==='dot') mark = `<span class="dot ${amt<1000?'s':amt<5000?'m':'l'}"></span>`;
+      else { const w = Math.max(18, Math.round(amt/maxDay*72)); mark = `<span class="bar" style="width:${w}%"></span>`; }
+    }
+    cells += `<button class="cell ${d===TODAY?'today':''} ${d===S.selDay?'sel':''}" data-day="${d}">
+      <span class="d">${d}</span>${mark}</button>`;
+  }
+  const dayTx = txns.filter(t=>t.d===S.selDay);
+  const rows = dayTx.length
+    ? dayTx.map((t)=>{
+        const i = txns.indexOf(t);
+        return `<div class="row" data-edit="${i}">
+          <div class="ci">${ICONS[t.c]||'📁'}</div>
+          <div class="rc"><div class="rn">${esc(t.c)}</div>${t.m?`<div class="rm">${esc(t.m)}</div>`:''}</div>
+          <div class="ra money ${t.t}">${t.t==='ex'?'-':'+'}${yen(t.a)}</div>
+        </div>`;
+      }).join('')
+    : `<div class="empty">7月${S.selDay}日の記録はありません
+        <button class="add" data-addday>＋ この日に追加</button>
+        ${txns.length===0?'<span style="font-size:11px">右下の＋から最初の記録を追加できます</span>':''}</div>`;
+  return `
+    <div class="banner">☁️ 前回バックアップ: 今日</div>
+    <div class="mhead">
+      <button class="nav">‹</button>
+      <div class="mid">
+        <div class="ym">2026年7月</div>
+        <div class="tot">支出 <b class="money ex">${yen(a.ex)}</b>　収入 <b class="money in">${yen(a.inc)}</b>　差引 <b class="money">${netStr}</b></div>
+      </div>
+      <button class="nav">›</button>
+    </div>
+    <div class="dow"><span class="su">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sa">土</span></div>
+    <div class="grid" id="calGrid">${cells}</div>
+    <div class="daylist">
+      <div class="dl-head">7月${S.selDay}日（${'日月火水木金土'[(3+S.selDay-1)%7]}）</div>
+      ${rows}
+    </div>`;
+}
+
+function vSummary(){
+  const a = agg();
+  const cats = Object.entries(a.byCat).sort((x,y)=>y[1]-x[1]);
+  const net = a.net; const netStr = (net>=0?'+':'-') + yen(Math.abs(net));
+  return `
+    <div class="mhead" style="margin-top:4px">
+      <button class="nav">‹</button>
+      <div class="mid"><div class="ym">2026年7月</div></div>
+      <button class="nav">›</button>
+    </div>
+    <div class="sumcard">
+      <div class="sumline"><span>収入</span><span class="v money in">+${yen(a.inc)}</span></div>
+      <div class="sumline"><span>支出</span><span class="v money ex">-${yen(a.ex)}</span></div>
+      <div class="sumline net"><span>差引</span><span class="v money">${netStr}</span></div>
+    </div>
+    <div class="sechead">カテゴリ別支出</div>
+    ${cats.map(([c,v])=>{
+      const pct = Math.round(v/a.ex*100);
+      return `<div class="sprow">
+        <div class="l1"><span>${ICONS[c]||'📁'}</span><span class="nm">${esc(c)}</span>
+          <span class="v money">${yen(v)}</span><span class="pct">${pct}%</span></div>
+        <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('')}
+    <div style="height:16px"></div>`;
+}
+
+function vSettings(){
+  return `
+    <div class="banner">☁️ 前回バックアップ: 今日</div>
+    <div style="height:6px"></div>
+    <div class="stile"><span class="si">☁️</span><div class="sc"><div class="st">前回バックアップ: 今日</div><div class="ss">自動バックアップ 3世代（端末内）</div></div></div>
+    <div class="stile"><span class="si">💾</span><div class="sc"><div class="st">今すぐバックアップ</div></div></div>
+    <div class="stile"><span class="si">📤</span><div class="sc"><div class="st">JSONエクスポート</div><div class="ss">任意でパスフレーズ暗号化（復元に使えます）</div></div></div>
+    <div class="stile"><span class="si">📊</span><div class="sc"><div class="st">CSVエクスポート</div><div class="ss">閲覧用（復元には使えません）</div></div></div>
+    <div class="stile"><span class="si">♻️</span><div class="sc"><div class="st">復元</div><div class="ss">全データを置き換えます</div></div></div>
+    <div style="height:10px; border-bottom:1px solid var(--line)"></div>
+    <div class="stile"><span class="si">🧾</span><div class="sc"><div class="st">レシート画像をローカル保持</div><div class="ss">既定では保存後に破棄します</div></div><span class="switch" data-switch></span></div>
+    <div class="stile" data-goto="cats"><span class="si">🗂</span><div class="sc"><div class="st">カテゴリ管理</div></div><span style="color:var(--muted)">›</span></div>
+    <div style="height:10px; border-bottom:1px solid var(--line)"></div>
+    <div class="stile"><span class="si">🔒</span><div class="sc"><div class="st">データの取り扱いについて</div></div></div>`;
+}
+
+function vCats(){
+  const list = S.catTab==='ex' ? CATS_EX : CATS_IN;
+  return `
+    <div class="appbar"><button class="icon" data-goto="settings">‹</button>
+      <div class="title">カテゴリ管理</div><button class="icon">＋</button></div>
+    <div class="cattabs">
+      <button aria-pressed="${S.catTab==='ex'}" data-cattab="ex">支出</button>
+      <button aria-pressed="${S.catTab==='in'}" data-cattab="in">収入</button>
+    </div>
+    ${list.map(([n,e])=>`<div class="crow"><span class="h">≡</span>
+      <span class="nm"><span>${e}</span><span>${esc(n)}</span></span>
+      <button class="act" title="改名">✏️</button><button class="act" title="アーカイブ">📥</button></div>`).join('')}
+    ${S.catTab==='ex' ? `<div class="archhead">アーカイブ済み</div>
+      <div class="crow arch"><span style="width:15px"></span><span class="nm"><span>🚬</span><span>たばこ（アーカイブ）</span></span>
+      <button class="act" title="戻す">📤</button></div>` : ''}
+    <div style="height:16px"></div>`;
+}
+
+function confClass(c){ return c==='hi'?'hi':c==='md'?'md':'lo'; }
+
+function vEntry(){
+  const e = S.entry;
+  const isReceipt = !!e.receipt;
+  const cats = e.t==='ex' ? CATS_EX : CATS_IN;
+  const matchedT = isReceipt ? RECEIPT.totals.find(x=>x.yen===e.a) : null;
+  const matchedD = isReceipt ? RECEIPT.dates.find(x=>x.d===e.date) : null;
+  const canSave = e.a>0 && e.c;
+  const receiptPanel = !isReceipt ? '' : `
+    <div class="rimg">
+      <div style="text-align:center; font-weight:700">スーパー田中</div>
+      <div style="text-align:center">2026/07/03 12:34</div>
+      <div class="rrow"><span>ネギ</span><span>¥158</span></div>
+      <div class="rrow"><span>たまご 10個</span><span>¥278</span></div>
+      <div class="rrow"><span>小計</span><span>¥1,000</span></div>
+      <div class="rrow hlt"><span>合計</span><span>¥1,080</span></div>
+      <div class="rrow"><span>お預り</span><span>¥2,000</span></div>
+    </div>
+    <div class="chiprow"><span class="lbl">金額の候補</span>
+      ${RECEIPT.totals.map(x=>`<button class="pchip money" aria-pressed="${x.yen===e.a}" data-tchip="${x.yen}">
+        ${yen(x.yen)}<span class="conf">${x.why}</span></button>`).join('')}
+    </div>
+    <div class="chiprow"><span class="lbl">日付の候補</span>
+      ${RECEIPT.dates.map(x=>`<button class="pchip money" aria-pressed="${x.d===e.date}" data-dchip="${x.d}">
+        ${x.d}<span class="conf">${x.why}</span></button>`).join('')}
+    </div>`;
+  return `
+    <div class="appbar">
+      <button class="icon" data-goto="calendar">✕</button>
+      <div class="title">${isReceipt?'レシート確認':'入力'}</div>
+      ${isReceipt?'<span style="width:44px"></span>':'<button class="icon" data-scan title="レシート読み取り">🧾</button>'}
+    </div>
+    <div class="seg">
+      <button aria-pressed="${e.t==='ex'}" data-type="ex">支出</button>
+      <button aria-pressed="${e.t==='in'}" data-type="in">収入</button>
+    </div>
+    <button class="daterow" ${isReceipt && matchedD ? `style="background:${matchedD.conf==='hi'?'var(--good-soft)':'var(--amber-soft)'}"`:''}>
+      <span>📅</span><span class="money">${e.date.replace(/-/g,'/')}</span><span style="color:var(--muted);font-size:11px">タップで変更</span>
+    </button>
+    ${receiptPanel}
+    <div class="amount money ${isReceipt ? (matchedT ? confClass(matchedT.conf) : '') : ''}">${e.a===0?'¥0':yen(e.a)}</div>
+    <div class="numpad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-key="${n}">${n}</button>`).join('')}
+      <button data-key="00">00</button><button data-key="0">0</button><button data-key="bs">⌫</button>
+    </div>
+    <div class="catgrid">
+      ${cats.map(([n,em])=>`<button class="cat" aria-pressed="${e.c===n}" data-cat="${esc(n)}">
+        <span class="ce">${em}</span><span class="cn">${esc(n)}</span></button>`).join('')}
+    </div>
+    ${e.memoOpen
+      ? `<input class="memofield" id="memoField" placeholder="メモ・店名" value="${esc(e.m)}">`
+      : `<button class="memobtn" data-memo>＋ メモを追加</button>`}
+    <div class="saverow">
+      <button class="primary ${canSave?'':'disabled'}" data-save>保存</button>
+      <button class="secondary ${canSave?'':'disabled'}" data-savecont>保存して続ける</button>
+    </div>`;
+}
+
+/* ============ notes ============ */
+const NOTES = {
+  calendar: `<ul>
+    <li><b>日セルの支出表示</b>: 上のトグルで「略記/ドット/バー」を切替可。実機45px幅での可読性で決めたい（spec §13）</li>
+    <li>月ヘッダの3値（支出/収入/差引）は1行で足りるか、差引だけ大きくするか</li>
+    <li>選択日リング（深緑）と今日（数字色）の区別はこれで十分か</li>
+    <li>バックアップバナーの存在感（常時表示・spec §2.1）。もっと薄くする？</li>
+    <li>日別リスト: swipe削除は実装済み（モックでは省略）</li></ul>`,
+  entry: `<ul>
+    <li><b>テンキー実動</b>: 連打の気持ちよさ（高さ54px・4段）を確認</li>
+    <li>カテゴリ4列グリッド。よく使う順が先頭に来ます（8個で足りる？スクロール量）</li>
+    <li>保存2ボタンの並び（保存/保存して続ける）と幅比</li>
+    <li>金額表示38px右寄せ。もっと大きく？</li>
+    <li>🧾ボタンでレシート確認モードへ（画面チップ「レシート確認」でも可）</li></ul>`,
+  receipt: `<ul>
+    <li><b>確信度ハイライト</b>: 金額=合計行一致(緑)/最大値(琥珀)。候補チップで切替→色が変わります</li>
+    <li>レシート画像の高さ（現140px相当）。折りたたみは要る？</li>
+    <li>候補チップに理由（合計行/最大値/発行日）を小さく併記してみた—邪魔？</li>
+    <li>読み取り失敗時は赤の注記＋¥0で手入力へ（モック省略）</li></ul>`,
+  summary: `<ul>
+    <li>合計カード→内訳バーの順。差引を先頭に出す案もある</li>
+    <li>バー色は主色1色（カテゴリ別色分けはしない方針）。%表示の要否</li>
+    <li>アーカイブ済みは「（アーカイブ）」を付す表記で集計に残す（§4.3）</li></ul>`,
+  settings: `<ul>
+    <li>並び順: バックアップ群→レシート→カテゴリ→ポリシー。この分節でOK？</li>
+    <li>「前回バックアップ」をステータス行とバナーの二重表示にしている</li>
+    <li>復元・エクスポートの文言（復元に使える/使えない）の伝わり方</li></ul>`,
+  cats: `<ul>
+    <li>並べ替えは≡ハンドルでドラッグ（実装済み・モックでは省略）</li>
+    <li>アーカイブは📥、戻すは📤。アイコンで伝わる？</li>
+    <li>「未分類」はシステム管理のため一覧に出しない</li></ul>`,
+};
+
+/* ============ chrome / nav ============ */
+const SCREENS = [
+  ['calendar','カレンダー'], ['entry','入力'], ['receipt','レシート確認'],
+  ['summary','サマリ'], ['settings','設定'], ['cats','カテゴリ管理'],
+];
+function startEntry(receipt){
+  S.entry = receipt
+    ? {t:'ex', a:1080, c:null, m:'', date:'2026-07-03', memoOpen:false, receipt:true}
+    : {t:'ex', a:0, c:null, m:'', date:'2026-07-'+String(S.selDay).padStart(2,'0'), memoOpen:false, receipt:false};
+}
+function go(screen){
+  if (screen==='entry') startEntry(false);
+  if (screen==='receipt'){ startEntry(true); screen='entry'; }
+  S.screen = screen;
+  render();
+}
+function render(){
+  /* header chips */
+  $('screenChips').innerHTML = SCREENS.map(([k,label])=>{
+    const active = (k==='entry' && S.screen==='entry' && !S.entry?.receipt)
+      || (k==='receipt' && S.screen==='entry' && S.entry?.receipt)
+      || (k===S.screen && k!=='entry' && k!=='receipt');
+    return `<button class="chip" aria-pressed="${active}" data-screen="${k}">${label}</button>`;
+  }).join('');
+  const cellSel = $('cellSel');
+  cellSel.classList.toggle('show', S.screen==='calendar');
+  cellSel.querySelectorAll('.chip').forEach(c=>c.remove());
+  if (S.screen==='calendar'){
+    for (const [k,label] of [['compact','略記 ¥1.2k'],['dot','ドット'],['bar','ヒートバー']]){
+      const b=document.createElement('button');
+      b.className='chip'; b.dataset.cell=k; b.textContent=label;
+      b.setAttribute('aria-pressed', String(S.cell===k));
+      cellSel.appendChild(b);
+    }
+  }
+  /* phone body */
+  const views = {calendar:vCalendar, summary:vSummary, settings:vSettings, cats:vCats, entry:vEntry};
+  $('content').innerHTML = views[S.screen]();
+  /* tabbar + fab (entryでは非表示) */
+  $('chrome').innerHTML = S.screen==='entry' ? '' : `
+    <button class="fab" data-fab aria-label="入力を開く">＋</button>
+    <div class="tabbar">
+      <button aria-current="${S.screen==='calendar'}" data-tab="calendar"><span class="ticon">🗓</span>カレンダー</button>
+      <button aria-current="${S.screen==='summary'}" data-tab="summary"><span class="ticon">📊</span>サマリ</button>
+      <button aria-current="${S.screen==='settings'||S.screen==='cats'}" data-tab="settings"><span class="ticon">⚙️</span>設定</button>
+    </div>`;
+  const notesKey = S.screen==='entry' ? (S.entry?.receipt ? 'receipt' : 'entry') : S.screen;
+  $('notes').innerHTML = NOTES[notesKey] || '';
+}
+
+/* ============ events (delegation) ============ */
+document.addEventListener('click', (ev)=>{
+  const t = ev.target.closest('button, .stile, .row, .switch');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.screen) return go(d.screen);
+  if (d.cell){ S.cell = d.cell; return render(); }
+  if (d.tab) return go(d.tab);
+  if (t.dataset.fab !== undefined) return go('entry');
+  if (d.goto) return go(d.goto);
+  if (d.cattab){ S.catTab = d.cattab; return render(); }
+  if (d.day){ S.selDay = Number(d.day); return render(); }
+  if (d.addday !== undefined) return go('entry');
+  if (d.edit !== undefined){ toast('編集画面へ（モックでは省略）'); return; }
+  if (t.dataset.switch !== undefined){ t.classList.toggle('on'); return; }
+  if (t.dataset.scan !== undefined){ startEntry(true); return render(); }
+
+  const e = S.entry;
+  if (!e) return;
+  if (d.key){
+    if (d.key==='bs') e.a = Math.floor(e.a/10);
+    else if (d.key==='00'){ if (e.a>0 && e.a*100<=9999999) e.a*=100; }
+    else { const n=e.a*10+Number(d.key); if (n<=9999999) e.a=n; }
+    return render();
+  }
+  if (d.type){
+    if (d.type!==e.t){ e.t=d.type; e.c=null; }
+    return render();
+  }
+  if (d.cat){ e.c = d.cat; return render(); }
+  if (d.memo !== undefined){ e.memoOpen = true; render(); $('memoField')?.focus(); return; }
+  if (d.tchip){ e.a = Number(d.tchip); return render(); }
+  if (d.dchip){ e.date = d.dchip; return render(); }
+  if (d.save !== undefined || d.savecont !== undefined){
+    if (!(e.a>0 && e.c)) return;
+    const day = Number(e.date.slice(-2));
+    txns.push({d:day, c:e.c, a:e.a, t:e.t, m:e.m});
+    S.selDay = day;
+    if (d.savecont !== undefined){
+      const keep = {date:e.date, m:e.m, t:e.t, memoOpen:e.memoOpen};
+      S.entry = {t:keep.t, a:0, c:null, m:keep.m, date:keep.date, memoOpen:keep.memoOpen, receipt:false};
+      toast('保存しました');
+      return render();
+    }
+    toast('保存しました');
+    return go('calendar');
+  }
+});
+document.addEventListener('input', (ev)=>{
+  if (ev.target.id==='memoField' && S.entry) S.entry.m = ev.target.value;
+});
+
+render();
+</script>
