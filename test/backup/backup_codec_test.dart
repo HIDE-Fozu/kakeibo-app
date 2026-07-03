@@ -11,13 +11,16 @@ BackupPayload samplePayload() => BackupPayload(
       categories: const [
         BackupCategory(
             id: 1, name: '食費', type: CategoryType.expense,
-            icon: null, sortOrder: 0, isArchived: false, isSystem: false),
+            icon: null, sortOrder: 0, isArchived: false, isSystem: false,
+            parentId: null),
         BackupCategory(
             id: 19, name: '未分類', type: CategoryType.expense,
-            icon: null, sortOrder: 18, isArchived: false, isSystem: true),
+            icon: null, sortOrder: 18, isArchived: false, isSystem: true,
+            parentId: null),
         BackupCategory(
             id: 20, name: '未分類', type: CategoryType.income,
-            icon: null, sortOrder: 19, isArchived: false, isSystem: true),
+            icon: null, sortOrder: 19, isArchived: false, isSystem: true,
+            parentId: null),
       ],
       transactions: [
         BackupTxn(
@@ -34,11 +37,17 @@ BackupPayload samplePayload() => BackupPayload(
 void main() {
   const codec = BackupCodec();
 
+  String mutate(void Function(Map<String, dynamic> root) f) {
+    final root = jsonDecode(codec.encode(samplePayload())) as Map<String, dynamic>;
+    f(root);
+    return jsonEncode(root);
+  }
+
   test('encode produces the documented JSON structure', () {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 1);
+    expect(root['formatVersion'], 2);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -76,12 +85,6 @@ void main() {
       expect(() => codec.decode('{not json'), throwsA(isA<BackupFormatError>()));
       expect(() => codec.decode('[1,2,3]'), throwsA(isA<BackupFormatError>()));
     });
-
-    String mutate(void Function(Map<String, dynamic> root) f) {
-      final root = jsonDecode(codec.encode(samplePayload())) as Map<String, dynamic>;
-      f(root);
-      return jsonEncode(root);
-    }
 
     test('missing / invalid / newer formatVersion -> BackupVersionError', () {
       expect(() => codec.decode(mutate((r) => r.remove('formatVersion'))),
@@ -159,6 +162,78 @@ void main() {
         () {
       final p = codec.decode(mutate((r) => r['transactions'] = <dynamic>[]));
       expect(p.transactions, isEmpty);
+    });
+  });
+
+  group('formatVersion 2（内訳）', () {
+    // v1相当: formatVersionを1に落としparentIdキーを除去
+    // （キー除去により _migrateV1toV2 の補完を実際に検証できる）
+    String validV1Json() => mutate((r) {
+          r['formatVersion'] = 1;
+          for (final c in r['categories'] as List) {
+            (c as Map).remove('parentId');
+          }
+        });
+    String jsonWithDanglingParent() =>
+        mutate((r) => ((r['categories'] as List)[0] as Map)['parentId'] = 99);
+    String jsonWithSelfParent() =>
+        mutate((r) => ((r['categories'] as List)[0] as Map)['parentId'] = 1);
+    String jsonWithGrandchild() => mutate((r) {
+          final cats = r['categories'] as List;
+          cats.add({'id': 2, 'name': '外食', 'type': 'expense', 'icon': null,
+            'sortOrder': 1, 'isArchived': false, 'isSystem': false, 'parentId': 1});
+          cats.add({'id': 3, 'name': 'ラーメン', 'type': 'expense', 'icon': null,
+            'sortOrder': 0, 'isArchived': false, 'isSystem': false, 'parentId': 2});
+        });
+    String jsonWithTypeMismatch() => mutate((r) {
+          (r['categories'] as List).add({'id': 5, 'name': 'x', 'type': 'income',
+            'icon': null, 'sortOrder': 9, 'isArchived': false, 'isSystem': false,
+            'parentId': 1}); // 親id=1はexpense
+        });
+    String jsonWithSystemChild() =>
+        mutate((r) => ((r['categories'] as List)[1] as Map)['parentId'] = 1); // cats[1]=未分類(isSystem)
+
+    test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
+      final payload = codec.decode(validV1Json());
+      expect(payload.formatVersion, 2); // decodeはマイグレーション後に現行版を返す
+      expect(payload.categories.every((c) => c.parentId == null), isTrue);
+    });
+
+    test('v2: parentIdが同梱カテゴリに解決できないと拒否', () {
+      expect(() => codec.decode(jsonWithDanglingParent()),
+          throwsA(isA<BackupValidationError>()));
+    });
+
+    test('v2: 3段（内訳の下の内訳）は拒否', () {
+      expect(() => codec.decode(jsonWithGrandchild()),
+          throwsA(isA<BackupValidationError>()));
+    });
+
+    test('v2: 自己参照は拒否', () {
+      expect(() => codec.decode(jsonWithSelfParent()),
+          throwsA(isA<BackupValidationError>()));
+    });
+
+    test('v2: typeが親と不一致は拒否', () {
+      expect(() => codec.decode(jsonWithTypeMismatch()),
+          throwsA(isA<BackupValidationError>()));
+    });
+
+    test('v2: システムカテゴリのparentIdは拒否', () {
+      expect(() => codec.decode(jsonWithSystemChild()),
+          throwsA(isA<BackupValidationError>()));
+    });
+
+    test('encode→decodeのroundtripでparentIdが保存される', () {
+      final json = mutate((r) {
+        final cats = r['categories'] as List;
+        cats.add({'id': 2, 'name': '外食', 'type': 'expense', 'icon': null,
+          'sortOrder': 0, 'isArchived': false, 'isSystem': false, 'parentId': 1});
+      });
+      final payload = codec.decode(json);
+      expect(payload.categories.firstWhere((c) => c.id == 2).parentId, 1);
+      final reencoded = codec.decode(codec.encode(payload));
+      expect(reencoded.categories.firstWhere((c) => c.id == 2).parentId, 1);
     });
   });
 }

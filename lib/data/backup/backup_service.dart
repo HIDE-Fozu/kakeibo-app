@@ -35,6 +35,7 @@ class BackupService {
             sortOrder: c.sortOrder,
             isArchived: c.isArchived,
             isSystem: c.isSystem,
+            parentId: c.parentId,
           ),
       ],
       transactions: [
@@ -85,6 +86,11 @@ class BackupService {
   /// 呼び出し前に codec.decode を通すこと（検証はcodecの責務）。
   Future<void> applyRestore(BackupPayload payload) async {
     await _db.transaction(() async {
+      // 自己参照FK（parentId）対策: driftのbatchは行ごとに別文でINSERTするため、
+      // 内訳が親より先に挿入されると即時FK検査で落ちる。このトランザクション内は
+      // FK検査をコミット時まで遅延する（整合性はコミット時に検証される）。
+      await _db.customStatement('PRAGMA defer_foreign_keys = ON');
+
       // FK RESTRICT を回避する順序: 取引 → カテゴリ の順に削除
       await _db.delete(_db.transactions).go();
       await _db.delete(_db.categories).go();
@@ -102,6 +108,7 @@ class BackupService {
               sortOrder: Value(c.sortOrder),
               isArchived: Value(c.isArchived),
               isSystem: Value(c.isSystem),
+              parentId: Value(c.parentId),
             ),
           );
         }

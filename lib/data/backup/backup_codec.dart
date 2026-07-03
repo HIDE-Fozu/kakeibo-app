@@ -6,7 +6,8 @@ import '../../domain/money/civil_date.dart';
 /// バックアップJSONの直列化と厳格検証。復元の唯一の門番。
 class BackupCodec {
   /// バックアップ形式のバージョン。DBのschemaVersionとは独立に管理する。
-  static const int formatVersion = 1;
+  /// v2: categories[].parentId（内訳）を追加。
+  static const int formatVersion = 2;
 
   const BackupCodec();
 
@@ -24,6 +25,7 @@ class BackupCodec {
             'sortOrder': c.sortOrder,
             'isArchived': c.isArchived,
             'isSystem': c.isSystem,
+            'parentId': c.parentId,
           },
       ],
       'transactions': [
@@ -127,6 +129,7 @@ class BackupCodec {
         sortOrder: req<int>(raw, 'sortOrder', ctx),
         isArchived: req<bool>(raw, 'isArchived', ctx),
         isSystem: req<bool>(raw, 'isSystem', ctx),
+        parentId: opt<int>(raw, 'parentId', ctx),
       );
       if (c.name.isEmpty) {
         throw BackupValidationError('$ctx.name が空です');
@@ -140,6 +143,32 @@ class BackupCodec {
       if (!categories.any((c) => c.isSystem && c.type == type)) {
         throw BackupValidationError(
             'システム「未分類」(${type.name}) がバックアップに含まれていません');
+      }
+    }
+
+    // --- 階層検証（v2）: 2段まで・type一致・システムは親のみ ---
+    final catById = {for (final c in categories) c.id: c};
+    for (final c in categories) {
+      final p = c.parentId;
+      if (p == null) continue;
+      if (c.isSystem) {
+        throw BackupValidationError('システムカテゴリ ${c.id} に parentId は指定できません');
+      }
+      if (p == c.id) {
+        throw BackupValidationError('カテゴリ ${c.id} が自分自身を親にしています');
+      }
+      final parent = catById[p];
+      if (parent == null) {
+        throw BackupValidationError(
+            'カテゴリ ${c.id} の parentId $p が同梱カテゴリに解決できません');
+      }
+      if (parent.parentId != null) {
+        throw BackupValidationError(
+            'カテゴリ ${c.id}: 内訳の下に内訳は置けません（階層は2段まで）');
+      }
+      if (parent.type != c.type) {
+        throw BackupValidationError(
+            'カテゴリ ${c.id}: type が親 ${parent.id} と一致しません');
       }
     }
 
@@ -199,20 +228,30 @@ class BackupCodec {
     );
   }
 
-  /// 古いバックアップを現行形式へ順送りに変換する。v1が初版のため現状は素通し。
-  /// 形式をv2に上げるときは case 1 に v1→v2 変換を追加する。
+  /// 古いバックアップを現行形式へ順送りに変換する。
   Map<String, dynamic> _migrate(Map<String, dynamic> root, {required int from}) {
     var v = from;
     var m = root;
     while (v < formatVersion) {
       switch (v) {
-        // case 1: m = _migrateV1toV2(m); break;
+        case 1:
+          m = _migrateV1toV2(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
-      // ignore: dead_code
       v++;
     }
     return m;
+  }
+
+  /// v1→v2: categories に parentId を補完（v1は全て親＝null）。
+  Map<String, dynamic> _migrateV1toV2(Map<String, dynamic> root) {
+    final cats = root['categories'];
+    if (cats is List) {
+      for (final c in cats) {
+        if (c is Map<String, dynamic>) c.putIfAbsent('parentId', () => null);
+      }
+    }
+    return root;
   }
 }

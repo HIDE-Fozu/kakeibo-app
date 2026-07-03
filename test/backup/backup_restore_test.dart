@@ -14,13 +14,16 @@ BackupPayload minimalPayload() => BackupPayload(
       categories: const [
         BackupCategory(
             id: 100, name: '食費(旧端末)', type: CategoryType.expense,
-            icon: null, sortOrder: 0, isArchived: false, isSystem: false),
+            icon: null, sortOrder: 0, isArchived: false, isSystem: false,
+            parentId: null),
         BackupCategory(
             id: 101, name: '未分類', type: CategoryType.expense,
-            icon: null, sortOrder: 1, isArchived: false, isSystem: true),
+            icon: null, sortOrder: 1, isArchived: false, isSystem: true,
+            parentId: null),
         BackupCategory(
             id: 102, name: '未分類', type: CategoryType.income,
-            icon: null, sortOrder: 2, isArchived: false, isSystem: true),
+            icon: null, sortOrder: 2, isArchived: false, isSystem: true,
+            parentId: null),
       ],
       transactions: [
         BackupTxn(
@@ -108,5 +111,44 @@ void main() {
     final txs = await db.select(db.transactions).get();
     expect(txs.single.id, keepId);
     expect(txs.single.amount, 999);
+  });
+
+  test('restore: 内訳のidが親より小さくても復元できる（FK defer）', () async {
+    const codec = BackupCodec();
+    final payload = BackupPayload(
+      formatVersion: BackupCodec.formatVersion,
+      exportedAt: DateTime.utc(2026, 7, 3),
+      categories: const [
+        BackupCategory(
+            id: 2, name: '外食(旧)', type: CategoryType.expense,
+            icon: null, sortOrder: 0, isArchived: false, isSystem: false,
+            parentId: 50), // 子が親より小さいid → 挿入順が子先行になり即時FKなら落ちる
+        BackupCategory(
+            id: 50, name: '食費(旧)', type: CategoryType.expense,
+            icon: null, sortOrder: 0, isArchived: false, isSystem: false,
+            parentId: null),
+        BackupCategory(
+            id: 101, name: '未分類', type: CategoryType.expense,
+            icon: null, sortOrder: 1, isArchived: false, isSystem: true,
+            parentId: null),
+        BackupCategory(
+            id: 102, name: '未分類', type: CategoryType.income,
+            icon: null, sortOrder: 2, isArchived: false, isSystem: true,
+            parentId: null),
+      ],
+      transactions: const [],
+    );
+    await service.applyRestore(codec.decode(codec.encode(payload)));
+    final cats = await db.categoryDao.allCategories();
+    expect(cats.map((c) => c.id).toSet(), {2, 50, 101, 102});
+    expect(cats.firstWhere((c) => c.id == 2).parentId, 50);
+  });
+
+  test('restore: 内訳入りのシード済みDBを上書き復元できる（全行DELETEがFKで落ちない）',
+      () async {
+    // シード済みDB（外食が食費の内訳）に対し、最小payloadを復元して成功すること
+    await service.applyRestore(minimalPayload());
+    final cats = await db.categoryDao.allCategories();
+    expect(cats.length, 3);
   });
 }
