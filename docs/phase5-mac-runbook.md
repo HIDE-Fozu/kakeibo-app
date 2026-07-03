@@ -10,7 +10,7 @@ MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handof
 | 1 環境構築 | ✅ 完了 | Flutter 3.44.4 / Dart 3.12.2・Xcode 26.6・CocoaPods 1.16.2・gh認証済み（全て導入済みだった） |
 | 2 クローンとテスト | ✅ 完了 | `flutter analyze` 0 issues・`flutter test` **256本全緑**・`flutter doctor` iOS toolchain緑 |
 | 3 Podfile | ⏭ 該当なし | SPM構成のためPodfile無し（下記§3参照） |
-| 4 署名 | ⏳ **ユーザー作業** | 証明書2枚（Dev/Distribution）・Apple ID・Team `Q7T6APPS23` は確認済み。XcodeでTeam選択が残り |
+| 4 署名 | ✅ 完了（CLI） | pbxprojのRunner 3コンフィグに `CODE_SIGN_STYLE=Automatic`＋`DEVELOPMENT_TEAM=Q7T6APPS23` を追記（Xcode GUI不要）。`xcodebuild -showBuildSettings` で反映確認済み（Appleサーバー未接触）。コミット `38eadcd` |
 | 5 スモーク確認 | ◐ 一部 | iPhone 17シミュレータ(iOS 26.4)でビルド＆起動成功・テーマ/カレンダー描画OK・DB初期化OK。UIタップ確認はユーザーで |
 | 6 App Store Connect | ⏳ **ユーザー作業** | App ID登録＋App作成（Web・Apple ID必須） |
 | 7 build ipa→配信 | ⏳ 4・6の後 | **release device build（arm64）は署名なしで検証済み**（`flutter build ios --release --no-codesign` 成功20.2MB・`sqlite3.framework`バンドル確認）。残るは署名→`flutter build ipa`（こちらで実行可）→Transporter（ユーザー） |
