@@ -100,19 +100,30 @@ class EntryScreen extends ConsumerWidget {
                       ?.copyWith(fontFeatures: kTabularFigures),
                 ),
               ),
-              Numpad(
-                onDigit: ctrl.tapDigit,
-                onDoubleZero: ctrl.tapDoubleZero,
-                onBackspace: ctrl.backspace,
-              ),
-              const SizedBox(height: 8),
-              // 内訳チップ列はグリッドの直上（モック確定）
-              if (state.expandedParentId != null)
-                SubcategoryChips(
-                  parentId: state.expandedParentId!,
-                  selectedId: state.categoryId,
-                  onToggle: ctrl.toggleSubcategory,
+              // 内訳チップはテンキーに被せる（画面を動かさない。
+              // 内訳を選びながら数字は打たないのでテンキーを一時的に覆ってよい）
+              Stack(children: [
+                Numpad(
+                  onDigit: ctrl.tapDigit,
+                  onDoubleZero: ctrl.tapDoubleZero,
+                  onBackspace: ctrl.backspace,
                 ),
+                if (state.expandedParentId != null)
+                  Positioned.fill(
+                    child: Container(
+                      key: const Key('subcategory-overlay'),
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      alignment: Alignment.topLeft,
+                      child: SubcategoryChips(
+                        parentId: state.expandedParentId!,
+                        selectedId: state.categoryId,
+                        onToggle: ctrl.toggleSubcategory,
+                      ),
+                    ),
+                  ),
+              ]),
+              const SizedBox(height: 8),
               CategoryGrid(
                 type: state.type,
                 selectedId: state.categoryId,
