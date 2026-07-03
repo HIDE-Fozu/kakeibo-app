@@ -10,7 +10,7 @@ void main() {
     await pumpApp(tester, h);
 
     expect(find.text('カレンダー'), findsOneWidget); // NavigationBarラベル
-    expect(find.text('(カレンダー 準備中)'), findsOneWidget);
+    expect(find.text('2026年7月'), findsOneWidget); // CalendarScreen（固定時計）
 
     await tester.tap(find.text('サマリ'));
     await tester.pumpAndSettle();

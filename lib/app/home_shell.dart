@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/calendar/application/calendar_providers.dart';
+import '../features/calendar/presentation/calendar_screen.dart';
+import '../features/entry/application/entry_form_controller.dart';
+import '../features/entry/presentation/entry_screen.dart';
+
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
@@ -16,11 +21,28 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         body: IndexedStack(
           index: _index,
           children: const [
-            _PlaceholderTab('(カレンダー 準備中)'), // Task 8 で CalendarScreen に差し替え
+            CalendarScreen(),
             _PlaceholderTab('(サマリ 準備中)'), // Task 9 で SummaryScreen に差し替え
             _PlaceholderTab('(設定 準備中)'), // Task 12 で SettingsScreen に差し替え
           ],
         ),
+        floatingActionButton: _index == 0
+            ? FloatingActionButton(
+                key: const Key('fab-entry'),
+                onPressed: () {
+                  ref
+                      .read(entryFormControllerProvider.notifier)
+                      .startCreate(ref.read(selectedDayProvider));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (_) => const EntryScreen()),
+                  );
+                },
+                child: const Icon(Icons.add),
+              )
+            : null,
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
