@@ -1,5 +1,12 @@
 # Phase 4.5: 内訳（サブカテゴリ）＋テーマ・万表記移植 Implementation Plan
 
+> **【実行結果メモ 2026-07-03】全Task完了（Task 0〜13）・256テスト緑・analyze 0・mainへno-ffマージ済み。**
+> 実行中の逸脱（planに無かった追加対応）:
+> 1. **アーカイブ/changeTypeガードの余波で既存テスト4本が食費前提で衝突** → 内訳を持たないカテゴリへ差し替え: `calendar_providers_test`（アーカイブ→趣味・娯楽）／`category_integrity_test` changeType取引ガード（→日用品）／`category_crud_test` setArchived往復（→日用品）／`category_manage_test` 改名アーカイブ復帰（→日用品）
+> 2. **manYen境界値の修正**: 99.9万→100万の繰り上がり境界は999,950ではなく**999,500**（丸め単位=0.05万。planの初版が誤り）
+> 3. **チップ列が開くと下のボタン/タイルが画面外に押し下げられる** → entry系UIテストのタップ前に `tester.ensureVisible(...)` を挿入（4テスト・計7箇所）。アーカイブ済みセクションのテストにも `scrollUntilVisible` が必要だった
+> 4. csv_exporter_test はBackupCategoryを構築していなかったため構築修正は backup_codec/auto_backup_store/backup_restore の3ファイルのみ
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** カテゴリに「内訳」（2段階層）を追加し、入力チップ／サマリ積み上げ／カテゴリ管理へ展開。カレンダーセルを万表記に置換し、モック確定デザイントークンをFlutterテーマへ移植する。
