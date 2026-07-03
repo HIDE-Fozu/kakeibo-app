@@ -15,12 +15,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // v2: 内訳機能。既存カテゴリは全て親（parentId=null）のまま。
+            await m.addColumn(categories, categories.parentId);
+          }
         },
         beforeOpen: (details) async {
           // FK は接続ごとに有効化しないと SQLite が無視する。

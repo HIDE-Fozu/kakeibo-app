@@ -11,6 +11,9 @@ class Categories extends Table {
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
   BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
+
+  /// 非null=内訳（親カテゴリのid）。階層は2段まで（アプリ側で保証）。
+  IntColumn get parentId => integer().nullable().references(Categories, #id)();
 }
 
 @DataClassName('TransactionRow')
