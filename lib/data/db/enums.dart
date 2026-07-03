@@ -8,3 +8,6 @@ enum CategoryType { expense, income }
 enum PaymentMethod { cash, creditCard, eMoney, bankDraft, other }
 
 enum TxnSource { manual, receiptOcr }
+
+CategoryType categoryTypeOf(TxnType t) =>
+    t == TxnType.expense ? CategoryType.expense : CategoryType.income;
