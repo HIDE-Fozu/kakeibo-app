@@ -41,11 +41,17 @@ class TestHarness {
         backupDirProvider.overrideWith((ref) => backupDir),
         exportsDirProvider.overrideWith((ref) => exportsDir),
         receiptImagesDirProvider.overrideWith((ref) => imagesDir),
-        // 自動バックアップ世代のタイムスタンプも固定時計に（決定性の担保）
-        autoBackupStoreProvider.overrideWith((ref) => AutoBackupStore(
-              backupDir,
-              now: storeNow ?? utcNow ?? () => DateTime.utc(2026, 7, 15, 3, 0),
-            )),
+        // 自動バックアップ世代のタイムスタンプも決定的に。
+        // 完全固定だと世代ファイル名（μs起源）が衝突して上書きされるため、
+        // 既定は「基準時刻から1秒ずつ進む」決定的時計にする。
+        autoBackupStoreProvider.overrideWith((ref) {
+          var tick = 0;
+          final base = (utcNow ?? () => DateTime.utc(2026, 7, 15, 3, 0))();
+          return AutoBackupStore(
+            backupDir,
+            now: storeNow ?? () => base.add(Duration(seconds: tick++)),
+          );
+        }),
         sharedPreferencesProvider.overrideWith((ref) => prefs),
         clockProvider.overrideWith((ref) => clock ?? () => const CivilDate(2026, 7, 15)),
         utcNowProvider.overrideWith((ref) => utcNow ?? () => DateTime.utc(2026, 7, 15, 3, 0)),
