@@ -99,33 +99,50 @@ class _RestorePickerPageState extends ConsumerState<RestorePickerPage> {
     messenger.showSnackBar(const SnackBar(content: Text('復元しました')));
   }
 
-  Future<String?> _askPassphrase() async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
+  Future<String?> _askPassphrase() => showDialog<String>(
+        context: context,
+        builder: (_) => const _RestorePassphraseDialog(),
+      );
+}
+
+/// controllerの寿命をダイアログ自身に閉じ込める（popアニメーション中のdispose事故防止）
+class _RestorePassphraseDialog extends StatefulWidget {
+  const _RestorePassphraseDialog();
+
+  @override
+  State<_RestorePassphraseDialog> createState() =>
+      _RestorePassphraseDialogState();
+}
+
+class _RestorePassphraseDialogState extends State<_RestorePassphraseDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
         title: const Text('パスフレーズを入力'),
         content: TextField(
           key: const Key('restore-passphrase-field'),
-          controller: controller,
+          controller: _controller,
           obscureText: true,
           decoration: const InputDecoration(border: OutlineInputBorder()),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () => Navigator.pop(context),
               child: const Text('キャンセル')),
           FilledButton(
               onPressed: () {
-                if (controller.text.isNotEmpty) {
-                  Navigator.pop(ctx, controller.text);
+                if (_controller.text.isNotEmpty) {
+                  Navigator.pop(context, _controller.text);
                 }
               },
               child: const Text('復元')),
         ],
-      ),
-    );
-    controller.dispose();
-    return result;
-  }
+      );
 }

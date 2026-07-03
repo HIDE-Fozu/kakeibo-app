@@ -6,6 +6,8 @@ import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
 import '../features/settings/application/backup_controller.dart';
+import '../features/settings/application/settings_controller.dart';
+import '../features/settings/presentation/onboarding_dialog.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
 
@@ -23,6 +25,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 初回のみ: オフライン方針とバックアップ責任の軽量オンボーディング（spec §5.5）
+      if (!ref.read(appSettingsProvider).onboardingDone && mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const OnboardingDialog(),
+        );
+      }
       // 起動時バックアップ（spec §2.1「定期」）。失敗しても起動を妨げない。
       ref
           .read(backupControllerProvider.notifier)

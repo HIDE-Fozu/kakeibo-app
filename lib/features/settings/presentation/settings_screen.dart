@@ -5,6 +5,7 @@ import '../../../app/providers.dart';
 import '../../../core/format.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
+import 'category_manage_page.dart';
 import 'restore_picker_page.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -64,6 +65,15 @@ class SettingsScreen extends ConsumerWidget {
             value: settings.retainReceiptImages,
             onChanged: (v) =>
                 ref.read(appSettingsProvider.notifier).setRetainReceiptImages(v),
+          ),
+          ListTile(
+            key: const Key('category-manage-tile'),
+            leading: const Icon(Icons.category_outlined),
+            title: const Text('カテゴリ管理'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CategoryManagePage()),
+            ),
           ),
           const Divider(),
           ListTile(
