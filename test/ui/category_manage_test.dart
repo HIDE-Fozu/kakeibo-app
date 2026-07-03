@@ -46,7 +46,8 @@ void main() {
     final c = await pumpPage(tester);
     expect(find.text('未分類'), findsNothing); // sentinel非表示
     final cats = await waitForData(c, allCategoriesProvider);
-    final food = cats.firstWhere((x) => x.name == '食費');
+    // 食費はアクティブな内訳（外食）持ちでアーカイブガードに当たるため日用品を使う
+    final food = cats.firstWhere((x) => x.name == '日用品');
 
     await tester.tap(find.byKey(Key('rename-${food.id}')));
     await tester.pumpAndSettle();
@@ -74,7 +75,10 @@ void main() {
     final cats = await waitForData(c, allCategoriesProvider);
     final expenseActive = cats
         .where((x) =>
-            x.type == CategoryType.expense && !x.isSystem && !x.isArchived)
+            x.type == CategoryType.expense &&
+            !x.isSystem &&
+            !x.isArchived &&
+            x.parentId == null) // 内訳（外食）は親の並びに混ぜない
         .toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     expect(expenseActive[2].name, '食費');

@@ -89,10 +89,11 @@ void main() {
   });
 
   test('entryCategories: アーカイブ済みは出ない', () async {
-    await c.read(categoryRepositoryProvider).setArchived(foodId, true);
+    // 食費はアクティブな内訳（外食）持ちでアーカイブガードに当たるため趣味・娯楽を使う
+    await c.read(categoryRepositoryProvider).setArchived(hobbyId, true);
     final sub = c.listen(entryCategoriesProvider(TxnType.expense), (_, _) {});
     addTearDown(sub.close);
     await pumpEventQueue();
-    expect(sub.read().requireValue.any((x) => x.id == foodId), isFalse);
+    expect(sub.read().requireValue.any((x) => x.id == hobbyId), isFalse);
   });
 }

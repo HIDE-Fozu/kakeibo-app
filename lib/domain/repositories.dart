@@ -25,23 +25,36 @@ abstract interface class TransactionRepository {
 
 abstract interface class CategoryRepository {
   Future<List<CategoryEntity>> active();
+
+  /// 階層整列で返す: 親をsortOrder順、各親の直後にその内訳をsortOrder順。
   Stream<List<CategoryEntity>> watchAll();
+
+  /// setArchived(id, true) と同じ（アーカイブガードも共通）。
   Future<void> archive(int categoryId);
 
   /// 取引が紐づく型変更は集計desyncを招くため [CategoryInUseError] を投げる。
+  /// 内訳自身／内訳を持つ親は「typeは親と一致」の不変条件を破るため
+  /// CategoryHierarchyError（実装参照）を投げる。
   Future<void> changeType(int categoryId, CategoryType type);
 
-  /// 末尾sortOrderで追加。name.trim()が空なら [ArgumentError]。
+  /// 同一スコープ（同じ親）末尾のsortOrderで追加。name.trim()が空なら [ArgumentError]。
+  /// parentId指定時は内訳として追加。親が存在しない／親自身が内訳（2段超）／
+  /// 親がシステム／typeが親と不一致なら CategoryHierarchyError（実装参照）。
   Future<int> addCategory({
     required String name,
     required CategoryType type,
     String? icon,
+    int? parentId,
   });
 
   /// isSystem行への操作は [SystemCategoryError]（rename/setArchived/reorder共通）。
   Future<void> rename(int categoryId, String name);
+
+  /// アクティブな内訳が残る親のアーカイブは CategoryHierarchyError
+  /// （幽霊カテゴリ防止。内訳→親の順ならアーカイブ可）。
   Future<void> setArchived(int categoryId, bool archived);
 
-  /// 渡した順に sortOrder = 0,1,2,... を振り直す（同一typeのアクティブ列を想定）。
+  /// 渡した順に sortOrder = 0,1,2,... を振り直す。
+  /// 同一スコープ（同じ親）のidのみ受理し、混在は [ArgumentError]。
   Future<void> reorder(List<int> orderedIds);
 }

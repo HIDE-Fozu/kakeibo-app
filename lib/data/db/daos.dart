@@ -218,11 +218,37 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
         .write(CategoriesCompanion(isArchived: Value(archived)));
   }
 
-  Future<int> maxSortOrder() async {
+  /// 同一スコープ（parentIdが同じ）内の最大sortOrder。行がなければ-1。
+  Future<int> maxSortOrderWithin(int? parentId) async {
     final maxOrder = categories.sortOrder.max();
-    final q = selectOnly(categories)..addColumns([maxOrder]);
+    final q = selectOnly(categories)
+      ..addColumns([maxOrder])
+      ..where(parentId == null
+          ? categories.parentId.isNull()
+          : categories.parentId.equals(parentId));
     final row = await q.getSingle();
     return row.read(maxOrder) ?? -1;
+  }
+
+  /// 内訳の数（アーカイブ込み）。
+  Future<int> countChildrenOf(int categoryId) async {
+    final cnt = categories.id.count();
+    final q = selectOnly(categories)
+      ..addColumns([cnt])
+      ..where(categories.parentId.equals(categoryId));
+    final row = await q.getSingle();
+    return row.read(cnt) ?? 0;
+  }
+
+  /// アクティブ（非アーカイブ）な内訳の数。
+  Future<int> countActiveChildrenOf(int categoryId) async {
+    final cnt = categories.id.count();
+    final q = selectOnly(categories)
+      ..addColumns([cnt])
+      ..where(categories.parentId.equals(categoryId) &
+          categories.isArchived.equals(false));
+    final row = await q.getSingle();
+    return row.read(cnt) ?? 0;
   }
 
   Future<void> updateSortOrders(Map<int, int> orderById) => batch((b) {

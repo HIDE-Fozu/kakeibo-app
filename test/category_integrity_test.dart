@@ -29,9 +29,12 @@ void main() {
       ));
 
   test('active categories exclude archived, include everything else', () async {
-    await catRepo.archive(foodId);
+    // 食費はアクティブな内訳（外食）持ちでアーカイブガードに当たるため日用品を使う
+    final all = await db.categoryDao.allCategories();
+    final dailyId = all.firstWhere((c) => c.name == '日用品').id;
+    await catRepo.archive(dailyId);
     final active = await db.categoryDao.activeCategories();
-    expect(active.any((c) => c.id == foodId), isFalse);
+    expect(active.any((c) => c.id == dailyId), isFalse);
     // 未分類システムを含む他は残る
     expect(active.any((c) => c.name == '外食'), isTrue);
   });
@@ -45,9 +48,12 @@ void main() {
   });
 
   test('changing a category type is blocked when it has transactions', () async {
-    await addExpense(foodId);
+    // 食費は内訳持ちで階層ガードが先に立つため、内訳のない日用品で取引ガードを検証
+    final all = await db.categoryDao.allCategories();
+    final dailyId = all.firstWhere((c) => c.name == '日用品').id;
+    await addExpense(dailyId);
     expect(
-      () => catRepo.changeType(foodId, CategoryType.income),
+      () => catRepo.changeType(dailyId, CategoryType.income),
       throwsA(isA<CategoryInUseError>()),
     );
   });

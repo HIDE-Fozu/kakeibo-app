@@ -139,8 +139,11 @@ class _CategoryTypeList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final all =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
+    // 暫定: 親のみ表示（reorderのスコープ検証対応）。内訳の└表示はPhase 4.5
+    // カテゴリ管理タスクで全面書き換え時に実装する。
     final active = all
-        .where((c) => c.type == type && !c.isSystem && !c.isArchived)
+        .where((c) =>
+            c.type == type && !c.isSystem && !c.isArchived && c.parentId == null)
         .toList();
     final archived = all
         .where((c) => c.type == type && !c.isSystem && c.isArchived)
