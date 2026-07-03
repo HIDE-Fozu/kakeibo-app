@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/category_emoji.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
@@ -70,8 +71,8 @@ class DayTransactionList extends ConsumerWidget {
           ),
           onDismissed: (_) => _deleteWithUndo(context, ref, tx),
           child: ListTile(
-            leading:
-                Text(cat?.icon ?? '📁', style: const TextStyle(fontSize: 20)),
+            leading: Text(categoryEmoji(cat?.icon, cat?.name),
+                style: const TextStyle(fontSize: 20)),
             title: Text(name),
             subtitle:
                 (tx.memo != null && tx.memo!.isNotEmpty) ? Text(tx.memo!) : null,

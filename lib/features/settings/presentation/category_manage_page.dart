@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/category_emoji.dart';
 import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
@@ -174,7 +175,7 @@ class _CategoryTypeList extends ConsumerWidget {
                   key: ValueKey('cat-${p.id}'),
                   children: [
                     ListTile(
-                      leading: Text(p.icon ?? '📁',
+                      leading: Text(categoryEmoji(p.icon, p.name),
                           style: const TextStyle(fontSize: 20)),
                       title: Text(p.name),
                       trailing: Row(
@@ -230,8 +231,8 @@ class _CategoryTypeList extends ConsumerWidget {
                 ListTile(
                   leading: Text(
                       c.parentId != null
-                          ? '└ ${c.icon ?? '📁'}'
-                          : (c.icon ?? '📁'),
+                          ? '└ ${categoryEmoji(c.icon, c.name)}'
+                          : categoryEmoji(c.icon, c.name),
                       style: const TextStyle(fontSize: 16)),
                   title: Text('${c.name}（アーカイブ）'),
                   trailing: IconButton(
@@ -274,7 +275,7 @@ class _SubList extends ConsumerWidget {
             key: ValueKey('sub-${s.id}'),
             dense: true,
             contentPadding: const EdgeInsets.only(left: 32, right: 16),
-            leading: Text('└ ${s.icon ?? '📁'}',
+            leading: Text('└ ${categoryEmoji(s.icon, s.name)}',
                 style: const TextStyle(fontSize: 16)),
             title: Text(s.name),
             trailing: Row(

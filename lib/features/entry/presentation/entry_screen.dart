@@ -100,8 +100,8 @@ class EntryScreen extends ConsumerWidget {
                       ?.copyWith(fontFeatures: kTabularFigures),
                 ),
               ),
-              // 内訳チップはテンキーに被せる（画面を動かさない。
-              // 内訳を選びながら数字は打たないのでテンキーを一時的に覆ってよい）
+              // 内訳チップは押したタイルの真上（＝グリッド直上）に被せて出す。
+              // テンキー下端に重なるが画面は動かない（数字を打ちながら内訳は選ばない）
               Stack(children: [
                 Numpad(
                   onDigit: ctrl.tapDigit,
@@ -109,12 +109,14 @@ class EntryScreen extends ConsumerWidget {
                   onBackspace: ctrl.backspace,
                 ),
                 if (state.expandedParentId != null)
-                  Positioned.fill(
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                     child: Container(
                       key: const Key('subcategory-overlay'),
                       color: Theme.of(context).scaffoldBackgroundColor,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      alignment: Alignment.topLeft,
+                      padding: const EdgeInsets.only(top: 4),
                       child: SubcategoryChips(
                         parentId: state.expandedParentId!,
                         selectedId: state.categoryId,
