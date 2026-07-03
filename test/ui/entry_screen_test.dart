@@ -241,6 +241,41 @@ void main() {
     expect(txs.single.amountYen, 500);
   });
 
+  testWidgets('内訳チップ右端の＋でその場追加→追加した内訳が選択される', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-sub-inline')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const Key('category-name-field')), 'カフェ');
+    await tester.tap(find.text('追加'));
+    await tester.pumpAndSettle();
+
+    // DBに内訳として追加され、そのまま選択・チップ列は格納・ラベル変化
+    final after = container.read(allCategoriesProvider).valueOrNull!;
+    final cafe = after.firstWhere((c) => c.name == 'カフェ');
+    expect(cafe.parentId, foodId);
+    expect(container.read(entryFormControllerProvider)!.categoryId, cafe.id);
+    expect(find.byKey(const Key('subcategory-overlay')), findsNothing);
+    final tileTexts = tester.widgetList<Text>(find.descendant(
+        of: find.byKey(Key('cat-tile-$foodId')), matching: find.byType(Text)));
+    expect(tileTexts.any((t) => t.data == 'カフェ ▾'), isTrue);
+  });
+
   testWidgets('内訳未選択のまま保存すると親カテゴリに計上される', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
