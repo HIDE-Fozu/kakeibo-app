@@ -57,7 +57,7 @@ void main() {
     final c = await pumpShell(tester);
     await seed(c, 12345, day: 20);
     await tester.pumpAndSettle();
-    expect(find.text('¥12k'), findsOneWidget);
+    expect(find.text('1.2万'), findsOneWidget);
   });
 
   testWidgets('日タップでその日のリスト、tap=編集・swipe=削除+Undo', (tester) async {

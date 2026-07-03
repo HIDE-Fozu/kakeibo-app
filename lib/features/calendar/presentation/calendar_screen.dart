@@ -52,9 +52,9 @@ class CalendarScreen extends ConsumerWidget {
                 return Positioned(
                   bottom: 2,
                   child: Text(
-                    compactYen(events.first),
+                    manYen(events.first),
                     style: TextStyle(
-                        fontSize: 9,
+                        fontSize: 10,
                         color: Theme.of(context).colorScheme.error),
                   ),
                 );

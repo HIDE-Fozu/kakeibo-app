@@ -17,14 +17,23 @@ void main() {
     expect(signedYen(TxnType.income, 1234), '+¥1,234');
   });
 
-  test('compactYen: セル略記', () {
-    expect(compactYen(0), '');
-    expect(compactYen(980), '¥980');
-    expect(compactYen(1000), '¥1k');
-    expect(compactYen(9840), '¥9.8k');
-    expect(compactYen(12345), '¥12k');
-    expect(compactYen(999999), '¥999k');
-    expect(compactYen(1200000), '¥1.2M');
+  test('manYen: セル万表記（モック確定・四捨五入）', () {
+    expect(manYen(0), '');
+    expect(manYen(-100), '');
+    expect(manYen(980), '980'); // <1000は生数字・¥なし
+    expect(manYen(999), '999');
+    expect(manYen(1000), '0.1万');
+    expect(manYen(3449), '0.3万'); // 四捨五入（モックのMath.round準拠）
+    expect(manYen(3500), '0.4万');
+    expect(manYen(9999), '1万'); // 四捨五入で1.0万→.0トリム
+    expect(manYen(10000), '1万');
+    expect(manYen(12345), '1.2万');
+    expect(manYen(285000), '28.5万');
+    expect(manYen(999449), '99.9万');
+    expect(manYen(999500), '100万'); // 繰り上がり境界（丸め単位=0.05万）
+    expect(manYen(1000000), '100万'); // ≥100万は整数万
+    expect(manYen(1235000), '124万'); // 整数万も四捨五入
+    expect(manYen(9999999), '1000万'); // 入力上限相当
   });
 
   test('backupAgeLabel', () {
