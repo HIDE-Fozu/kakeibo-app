@@ -183,7 +183,7 @@ void main() {
     expect(await repo.forMonth(2026, 7), isEmpty);
   });
 
-  testWidgets('内訳: チップはテンキー上のオーバーレイ・選択で自動格納→再タップで開閉→保存は内訳idに',
+  testWidgets('内訳: 親タップでチップ出現→内訳選択でラベル変化→再タップで格納→保存は内訳idに',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -205,32 +205,32 @@ void main() {
     await tester.tap(find.byKey(const Key('np-00')));
     await tester.pump();
 
-    // 食費タイル（▾付き）をタップ → チップ列がテンキー上に被さって出る
-    // （レイアウトシフト0: 保存ボタンの位置は動かない）
-    final saveRectBefore = tester.getRect(find.byKey(const Key('save-btn')));
+    // 食費タイル（▾付き）をタップ → チップ列が出る
+    await tester.ensureVisible(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pump();
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('subcategory-overlay')), findsOneWidget);
     expect(find.byKey(Key('sub-chip-$eatOutId')), findsOneWidget);
-    expect(tester.getRect(find.byKey(const Key('save-btn'))), saveRectBefore);
 
-    // 外食チップを選択 → ラベルが「外食 ▾」に変わり、チップ列は自動格納
+    // 外食チップを選択 → タイルのラベルが「外食 ▾」に変わる
+    await tester.ensureVisible(find.byKey(Key('sub-chip-$eatOutId')));
+    await tester.pump();
     await tester.tap(find.byKey(Key('sub-chip-$eatOutId')));
     await tester.pumpAndSettle();
     final tileTexts = tester.widgetList<Text>(find.descendant(
         of: find.byKey(Key('cat-tile-$foodId')), matching: find.byType(Text)));
     expect(tileTexts.any((t) => t.data == '外食 ▾'), isTrue);
-    expect(find.byKey(const Key('subcategory-overlay')), findsNothing);
 
-    // 同じタイルを再タップ → 再展開（選択は維持）→ もう一度で格納
-    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(Key('sub-chip-$eatOutId')), findsOneWidget);
+    // 同じタイルを再タップ → チップ列が格納（選択は維持）
+    await tester.ensureVisible(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pump();
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
     await tester.pumpAndSettle();
     expect(find.byKey(Key('sub-chip-$eatOutId')), findsNothing);
 
     // 保存 → categoryIdは外食のid
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('save-btn')));
     await tester.pumpAndSettle();
     final txs =

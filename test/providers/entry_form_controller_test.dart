@@ -232,37 +232,26 @@ void main() {
       expect(st().expandedParentId, isNull);
     });
 
-    test('チップ選択でチップ列が自動格納される（オーバーレイを閉じてテンキーへ戻る）', () {
-      ctrl().startCreate(day);
-      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
-      expect(st().expandedParentId, 1);
-      ctrl().toggleSubcategory(2); // 内訳を選択
-      expect(st().categoryId, 2);
-      expect(st().expandedParentId, isNull); // 選択と同時に格納
-    });
-
     test('同じ親の再タップ: チップ列の開閉のみ・選択は維持', () {
       ctrl().startCreate(day);
       ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
-      ctrl().toggleSubcategory(2); // 内訳を選択（チップ列は自動格納）
+      ctrl().toggleSubcategory(2); // 内訳を選択
       expect(st().categoryId, 2);
-      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 再展開
-      expect(st().expandedParentId, 1);
-      expect(st().categoryId, 2); // 再展開でも選択維持
       ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 格納
       expect(st().expandedParentId, isNull);
       expect(st().categoryId, 2); // 選択は維持（モック確定）
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 再展開
+      expect(st().expandedParentId, 1);
+      expect(st().categoryId, 2); // 再展開でも選択維持（実装中判断）
     });
 
-    test('チップ再タップで親に戻る（列は再度格納）', () {
+    test('チップ再タップで親に戻る', () {
       ctrl().startCreate(day);
       ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
       ctrl().toggleSubcategory(2);
       expect(st().categoryId, 2);
-      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 再展開
-      ctrl().toggleSubcategory(2); // 選択中チップの再タップ
+      ctrl().toggleSubcategory(2); // 再タップ
       expect(st().categoryId, 1); // 親に計上する状態へ
-      expect(st().expandedParentId, isNull);
     });
 
     test('setTypeで選択とチップ列が両方クリアされる', () {

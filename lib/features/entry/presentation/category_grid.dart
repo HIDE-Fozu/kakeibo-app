@@ -13,8 +13,7 @@ class CategoryGrid extends ConsumerWidget {
     required int categoryId,
     required bool hasSubs,
     required bool isSameGroup,
-  })
-  onTapCategory;
+  }) onTapCategory;
 
   const CategoryGrid({
     super.key,
@@ -25,69 +24,51 @@ class CategoryGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cats =
-        ref.watch(entryCategoriesProvider(type)).valueOrNull ?? const [];
+    final cats = ref.watch(entryCategoriesProvider(type)).valueOrNull ?? const [];
     final all =
-        ref.watch(allCategoriesProvider).valueOrNull ??
-        const <CategoryEntity>[];
+        ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final byId = {for (final c in all) c.id: c};
     // 選択が内訳ならその親がグリッド上の「選択中」タイル
     final selected = selectedId == null ? null : byId[selectedId];
     final selectedGroupId = selected?.parentId ?? selected?.id;
     final scheme = Theme.of(context).colorScheme;
-    // 1画面制約（縦スクロール禁止）のため高さ固定の横スクロール2段レール。
-    // タイルの見た目は縦グリッド時代（約88x60）を維持。
-    return SizedBox(
-      height: 124,
-      child: GridView.count(
-        scrollDirection: Axis.horizontal,
-        crossAxisCount: 2,
-        padding: EdgeInsets.zero,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-        // 横グリッドでは cross(高さ60)/main(幅88) の比
-        childAspectRatio: 60 / 88,
-        children: [
-          for (final c in cats)
-            _tile(
-              context,
-              ref,
-              c,
-              scheme,
-              isSelectedGroup: c.id == selectedGroupId,
-              // 内訳選択中は親タイルのラベルが内訳名に変わる（食費→外食）
-              selectedSubName:
-                  (c.id == selectedGroupId &&
-                      selected != null &&
-                      selected.parentId != null)
-                  ? selected.name
-                  : null,
-            ),
-        ],
-      ),
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
+      childAspectRatio: 1.4,
+      children: [
+        for (final c in cats)
+          _tile(
+            context,
+            ref,
+            c,
+            scheme,
+            isSelectedGroup: c.id == selectedGroupId,
+            // 内訳選択中は親タイルのラベルが内訳名に変わる（食費→外食）
+            selectedSubName: (c.id == selectedGroupId &&
+                    selected != null &&
+                    selected.parentId != null)
+                ? selected.name
+                : null,
+          ),
+      ],
     );
   }
 
-  Widget _tile(
-    BuildContext context,
-    WidgetRef ref,
-    CategoryEntity c,
-    ColorScheme scheme, {
-    required bool isSelectedGroup,
-    required String? selectedSubName,
-  }) {
-    final subs =
-        ref.watch(entrySubcategoriesProvider(c.id)).valueOrNull ??
+  Widget _tile(BuildContext context, WidgetRef ref, CategoryEntity c,
+      ColorScheme scheme,
+      {required bool isSelectedGroup, required String? selectedSubName}) {
+    final subs = ref.watch(entrySubcategoriesProvider(c.id)).valueOrNull ??
         const <CategoryEntity>[];
     final hasSubs = subs.isNotEmpty;
     final label = selectedSubName ?? c.name;
     return InkWell(
       key: Key('cat-tile-${c.id}'),
       onTap: () => onTapCategory(
-        categoryId: c.id,
-        hasSubs: hasSubs,
-        isSameGroup: isSelectedGroup,
-      ),
+          categoryId: c.id, hasSubs: hasSubs, isSameGroup: isSelectedGroup),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -102,12 +83,10 @@ class CategoryGrid extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(c.icon ?? '📁', style: const TextStyle(fontSize: 18)),
-            Text(
-              hasSubs ? '$label ▾' : label,
-              style: const TextStyle(fontSize: 11),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text(hasSubs ? '$label ▾' : label,
+                style: const TextStyle(fontSize: 11),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

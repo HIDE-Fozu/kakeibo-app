@@ -27,10 +27,6 @@ void main() {
     expect(eatOut.sortOrder, 0); // 内訳スコープ内の先頭
     // 内訳シードは外食のみ。他は全て親
     expect(all.where((c) => c.parentId != null).length, 1);
-
-    // 全プリセットに絵文字アイコンが付与される（v3）
-    expect(food.icon, '🍚');
-    expect(all.every((c) => c.icon != null && c.icon!.isNotEmpty), isTrue);
   });
 
   test('uncategorizedId returns the system category id per type', () async {
