@@ -1,5 +1,16 @@
 # 家計簿アプリ Phase 4: features UI + Riverpod Implementation Plan
 
+> **ステータス: 完了（2026-07-03）** — 全14タスク実行済み。最終ゲート: **210テスト全緑 / flutter analyze 0 issues / BOM混入なし**。mainへno-ffマージ済み。
+>
+> **実行時の主な逸脱**（詳細は下の逸脱メモと各コミット）:
+> 1. Riverpodはcodegen不可（drift_devのanalyzer ^13と衝突）→ **flutter_riverpod 2.6.1の手書きprovider**。riverpod_lint/custom_lintも不採用（lintゲートはflutter analyze）
+> 2. BackupControllerのファイルIOは**同期API**（widgetテストのFakeAsyncでは非同期IOの完了イベントが配送されないため）
+> 3. テストハーネスのAutoBackupStore時計は「1秒ずつ進む決定的時計」（完全固定だと世代ファイル名が衝突）
+> 4. CSVのBOM検証はバイト列で行う（DartのreadAsStringはBOMを剥がす）
+> 5. `ReorderableListView.onReorder`は3.44で非推奨→`onReorderItem`（newIndex調整済み仕様）へ移行
+> 6. fullscreenDialogのpopは`pageBack()`でなく`CloseButton`タップ／containerOfは常時onstageのMaterialApp基準
+> 7. ダイアログ内TextEditingControllerはダイアログ自身のStatefulWidgetに封じ込め（popアニメーション中dispose事故の防止）
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** spec §5 の画面群（カレンダーホーム／高速入力／編集・削除＋Undo／レシート確認／月次サマリ／設定＝バックアップ・カテゴリ管理・オンボーディング）を Riverpod 3（codegen）で実装し、**Windows の `flutter test`（ウィジェットテスト＋ProviderContainerテスト）で全機能をヘッドレス自走検証**できる状態にする。実機仕上げ（カメラ・Apple Vision・共有シート）は Phase 5（Mac）。
