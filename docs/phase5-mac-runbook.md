@@ -3,6 +3,18 @@
 Windows側の仕込みは完了済み。このファイルの手順をMacで上から実行すればTestFlight配信に到達する。
 MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handoff.md` を読ませれば続きから動ける。
 
+## ✅ Phase 5（初回TestFlight配信）完了 — 2026-07-04
+
+初回TestFlight配信に到達。以下すべて完了:
+- App Store Connect App「**経理の家計簿**」作成（ストア表示名。端末上の名前はCFBundleDisplayName「家計簿」）
+- **Bundle ID `com.hidefozu.kakeibo` は永久固定**（App作成＋App ID登録済み・以後変更不可）
+- Team `Q7T6APPS23`・自動署名で `flutter build ipa` → `kakeibo_app.ipa`(21MB)をTransporterでアップロード成功
+- 内部テストグループ「111」に2テスター招待済み（自動配信ON）
+
+**残るフォローアップ（初回配信には不要）:**
+- ⚠️ **アプリアイコンがFlutterデフォルトのまま** → 一般公開前に差し替え必須（内部テストは通る）
+- 実レシート~15枚を貯める → Phase 5後半（Vision/カメラ）でフィクスチャ化・パーサ再調整（spec §13・下記§9）
+
 ## Mac側の進捗（2026-07-03）
 
 | Step | 状態 | メモ |
@@ -12,8 +24,8 @@ MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handof
 | 3 Podfile | ⏭ 該当なし | SPM構成のためPodfile無し（下記§3参照） |
 | 4 署名 | ✅ 完了（CLI） | pbxprojのRunner 3コンフィグに `CODE_SIGN_STYLE=Automatic`＋`DEVELOPMENT_TEAM=Q7T6APPS23` を追記（Xcode GUI不要）。`xcodebuild -showBuildSettings` で反映確認済み（Appleサーバー未接触）。コミット `38eadcd` |
 | 5 スモーク確認 | ◐ 一部 | iPhone 17シミュレータ(iOS 26.4)でビルド＆起動成功・テーマ/カレンダー描画OK・DB初期化OK。UIタップ確認はユーザーで |
-| 6 App Store Connect | ⏳ **ユーザー作業** | App ID登録＋App作成（Web・Apple ID必須） |
-| 7 build ipa→配信 | ⏳ 4・6の後 | **release device build（arm64）は署名なしで検証済み**（`flutter build ios --release --no-codesign` 成功20.2MB・`sqlite3.framework`バンドル確認）。残るは署名→`flutter build ipa`（こちらで実行可）→Transporter（ユーザー） |
+| 6 App Store Connect | ✅ 完了 | App「経理の家計簿」作成・App ID `com.hidefozu.kakeibo` 自動登録・Bundle ID永久固定（2026-07-04） |
+| 7 build ipa→配信 | ✅ 完了 | `flutter build ipa`→`kakeibo_app.ipa`(21MB・App Store署名)→Transporterアップロード成功→内部グループ「111」に2テスター招待済み |
 
 ## Windows側で設定済みのもの（2026-07-03）
 
