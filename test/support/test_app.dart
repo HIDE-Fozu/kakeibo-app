@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:kakeibo_app/app/app.dart';
 import 'package:kakeibo_app/app/providers.dart';
 import 'package:kakeibo_app/data/backup/auto_backup_store.dart';
 import 'package:kakeibo_app/data/backup/backup_crypto.dart';
@@ -79,18 +80,9 @@ Future<void> pumpApp(
 }) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [...h.overrides(), ...extra],
-    child: home != null ? MaterialApp(home: home) : const KakeiboAppPlaceholder(),
+    child: home != null ? MaterialApp(home: home) : const KakeiboApp(),
   ));
   await tester.pumpAndSettle();
-}
-
-/// Task 2 で app.dart の KakeiboApp に差し替えるまでの仮ルート。
-/// （Task 2 完了時に pumpApp から本物の KakeiboApp を参照させ、この widget は削除）
-class KakeiboAppPlaceholder extends StatelessWidget {
-  const KakeiboAppPlaceholder({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const MaterialApp(home: Scaffold(body: SizedBox()));
 }
 
 /// AsyncValue系providerの最初のデータ到達を待つ。
