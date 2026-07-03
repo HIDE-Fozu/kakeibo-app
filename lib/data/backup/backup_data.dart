@@ -60,6 +60,7 @@ class BackupCategory {
   final int sortOrder;
   final bool isArchived;
   final bool isSystem;
+  final int? parentId; // 非null=内訳（formatVersion 2で追加）
   const BackupCategory({
     required this.id,
     required this.name,
@@ -68,6 +69,7 @@ class BackupCategory {
     required this.sortOrder,
     required this.isArchived,
     required this.isSystem,
+    required this.parentId,
   });
 }
 

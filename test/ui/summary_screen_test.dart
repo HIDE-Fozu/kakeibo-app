@@ -57,4 +57,79 @@ void main() {
     expect(find.text('この月のデータはまだありません'), findsOneWidget);
     expect(find.text('カレンダーの＋から入力できます'), findsOneWidget); // 入力導線（spec §5.5）
   });
+
+  testWidgets('内訳ありカテゴリ: 合計はロールアップ・▼内訳で展開して内訳と（内訳なし）が出る',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+    final c = ProviderScope.containerOf(
+        tester.element(find.byType(HomeShell)), listen: false);
+    final cats = await waitForData(c, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+    final repo = c.read(transactionRepositoryProvider);
+    await repo.add(TransactionEntity(
+        type: TxnType.expense,
+        amountYen: 1200,
+        date: const CivilDate(2026, 7, 3),
+        categoryId: foodId,
+        source: TxnSource.manual));
+    await repo.add(TransactionEntity(
+        type: TxnType.expense,
+        amountYen: 800,
+        date: const CivilDate(2026, 7, 20),
+        categoryId: eatOutId,
+        source: TxnSource.manual));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('サマリ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¥2,000'), findsOneWidget); // 食費グループ計（1200+800）
+    expect(find.text('外食'), findsNothing); // 展開前は出ない
+
+    await tester.tap(find.byKey(Key('expand-$foodId')));
+    await tester.pumpAndSettle();
+    expect(find.text('外食'), findsOneWidget);
+    expect(find.text('¥800'), findsOneWidget);
+    expect(find.text('（内訳なし）'), findsOneWidget);
+    expect(find.text('¥1,200'), findsOneWidget);
+    expect(find.text('40%'), findsOneWidget); // 外食の親内%
+    expect(find.text('60%'), findsOneWidget); // 内訳なしの親内%
+    // （内訳なし）1200 > 外食800 → 降順で（内訳なし）が上（モック準拠）
+    final directY = tester.getTopLeft(find.text('（内訳なし）')).dy;
+    final eatOutY = tester.getTopLeft(find.text('外食')).dy;
+    expect(directY, lessThan(eatOutY));
+
+    // 再タップで畳む
+    await tester.tap(find.byKey(Key('expand-$foodId')));
+    await tester.pumpAndSettle();
+    expect(find.text('外食'), findsNothing);
+  });
+
+  testWidgets('内訳のないカテゴリは従来の単色バー・expandトグルなし', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+    final c = ProviderScope.containerOf(
+        tester.element(find.byType(HomeShell)), listen: false);
+    final cats = await waitForData(c, allCategoriesProvider);
+    final dailyId = cats.firstWhere((x) => x.name == '日用品').id;
+    await c.read(transactionRepositoryProvider).add(TransactionEntity(
+        type: TxnType.expense,
+        amountYen: 500,
+        date: const CivilDate(2026, 7, 3),
+        categoryId: dailyId,
+        source: TxnSource.manual));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('サマリ'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(Key('expand-$dailyId')), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.text('▼ 内訳'), findsNothing);
+  });
 }

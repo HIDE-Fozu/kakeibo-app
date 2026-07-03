@@ -44,13 +44,14 @@ void main() {
 
   test('setArchived の往復とシステム保護', () async {
     final all = await repo.watchAll().first;
-    final food = all.firstWhere((c) => c.name == '食費');
+    // 食費はアクティブな内訳（外食）持ちでアーカイブガードに当たるため日用品を使う
+    final daily = all.firstWhere((c) => c.name == '日用品');
     final system = all.firstWhere((c) => c.isSystem);
-    await repo.setArchived(food.id, true);
-    expect((await repo.watchAll().first).firstWhere((c) => c.id == food.id).isArchived,
+    await repo.setArchived(daily.id, true);
+    expect((await repo.watchAll().first).firstWhere((c) => c.id == daily.id).isArchived,
         isTrue);
-    await repo.setArchived(food.id, false);
-    expect((await repo.watchAll().first).firstWhere((c) => c.id == food.id).isArchived,
+    await repo.setArchived(daily.id, false);
+    expect((await repo.watchAll().first).firstWhere((c) => c.id == daily.id).isArchived,
         isFalse);
     expect(() => repo.setArchived(system.id, true),
         throwsA(isA<SystemCategoryError>()));
@@ -58,8 +59,10 @@ void main() {
 
   test('reorder: 渡した順で sortOrder=0.. が振られる', () async {
     final all = await repo.watchAll().first;
+    // reorderは同一スコープのみ受理するため親のみ（内訳の外食を除外）
     final exp = all
-        .where((c) => c.type == CategoryType.expense && !c.isSystem)
+        .where((c) =>
+            c.type == CategoryType.expense && !c.isSystem && c.parentId == null)
         .toList();
     final reversed = exp.reversed.map((c) => c.id).toList();
     await repo.reorder(reversed);

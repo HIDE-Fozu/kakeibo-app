@@ -2,7 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/db/database.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
+import 'package:kakeibo_app/data/repositories/drift_category_repository.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/domain/services/spending_rollup.dart';
 import 'support/test_db.dart';
 
 void main() {
@@ -61,5 +63,26 @@ void main() {
     // アーカイブしても集計から消えない
     expect(byCat.any((r) => r.categoryId == eatOutId && r.total == 5000), isTrue);
     expect(totals[TxnType.expense], 5000);
+  });
+
+  test('INVARIANT: rollup後も 親グループ計の和==月次支出合計・内訳和+直接分==親計',
+      () async {
+    await add(TxnType.expense, 1200, const CivilDate(2026, 7, 3), foodId); // 直接
+    await add(TxnType.expense, 800, const CivilDate(2026, 7, 20), eatOutId); // 内訳
+    final rows = await db.transactionDao.spendingByCategory(2026, 7);
+    // 外食の行はparentId付きで返る
+    expect(rows.firstWhere((r) => r.categoryId == eatOutId).parentId, foodId);
+
+    final cats = await DriftCategoryRepository(db).watchAll().first;
+    final groups = rollupSpending(rows, cats);
+    final food = groups.firstWhere((g) => g.categoryId == foodId);
+    expect(food.total, 2000);
+    expect(food.directTotal, 1200);
+    expect(food.subs.single.categoryId, eatOutId);
+    expect(food.subs.single.total, 800);
+
+    final totals = await db.transactionDao.totalsByType(2026, 7);
+    expect(groups.fold<int>(0, (a, g) => a + g.total),
+        totals[TxnType.expense]);
   });
 }

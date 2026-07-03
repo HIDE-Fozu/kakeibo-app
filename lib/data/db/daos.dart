@@ -80,7 +80,10 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
           useColumns: false),
     ])
-      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
+      ..addColumns([
+        categories.id, categories.name, categories.isArchived,
+        categories.parentId, amountSum,
+      ])
       ..where(_inMonth(year, month) &
           transactions.type.equalsValue(TxnType.expense))
       ..groupBy([transactions.categoryId])
@@ -91,6 +94,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
               categoryId: row.read(categories.id)!,
               categoryName: row.read(categories.name)!,
               isArchived: row.read(categories.isArchived)!,
+              parentId: row.read(categories.parentId),
               total: row.read(amountSum) ?? 0,
             ),
         ]);
@@ -130,7 +134,10 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
           useColumns: false),
     ])
-      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
+      ..addColumns([
+        categories.id, categories.name, categories.isArchived,
+        categories.parentId, amountSum,
+      ])
       ..where(_inMonth(year, month) &
           transactions.type.equalsValue(TxnType.expense))
       ..groupBy([transactions.categoryId])
@@ -142,6 +149,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
           categoryId: row.read(categories.id)!,
           categoryName: row.read(categories.name)!,
           isArchived: row.read(categories.isArchived)!,
+          parentId: row.read(categories.parentId),
           total: row.read(amountSum) ?? 0,
         ),
     ];
@@ -152,11 +160,13 @@ class CategorySpendRow {
   final int categoryId;
   final String categoryName;
   final bool isArchived;
+  final int? parentId; // 非null=このカテゴリは内訳
   final int total;
   const CategorySpendRow({
     required this.categoryId,
     required this.categoryName,
     required this.isArchived,
+    required this.parentId,
     required this.total,
   });
 }
@@ -166,12 +176,21 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {
   CategoryDao(super.db);
 
-  Future<List<CategoryRow>> allCategories() =>
-      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+  // sortOrderは同一スコープ（同じ親）内でのみ一意。フラットな並びのタイは
+  // id昇順で決定的にする（食費=親スコープ0と外食=内訳スコープ0が同順位になるため）。
+  Future<List<CategoryRow>> allCategories() => (select(categories)
+        ..orderBy([
+          (c) => OrderingTerm.asc(c.sortOrder),
+          (c) => OrderingTerm.asc(c.id),
+        ]))
+      .get();
 
-  Stream<List<CategoryRow>> watchAllCategories() =>
-      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)]))
-          .watch();
+  Stream<List<CategoryRow>> watchAllCategories() => (select(categories)
+        ..orderBy([
+          (c) => OrderingTerm.asc(c.sortOrder),
+          (c) => OrderingTerm.asc(c.id),
+        ]))
+      .watch();
 
   Future<int> uncategorizedId(CategoryType type) async {
     final row = await (select(categories)
@@ -209,11 +228,37 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
         .write(CategoriesCompanion(isArchived: Value(archived)));
   }
 
-  Future<int> maxSortOrder() async {
+  /// 同一スコープ（parentIdが同じ）内の最大sortOrder。行がなければ-1。
+  Future<int> maxSortOrderWithin(int? parentId) async {
     final maxOrder = categories.sortOrder.max();
-    final q = selectOnly(categories)..addColumns([maxOrder]);
+    final q = selectOnly(categories)
+      ..addColumns([maxOrder])
+      ..where(parentId == null
+          ? categories.parentId.isNull()
+          : categories.parentId.equals(parentId));
     final row = await q.getSingle();
     return row.read(maxOrder) ?? -1;
+  }
+
+  /// 内訳の数（アーカイブ込み）。
+  Future<int> countChildrenOf(int categoryId) async {
+    final cnt = categories.id.count();
+    final q = selectOnly(categories)
+      ..addColumns([cnt])
+      ..where(categories.parentId.equals(categoryId));
+    final row = await q.getSingle();
+    return row.read(cnt) ?? 0;
+  }
+
+  /// アクティブ（非アーカイブ）な内訳の数。
+  Future<int> countActiveChildrenOf(int categoryId) async {
+    final cnt = categories.id.count();
+    final q = selectOnly(categories)
+      ..addColumns([cnt])
+      ..where(categories.parentId.equals(categoryId) &
+          categories.isArchived.equals(false));
+    final row = await q.getSingle();
+    return row.read(cnt) ?? 0;
   }
 
   Future<void> updateSortOrders(Map<int, int> orderById) => batch((b) {

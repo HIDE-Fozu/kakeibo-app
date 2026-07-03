@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../app/theme.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
@@ -10,6 +11,7 @@ import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
 import 'receipt_review_panel.dart';
+import 'subcategory_chips.dart';
 
 class EntryScreen extends ConsumerWidget {
   const EntryScreen({super.key});
@@ -92,7 +94,10 @@ class EntryScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   state.amountYen == 0 ? '¥0' : formatYen(state.amountYen),
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineLarge
+                      ?.copyWith(fontFeatures: kTabularFigures),
                 ),
               ),
               Numpad(
@@ -101,10 +106,17 @@ class EntryScreen extends ConsumerWidget {
                 onBackspace: ctrl.backspace,
               ),
               const SizedBox(height: 8),
+              // 内訳チップ列はグリッドの直上（モック確定）
+              if (state.expandedParentId != null)
+                SubcategoryChips(
+                  parentId: state.expandedParentId!,
+                  selectedId: state.categoryId,
+                  onToggle: ctrl.toggleSubcategory,
+                ),
               CategoryGrid(
                 type: state.type,
                 selectedId: state.categoryId,
-                onSelect: ctrl.selectCategory,
+                onTapCategory: ctrl.tapCategory,
               ),
               const SizedBox(height: 8),
               if (state.memoExpanded)

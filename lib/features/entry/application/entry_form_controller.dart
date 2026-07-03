@@ -24,6 +24,9 @@ class EntryFormState {
   final String? imagePath;
   final bool memoExpanded;
 
+  /// 内訳チップ列を開いている親カテゴリ（null=閉）。選択とは独立。
+  final int? expandedParentId;
+
   const EntryFormState({
     required this.mode,
     this.editingId,
@@ -36,6 +39,7 @@ class EntryFormState {
     this.receipt,
     this.imagePath,
     this.memoExpanded = false,
+    this.expandedParentId,
   });
 
   bool get canSave => amountYen > 0 && categoryId != null;
@@ -72,6 +76,7 @@ class EntryFormState {
     Object? receipt = _unset,
     Object? imagePath = _unset,
     bool? memoExpanded,
+    Object? expandedParentId = _unset,
   }) =>
       EntryFormState(
         mode: mode ?? this.mode,
@@ -90,6 +95,9 @@ class EntryFormState {
         imagePath:
             identical(imagePath, _unset) ? this.imagePath : imagePath as String?,
         memoExpanded: memoExpanded ?? this.memoExpanded,
+        expandedParentId: identical(expandedParentId, _unset)
+            ? this.expandedParentId
+            : expandedParentId as int?,
       );
 }
 
@@ -163,11 +171,39 @@ class EntryFormController extends Notifier<EntryFormState?> {
     // 永続化する（spec §4.3の不変条件を破る）
     if (_s.mode == EntryMode.edit) return;
     if (type == _s.type) return;
-    state = _s.copyWith(type: type, categoryId: null); // 候補再フィルタ＋選択クリア
+    // 候補再フィルタ＋選択クリア＋チップ列も閉じる
+    state = _s.copyWith(type: type, categoryId: null, expandedParentId: null);
   }
 
   void selectCategory(int categoryId) =>
       state = _s.copyWith(categoryId: categoryId);
+
+  /// カテゴリボタンのタップ。isSameGroup=タップした親が現在の選択の属する
+  /// グループと同じ（判定はグリッド側がカテゴリツリーから行う）。
+  /// - 別グループ: 選択を切り替え、内訳があればチップ列を開く
+  /// - 同グループ&内訳あり: チップ列の開閉のみ（選択は維持=モック確定挙動）
+  void tapCategory({
+    required int categoryId,
+    required bool hasSubs,
+    required bool isSameGroup,
+  }) {
+    if (isSameGroup && hasSubs) {
+      state = _s.copyWith(
+          expandedParentId: _s.expandedParentId == null ? categoryId : null);
+      return;
+    }
+    state = _s.copyWith(
+      categoryId: categoryId,
+      expandedParentId: hasSubs ? categoryId : null,
+    );
+  }
+
+  /// 内訳チップのタップ。選択中チップの再タップは親（チップ列の親）に戻す。
+  void toggleSubcategory(int subId) {
+    final parent = _s.expandedParentId;
+    if (parent == null) return; // チップ列が閉じているときは呼ばれない
+    state = _s.copyWith(categoryId: _s.categoryId == subId ? parent : subId);
+  }
 
   void setDate(CivilDate date) => state = _s.copyWith(date: date);
 

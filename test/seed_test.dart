@@ -19,6 +19,14 @@ void main() {
     // プリセットに「食費」と「給与」が含まれる
     expect(all.any((c) => c.name == '食費' && c.type == CategoryType.expense), isTrue);
     expect(all.any((c) => c.name == '給与' && c.type == CategoryType.income), isTrue);
+
+    // 外食は食費の内訳としてシードされる（モック確定のデモ構成）
+    final food = all.firstWhere((c) => c.name == '食費');
+    final eatOut = all.firstWhere((c) => c.name == '外食');
+    expect(eatOut.parentId, food.id);
+    expect(eatOut.sortOrder, 0); // 内訳スコープ内の先頭
+    // 内訳シードは外食のみ。他は全て親
+    expect(all.where((c) => c.parentId != null).length, 1);
   });
 
   test('uncategorizedId returns the system category id per type', () async {

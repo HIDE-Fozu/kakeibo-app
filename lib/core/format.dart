@@ -13,18 +13,18 @@ String formatYen(int yen) {
 String signedYen(TxnType type, int amountYen) =>
     (type == TxnType.expense ? '-' : '+') + formatYen(amountYen);
 
-/// カレンダーセル用の略記（45px幅で潰れないように）。実機での最終調整はspec §13の宿題。
-String compactYen(int yen) {
+/// カレンダーセル用の万表記（モック確定: 980 / 0.3万 / 1.2万 / 28.5万 / 124万）。
+/// <1000: 生数字（¥なし）／<100万: 万単位・小数1桁に四捨五入（.0はトリム）／
+/// ≥100万: 整数万に四捨五入。0以下は空文字（セル非表示）。
+String manYen(int yen) {
   if (yen <= 0) return '';
-  if (yen < 1000) return '¥$yen';
-  if (yen < 10000) return '¥${_oneDecimal(yen / 1000)}k';
-  if (yen < 1000000) return '¥${yen ~/ 1000}k';
-  return '¥${_oneDecimal(yen / 1000000)}M';
-}
-
-String _oneDecimal(double v) {
-  final s = ((v * 10).floor() / 10).toStringAsFixed(1);
-  return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
+  if (yen < 1000) return '$yen';
+  if (yen < 1000000) {
+    final tenths = (yen / 1000).round(); // 0.1万（千円）単位に四捨五入
+    final s = (tenths / 10).toStringAsFixed(1);
+    return '${s.endsWith('.0') ? s.substring(0, s.length - 2) : s}万';
+  }
+  return '${(yen / 10000).round()}万';
 }
 
 String backupAgeLabel(DateTime? lastUtc, DateTime nowUtc) {

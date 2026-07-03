@@ -14,10 +14,12 @@ String validJson() {
     categories: const [
       BackupCategory(
           id: 1, name: '未分類', type: CategoryType.expense,
-          icon: null, sortOrder: 0, isArchived: false, isSystem: true),
+          icon: null, sortOrder: 0, isArchived: false, isSystem: true,
+          parentId: null),
       BackupCategory(
           id: 2, name: '未分類', type: CategoryType.income,
-          icon: null, sortOrder: 1, isArchived: false, isSystem: true),
+          icon: null, sortOrder: 1, isArchived: false, isSystem: true,
+          parentId: null),
     ],
     transactions: const [],
   ));

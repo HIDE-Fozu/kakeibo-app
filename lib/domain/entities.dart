@@ -40,6 +40,7 @@ class CategoryEntity {
   final int sortOrder;
   final bool isArchived;
   final bool isSystem;
+  final int? parentId; // 非null=内訳（階層は2段まで）
   const CategoryEntity({
     required this.id,
     required this.name,
@@ -48,5 +49,6 @@ class CategoryEntity {
     required this.sortOrder,
     required this.isArchived,
     required this.isSystem,
+    this.parentId,
   });
 }

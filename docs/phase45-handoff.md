@@ -1,5 +1,7 @@
 # Phase 4.5 ハンドオフ（2026-07-03 セッション終了時点）
 
+> **【2026-07-03 追記】Phase 4.5 実装完了。** 全スコープ（内訳・schema v2・backup v2・万表記・テーマ）実装済み・**256テスト緑**・analyze 0・mainへno-ffマージ済み。実行結果と逸脱は `docs/superpowers/plans/2026-07-03-kakeibo-phase45-uchiwake.md` 冒頭の実行結果メモを参照。**次はPhase 5（Mac必須・TestFlight）**（本ファイル末尾のロードマップ参照）。
+
 次セッションはこのファイルと `memory/project_kakeibo_app.md` から再開する。
 
 ## 現在地
