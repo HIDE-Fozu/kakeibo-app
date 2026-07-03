@@ -14,6 +14,7 @@ abstract interface class TransactionRepository {
 
 abstract interface class CategoryRepository {
   Future<List<CategoryEntity>> active();
+  Stream<List<CategoryEntity>> watchAll();
   Future<void> archive(int categoryId);
 
   /// 取引が紐づく型変更は集計desyncを招くため [CategoryInUseError] を投げる。

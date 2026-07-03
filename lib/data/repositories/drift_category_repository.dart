@@ -17,18 +17,23 @@ class DriftCategoryRepository implements CategoryRepository {
   @override
   Future<List<CategoryEntity>> active() async {
     final rows = await _db.categoryDao.activeCategories();
-    return rows
-        .map((r) => CategoryEntity(
-              id: r.id,
-              name: r.name,
-              type: r.type,
-              icon: r.icon,
-              sortOrder: r.sortOrder,
-              isArchived: r.isArchived,
-              isSystem: r.isSystem,
-            ))
-        .toList();
+    return rows.map(_toEntity).toList();
   }
+
+  @override
+  Stream<List<CategoryEntity>> watchAll() => _db.categoryDao
+      .watchAllCategories()
+      .map((rows) => rows.map(_toEntity).toList());
+
+  CategoryEntity _toEntity(CategoryRow r) => CategoryEntity(
+        id: r.id,
+        name: r.name,
+        type: r.type,
+        icon: r.icon,
+        sortOrder: r.sortOrder,
+        isArchived: r.isArchived,
+        isSystem: r.isSystem,
+      );
 
   @override
   Future<void> archive(int categoryId) => _db.categoryDao.archive(categoryId);

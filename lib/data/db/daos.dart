@@ -107,6 +107,10 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
   Future<List<CategoryRow>> allCategories() =>
       (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
 
+  Stream<List<CategoryRow>> watchAllCategories() =>
+      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)]))
+          .watch();
+
   Future<int> uncategorizedId(CategoryType type) async {
     final row = await (select(categories)
           ..where((c) => c.isSystem.equals(true) & c.type.equalsValue(type)))

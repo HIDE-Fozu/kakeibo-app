@@ -1,0 +1,116 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/data/backup/auto_backup_store.dart';
+import 'package:kakeibo_app/data/backup/backup_crypto.dart';
+import 'package:kakeibo_app/data/db/database.dart';
+import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/domain/services/ocr/ocr_types.dart';
+import 'package:kakeibo_app/domain/services/ocr/receipt_capture.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'test_db.dart';
+
+/// UI/providerテスト共通ハーネス。
+/// 固定時計 2026-07-15（月中日でmonth境界フレークを回避）。
+class TestHarness {
+  final AppDatabase db;
+  final Directory root;
+  final SharedPreferences prefs;
+  TestHarness({required this.db, required this.root, required this.prefs});
+
+  Directory get backupDir => Directory('${root.path}${Platform.pathSeparator}backups');
+  Directory get exportsDir => Directory('${root.path}${Platform.pathSeparator}exports');
+  Directory get imagesDir => Directory('${root.path}${Platform.pathSeparator}images');
+
+  List<Override> overrides({
+    CivilDate Function()? clock,
+    DateTime Function()? utcNow,
+    DateTime Function()? storeNow,
+    OcrService? ocr,
+    ReceiptCapture? capture,
+  }) =>
+      [
+        appDatabaseProvider.overrideWith((ref) => db),
+        backupDirProvider.overrideWith((ref) => backupDir),
+        exportsDirProvider.overrideWith((ref) => exportsDir),
+        receiptImagesDirProvider.overrideWith((ref) => imagesDir),
+        // 自動バックアップ世代のタイムスタンプも固定時計に（決定性の担保）
+        autoBackupStoreProvider.overrideWith((ref) => AutoBackupStore(
+              backupDir,
+              now: storeNow ?? utcNow ?? () => DateTime.utc(2026, 7, 15, 3, 0),
+            )),
+        sharedPreferencesProvider.overrideWith((ref) => prefs),
+        clockProvider.overrideWith((ref) => clock ?? () => const CivilDate(2026, 7, 15)),
+        utcNowProvider.overrideWith((ref) => utcNow ?? () => DateTime.utc(2026, 7, 15, 3, 0)),
+        ocrServiceProvider.overrideWith((ref) => ocr ?? const FakeOcrService([])),
+        receiptCaptureProvider.overrideWith((ref) => capture ?? const UnavailableReceiptCapture()),
+        backupCryptoProvider.overrideWith((ref) => BackupCrypto(pbkdf2Iterations: 1000)),
+      ];
+
+  void dispose() {
+    db.close();
+    if (root.existsSync()) root.deleteSync(recursive: true);
+  }
+}
+
+Future<TestHarness> createHarness({
+  Map<String, Object> prefs = const {'onboardingDone': true},
+}) async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting(); // table_calendarの曜日ラベル(DateFormat.E)に必須
+  SharedPreferences.setMockInitialValues(prefs);
+  final p = await SharedPreferences.getInstance();
+  final root = Directory.systemTemp.createTempSync('kakeibo_ui_test');
+  return TestHarness(db: newMemoryDb(), root: root, prefs: p);
+}
+
+/// アプリ全体（KakeiboApp）または単一画面（home指定）をポンプする。
+Future<void> pumpApp(
+  WidgetTester tester,
+  TestHarness h, {
+  Widget? home,
+  List<Override> extra = const [],
+}) async {
+  await tester.pumpWidget(ProviderScope(
+    overrides: [...h.overrides(), ...extra],
+    child: home != null ? MaterialApp(home: home) : const KakeiboAppPlaceholder(),
+  ));
+  await tester.pumpAndSettle();
+}
+
+/// Task 2 で app.dart の KakeiboApp に差し替えるまでの仮ルート。
+/// （Task 2 完了時に pumpApp から本物の KakeiboApp を参照させ、この widget は削除）
+class KakeiboAppPlaceholder extends StatelessWidget {
+  const KakeiboAppPlaceholder({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const MaterialApp(home: Scaffold(body: SizedBox()));
+}
+
+/// AsyncValue系providerの最初のデータ到達を待つ。
+Future<T> waitForData<T>(
+  ProviderContainer container,
+  ProviderListenable<AsyncValue<T>> provider,
+) {
+  final completer = Completer<T>();
+  final sub = container.listen<AsyncValue<T>>(provider, (prev, next) {
+    if (next is AsyncData<T> && !completer.isCompleted) {
+      completer.complete(next.value);
+    }
+  }, fireImmediately: true);
+  return completer.future.whenComplete(sub.close);
+}
+
+/// iPhone相当の論理サイズ（390x844）。縦長フォームのoverflow検知のため必ず使う。
+void setPhoneSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1170, 2532);
+  tester.view.devicePixelRatio = 3.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
