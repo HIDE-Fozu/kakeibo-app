@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/test_app.dart';
@@ -14,7 +15,7 @@ void main() {
 
     await tester.tap(find.text('サマリ'));
     await tester.pumpAndSettle();
-    expect(find.text('(サマリ 準備中)'), findsOneWidget);
+    expect(find.byKey(const Key('summary-next')), findsOneWidget);
 
     await tester.tap(find.text('設定'));
     await tester.pumpAndSettle();

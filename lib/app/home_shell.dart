@@ -5,6 +5,7 @@ import '../features/calendar/application/calendar_providers.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
+import '../features/summary/presentation/summary_screen.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -22,7 +23,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           index: _index,
           children: const [
             CalendarScreen(),
-            _PlaceholderTab('(サマリ 準備中)'), // Task 9 で SummaryScreen に差し替え
+            SummaryScreen(),
             _PlaceholderTab('(設定 準備中)'), // Task 12 で SettingsScreen に差し替え
           ],
         ),
