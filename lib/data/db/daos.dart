@@ -166,12 +166,21 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {
   CategoryDao(super.db);
 
-  Future<List<CategoryRow>> allCategories() =>
-      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+  // sortOrderは同一スコープ（同じ親）内でのみ一意。フラットな並びのタイは
+  // id昇順で決定的にする（食費=親スコープ0と外食=内訳スコープ0が同順位になるため）。
+  Future<List<CategoryRow>> allCategories() => (select(categories)
+        ..orderBy([
+          (c) => OrderingTerm.asc(c.sortOrder),
+          (c) => OrderingTerm.asc(c.id),
+        ]))
+      .get();
 
-  Stream<List<CategoryRow>> watchAllCategories() =>
-      (select(categories)..orderBy([(c) => OrderingTerm.asc(c.sortOrder)]))
-          .watch();
+  Stream<List<CategoryRow>> watchAllCategories() => (select(categories)
+        ..orderBy([
+          (c) => OrderingTerm.asc(c.sortOrder),
+          (c) => OrderingTerm.asc(c.id),
+        ]))
+      .watch();
 
   Future<int> uncategorizedId(CategoryType type) async {
     final row = await (select(categories)
