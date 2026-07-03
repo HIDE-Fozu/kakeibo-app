@@ -11,6 +11,7 @@ import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
 import 'receipt_review_panel.dart';
+import 'subcategory_chips.dart';
 
 class EntryScreen extends ConsumerWidget {
   const EntryScreen({super.key});
@@ -105,10 +106,17 @@ class EntryScreen extends ConsumerWidget {
                 onBackspace: ctrl.backspace,
               ),
               const SizedBox(height: 8),
+              // 内訳チップ列はグリッドの直上（モック確定）
+              if (state.expandedParentId != null)
+                SubcategoryChips(
+                  parentId: state.expandedParentId!,
+                  selectedId: state.categoryId,
+                  onToggle: ctrl.toggleSubcategory,
+                ),
               CategoryGrid(
                 type: state.type,
                 selectedId: state.categoryId,
-                onSelect: ctrl.selectCategory,
+                onTapCategory: ctrl.tapCategory,
               ),
               const SizedBox(height: 8),
               if (state.memoExpanded)

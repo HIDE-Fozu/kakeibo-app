@@ -63,7 +63,10 @@ void main() {
     await tester.pump();
     expect(find.text('¥500'), findsOneWidget);
 
-    await tester.tap(find.text('食費'));
+    await tester.tap(find.textContaining('食費')); // ラベルは「食費 ▾」（内訳あり）
+    await tester.pump();
+    // チップ列が開いて保存ボタンが押し下げられるためスクロールしてから押す
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('save-btn')));
     await tester.pumpAndSettle();
@@ -85,12 +88,12 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('食費'));
+    await tester.tap(find.textContaining('食費')); // ラベルは「食費 ▾」（内訳あり）
     await tester.pump();
     await tester.tap(find.text('収入'));
     await tester.pumpAndSettle();
     expect(find.text('給与'), findsOneWidget);
-    expect(find.text('食費'), findsNothing);
+    expect(find.textContaining('食費'), findsNothing);
     expect(containerOf(tester).read(entryFormControllerProvider)!.categoryId,
         isNull);
   });
@@ -125,7 +128,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('8'));
-    await tester.tap(find.text('食費'));
+    await tester.tap(find.textContaining('食費')); // ラベルは「食費 ▾」（内訳あり）
+    await tester.pump();
+    // チップ列が開いてボタンが押し下げられるためスクロールしてから押す
+    await tester.ensureVisible(find.byKey(const Key('save-continue-btn')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('save-continue-btn')));
     await tester.pumpAndSettle();
@@ -175,5 +181,91 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
     expect(await repo.forMonth(2026, 7), isEmpty);
+  });
+
+  testWidgets('内訳: 親タップでチップ出現→内訳選択でラベル変化→再タップで格納→保存は内訳idに',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // 金額入力（500）
+    await tester.tap(find.text('5'));
+    await tester.tap(find.byKey(const Key('np-00')));
+    await tester.pump();
+
+    // 食費タイル（▾付き）をタップ → チップ列が出る
+    await tester.ensureVisible(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(Key('sub-chip-$eatOutId')), findsOneWidget);
+
+    // 外食チップを選択 → タイルのラベルが「外食 ▾」に変わる
+    await tester.ensureVisible(find.byKey(Key('sub-chip-$eatOutId')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('sub-chip-$eatOutId')));
+    await tester.pumpAndSettle();
+    final tileTexts = tester.widgetList<Text>(find.descendant(
+        of: find.byKey(Key('cat-tile-$foodId')), matching: find.byType(Text)));
+    expect(tileTexts.any((t) => t.data == '外食 ▾'), isTrue);
+
+    // 同じタイルを再タップ → チップ列が格納（選択は維持）
+    await tester.ensureVisible(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(Key('sub-chip-$eatOutId')), findsNothing);
+
+    // 保存 → categoryIdは外食のid
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('save-btn')));
+    await tester.pumpAndSettle();
+    final txs =
+        await container.read(transactionRepositoryProvider).forMonth(2026, 7);
+    expect(txs.single.categoryId, eatOutId);
+    expect(txs.single.amountYen, 500);
+  });
+
+  testWidgets('内訳未選択のまま保存すると親カテゴリに計上される', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('3'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId'))); // チップは開くが選ばない
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('save-btn')));
+    await tester.pumpAndSettle();
+
+    final txs =
+        await container.read(transactionRepositoryProvider).forMonth(2026, 7);
+    expect(txs.single.categoryId, foodId); // 親に計上
   });
 }
