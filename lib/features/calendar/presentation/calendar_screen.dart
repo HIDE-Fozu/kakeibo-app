@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../domain/entities.dart';
@@ -55,7 +56,8 @@ class CalendarScreen extends ConsumerWidget {
                     manYen(events.first),
                     style: TextStyle(
                         fontSize: 10,
-                        color: Theme.of(context).colorScheme.error),
+                        fontFeatures: kTabularFigures,
+                        color: context.kakeiboColors.expense),
                   ),
                 );
               },
@@ -96,7 +98,10 @@ class _MonthHeader extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium),
                 Text(
                   '支出 ${formatYen(summary.expense)}　収入 ${formatYen(summary.income)}　差引 $netLabel',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(fontFeatures: kTabularFigures),
                 ),
               ],
             ),

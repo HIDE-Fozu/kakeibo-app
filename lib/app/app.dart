@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'home_shell.dart';
+import 'theme.dart';
 
 class KakeiboApp extends StatelessWidget {
   const KakeiboApp({super.key});
@@ -8,10 +9,7 @@ class KakeiboApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: '家計簿',
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF2E7D6B),
-          useMaterial3: true,
-        ),
+        theme: buildKakeiboTheme(),
         home: const HomeShell(),
       );
 }

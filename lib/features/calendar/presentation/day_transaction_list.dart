@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../app/theme.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
@@ -77,9 +78,11 @@ class DayTransactionList extends ConsumerWidget {
             trailing: Text(
               signedYen(tx.type, tx.amountYen),
               style: TextStyle(
-                color:
-                    tx.type == TxnType.expense ? scheme.error : scheme.primary,
+                color: tx.type == TxnType.expense
+                    ? context.kakeiboColors.expense
+                    : context.kakeiboColors.income,
                 fontWeight: FontWeight.w600,
+                fontFeatures: kTabularFigures,
               ),
             ),
             onTap: () {

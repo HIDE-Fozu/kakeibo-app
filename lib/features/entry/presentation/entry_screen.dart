@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../app/theme.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
@@ -92,7 +93,10 @@ class EntryScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   state.amountYen == 0 ? '¥0' : formatYen(state.amountYen),
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineLarge
+                      ?.copyWith(fontFeatures: kTabularFigures),
                 ),
               ),
               Numpad(

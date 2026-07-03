@@ -3,16 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/format.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
 import '../application/entry_form_controller.dart';
 
-/// 確信度tier→ハイライト色（spec §7.5）。nullは無色（手修正済み等）。
+/// 確信度tier→ハイライト色（spec §7.5・モック確定soft色）。nullは無色（手修正済み等）。
 Color? confidenceTint(ExtractionConfidence? c) => switch (c) {
       null => null,
-      ExtractionConfidence.high => const Color(0x2632A854),
-      ExtractionConfidence.medium => const Color(0x33FFB300),
-      ExtractionConfidence.low => const Color(0x26E53935),
+      ExtractionConfidence.high => kConfidenceHighSoft,
+      ExtractionConfidence.medium => kConfidenceMediumSoft,
+      ExtractionConfidence.low => kExpenseSoft,
     };
 
 class ReceiptReviewPanel extends ConsumerWidget {
