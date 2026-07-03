@@ -37,6 +37,11 @@ dependencies:
   drift: ^2.34.0
   sqlite3_flutter_libs: ^0.6.0+eol
   cryptography: ^2.9.0
+  flutter_riverpod: ^2.6.1
+  table_calendar: ^3.2.0
+  shared_preferences: ^2.5.5
+  path_provider: ^2.1.6
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:

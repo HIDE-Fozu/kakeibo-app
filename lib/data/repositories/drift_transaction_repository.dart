@@ -3,6 +3,7 @@ import '../db/database.dart';
 import '../db/enums.dart';
 import '../db/daos.dart' show CategorySpendRow;
 import '../../domain/entities.dart';
+import '../../domain/money/civil_date.dart';
 import '../../domain/repositories.dart';
 
 class DriftTransactionRepository implements TransactionRepository {
@@ -20,6 +21,7 @@ class DriftTransactionRepository implements TransactionRepository {
       source: tx.source,
       paymentMethod: Value(tx.paymentMethod),
       memo: Value(tx.memo),
+      imagePath: Value(tx.imagePath),
     ));
   }
 
@@ -59,6 +61,33 @@ class DriftTransactionRepository implements TransactionRepository {
     );
   }
 
+  @override
+  Stream<List<TransactionEntity>> watchMonth(int year, int month) =>
+      _db.transactionDao
+          .watchTransactionsInMonth(year, month)
+          .map((rows) => rows.map(_toEntity).toList());
+
+  @override
+  Stream<MonthlySummary> watchSummary(int year, int month) =>
+      _db.transactionDao.watchTotalsByType(year, month).map(
+            (byType) => MonthlySummary(
+              income: byType[TxnType.income] ?? 0,
+              expense: byType[TxnType.expense] ?? 0,
+            ),
+          );
+
+  @override
+  Stream<List<CategorySpendRow>> watchSpendingByCategory(int year, int month) =>
+      _db.transactionDao.watchSpendingByCategory(year, month);
+
+  @override
+  Stream<Map<int, CivilDate>> watchLastUsedByCategory() =>
+      _db.transactionDao.watchLastUsedIsoByCategory().map(
+          (m) => m.map((id, iso) => MapEntry(id, CivilDate.parse(iso))));
+
+  @override
+  Future<void> delete(int id) => _db.transactionDao.deleteById(id);
+
   TransactionEntity _toEntity(TransactionRow r) => TransactionEntity(
         id: r.id,
         type: r.type,
@@ -68,5 +97,6 @@ class DriftTransactionRepository implements TransactionRepository {
         paymentMethod: r.paymentMethod,
         memo: r.memo,
         source: r.source,
+        imagePath: r.imagePath,
       );
 }
