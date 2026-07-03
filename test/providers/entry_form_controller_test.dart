@@ -215,4 +215,61 @@ void main() {
     expect(File(tx.imagePath!).existsSync(), isTrue);
     expect(tx.imagePath!, contains(h.imagesDir.path));
   });
+
+  group('内訳チップの状態機械', () {
+    test('内訳ありカテゴリのタップ: 選択＋チップ列が開く', () {
+      ctrl().startCreate(day);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
+      expect(st().categoryId, 1);
+      expect(st().expandedParentId, 1);
+    });
+
+    test('内訳なしカテゴリのタップ: 選択のみ・チップ列は閉じる', () {
+      ctrl().startCreate(day);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
+      ctrl().tapCategory(categoryId: 4, hasSubs: false, isSameGroup: false);
+      expect(st().categoryId, 4);
+      expect(st().expandedParentId, isNull);
+    });
+
+    test('同じ親の再タップ: チップ列の開閉のみ・選択は維持', () {
+      ctrl().startCreate(day);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
+      ctrl().toggleSubcategory(2); // 内訳を選択
+      expect(st().categoryId, 2);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 格納
+      expect(st().expandedParentId, isNull);
+      expect(st().categoryId, 2); // 選択は維持（モック確定）
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: true); // 再展開
+      expect(st().expandedParentId, 1);
+      expect(st().categoryId, 2); // 再展開でも選択維持（実装中判断）
+    });
+
+    test('チップ再タップで親に戻る', () {
+      ctrl().startCreate(day);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
+      ctrl().toggleSubcategory(2);
+      expect(st().categoryId, 2);
+      ctrl().toggleSubcategory(2); // 再タップ
+      expect(st().categoryId, 1); // 親に計上する状態へ
+    });
+
+    test('setTypeで選択とチップ列が両方クリアされる', () {
+      ctrl().startCreate(day);
+      ctrl().tapCategory(categoryId: 1, hasSubs: true, isSameGroup: false);
+      ctrl().setType(TxnType.income);
+      expect(st().categoryId, isNull);
+      expect(st().expandedParentId, isNull);
+    });
+
+    test('saveAndContinue後はチップ列が閉じる', () async {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(5);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: true, isSameGroup: false);
+      expect(st().expandedParentId, foodId);
+      await ctrl().saveAndContinue();
+      expect(st().expandedParentId, isNull); // 再初期化でチップ列も閉じる
+      expect(st().categoryId, isNull);
+    });
+  });
 }
