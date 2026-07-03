@@ -10,6 +10,7 @@ class TransactionEntity {
   final PaymentMethod? paymentMethod;
   final String? memo;
   final TxnSource source;
+  final String? imagePath; // §14-C: 保持設定ON時のみ非null
 
   const TransactionEntity({
     this.id,
@@ -20,6 +21,7 @@ class TransactionEntity {
     this.paymentMethod,
     this.memo,
     required this.source,
+    this.imagePath,
   });
 }
 

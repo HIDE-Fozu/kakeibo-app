@@ -52,6 +52,65 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  Stream<List<TransactionRow>> watchTransactionsInMonth(int year, int month) {
+    return (select(transactions)
+          ..where((t) => _inMonth(year, month))
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.desc(t.id),
+          ]))
+        .watch();
+  }
+
+  Stream<Map<TxnType, int>> watchTotalsByType(int year, int month) {
+    final amountSum = transactions.amount.sum();
+    final query = selectOnly(transactions)
+      ..addColumns([transactions.type, amountSum])
+      ..where(_inMonth(year, month))
+      ..groupBy([transactions.type]);
+    return query.watch().map((rows) => {
+          for (final row in rows)
+            row.readWithConverter(transactions.type)!: row.read(amountSum) ?? 0,
+        });
+  }
+
+  Stream<List<CategorySpendRow>> watchSpendingByCategory(int year, int month) {
+    final amountSum = transactions.amount.sum();
+    final query = selectOnly(transactions).join([
+      innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
+          useColumns: false),
+    ])
+      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
+      ..where(_inMonth(year, month) &
+          transactions.type.equalsValue(TxnType.expense))
+      ..groupBy([transactions.categoryId])
+      ..orderBy([OrderingTerm.desc(amountSum)]);
+    return query.watch().map((rows) => [
+          for (final row in rows)
+            CategorySpendRow(
+              categoryId: row.read(categories.id)!,
+              categoryName: row.read(categories.name)!,
+              isArchived: row.read(categories.isArchived)!,
+              total: row.read(amountSum) ?? 0,
+            ),
+        ]);
+  }
+
+  /// カテゴリ別の最終利用日。取引date（YYYY-MM-DD、辞書順=時系列順）のMAX。
+  Stream<Map<int, String>> watchLastUsedIsoByCategory() {
+    final maxDate = transactions.date.max();
+    final query = selectOnly(transactions)
+      ..addColumns([transactions.categoryId, maxDate])
+      ..groupBy([transactions.categoryId]);
+    return query.watch().map((rows) => {
+          for (final row in rows)
+            row.read(transactions.categoryId)!: row.read(maxDate)!,
+        });
+  }
+
+  Future<void> deleteById(int id) =>
+      (delete(transactions)..where((t) => t.id.equals(id))).go();
+
   Future<Map<TxnType, int>> totalsByType(int year, int month) async {
     final amountSum = transactions.amount.sum();
     final query = selectOnly(transactions)
@@ -71,7 +130,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId),
           useColumns: false),
     ])
-      ..addColumns([categories.id, categories.name, amountSum])
+      ..addColumns([categories.id, categories.name, categories.isArchived, amountSum])
       ..where(_inMonth(year, month) &
           transactions.type.equalsValue(TxnType.expense))
       ..groupBy([transactions.categoryId])
@@ -82,6 +141,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
         CategorySpendRow(
           categoryId: row.read(categories.id)!,
           categoryName: row.read(categories.name)!,
+          isArchived: row.read(categories.isArchived)!,
           total: row.read(amountSum) ?? 0,
         ),
     ];
@@ -91,10 +151,12 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
 class CategorySpendRow {
   final int categoryId;
   final String categoryName;
+  final bool isArchived;
   final int total;
   const CategorySpendRow({
     required this.categoryId,
     required this.categoryName,
+    required this.isArchived,
     required this.total,
   });
 }
@@ -133,10 +195,39 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
     return row.read(cnt) ?? 0;
   }
 
-  Future<void> archive(int categoryId) async {
-    await (update(categories)..where((c) => c.id.equals(categoryId)))
-        .write(const CategoriesCompanion(isArchived: Value(true)));
+  Future<void> archive(int categoryId) => setArchived(categoryId, true);
+
+  Future<int> insertCategory(CategoriesCompanion c) => into(categories).insert(c);
+
+  Future<void> renameCategory(int id, String name) async {
+    await (update(categories)..where((c) => c.id.equals(id)))
+        .write(CategoriesCompanion(name: Value(name)));
   }
+
+  Future<void> setArchived(int id, bool archived) async {
+    await (update(categories)..where((c) => c.id.equals(id)))
+        .write(CategoriesCompanion(isArchived: Value(archived)));
+  }
+
+  Future<int> maxSortOrder() async {
+    final maxOrder = categories.sortOrder.max();
+    final q = selectOnly(categories)..addColumns([maxOrder]);
+    final row = await q.getSingle();
+    return row.read(maxOrder) ?? -1;
+  }
+
+  Future<void> updateSortOrders(Map<int, int> orderById) => batch((b) {
+        orderById.forEach((id, order) {
+          b.update(
+            categories,
+            CategoriesCompanion(sortOrder: Value(order)),
+            where: (c) => c.id.equals(id),
+          );
+        });
+      });
+
+  Future<CategoryRow> byId(int id) =>
+      (select(categories)..where((c) => c.id.equals(id))).getSingle();
 
   Future<void> setType(int categoryId, CategoryType type) async {
     await (update(categories)..where((c) => c.id.equals(categoryId)))
