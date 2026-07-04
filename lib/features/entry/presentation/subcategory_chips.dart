@@ -54,6 +54,11 @@ class SubcategoryChips extends ConsumerWidget {
                           key: Key('sub-chip-${s.id}'),
                           label: Text(s.name),
                           selected: s.id == selectedId,
+                          // 選択時は塗りを変えず、緑のチェックマークだけで表す
+                          showCheckmark: true,
+                          checkmarkColor: const Color(0xFF1E6B5A),
+                          backgroundColor: Colors.white,
+                          selectedColor: Colors.white,
                           onSelected: (_) => onToggle(s.id),
                         ),
                       ),

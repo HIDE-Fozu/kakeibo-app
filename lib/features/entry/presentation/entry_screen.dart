@@ -168,10 +168,12 @@ class EntryScreen extends ConsumerWidget {
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer,
+                                  // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠
+                                  color: const Color(0xFFEAF4EF),
                                   borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFFCFE4DB),
+                                  ),
                                 ),
                                 child: SubcategoryChips(
                                   parentId: state.expandedParentId!,
