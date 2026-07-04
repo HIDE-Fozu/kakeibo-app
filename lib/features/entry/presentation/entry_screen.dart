@@ -22,9 +22,6 @@ class EntryScreen extends ConsumerWidget {
 
   const EntryScreen({super.key, this.embedded = false});
 
-  /// 内訳チップ枠の固定高さ。チップの有無に関わらず確保し、下（メモ・保存）を動かさない。
-  static const double _chipSlotHeight = 52;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(entryFormControllerProvider);
@@ -55,165 +52,183 @@ class EntryScreen extends ConsumerWidget {
             ),
         ],
       ),
-      // 1画面完結: テンキーが残余高さを吸収して保存ボタンまで常に見える（保存は最下部）。
-      // 内訳チップは固定枠に出すのでメモ・保存は動かない。
-      // キーボード等で収まらない時だけスクロール可。
+      // 保存ボタンは最下部固定（収まる時はスクロールなし）。内訳チップはメモに重ねて
+      // 出すので高さを取らず、メモ・保存は動かない。キーボード等で収まらない時だけスクロール。
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // 固定要素以外の残余をテンキーに割り当てる（下限で崩れたらスクロールへ）。
-            final numpadH = (constraints.maxHeight - 500).clamp(120.0, 280.0);
             return SingleChildScrollView(
               padding: const EdgeInsets.all(12),
               child: ConstrainedBox(
-                constraints:
-                    BoxConstraints(minHeight: constraints.maxHeight - 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）
-                    if (state.mode != EntryMode.edit)
-                      SegmentedButton<TxnType>(
-                        segments: const [
-                          ButtonSegment(
-                              value: TxnType.expense, label: Text('支出')),
-                          ButtonSegment(
-                              value: TxnType.income, label: Text('収入')),
-                        ],
-                        selected: {state.type},
-                        onSelectionChanged: (s) => ctrl.setType(s.single),
-                      ),
-                    ListTile(
-                      key: const Key('date-tile'),
-                      dense: true,
-                      leading: const Icon(Icons.event),
-                      title: Text(_dateLabel(state.date)),
-                      tileColor: state.mode == EntryMode.receiptConfirm
-                          ? confidenceTint(state.matchedDateCandidate?.confidence)
-                          : null,
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: dateTimeOfCivil(state.date),
-                          firstDate: DateTime(2000, 1, 1),
-                          lastDate: DateTime(2100, 12, 31),
-                        );
-                        if (picked != null) {
-                          ctrl.setDate(civilOfDateTime(picked));
-                        }
-                      },
-                    ),
-                    if (state.mode == EntryMode.receiptConfirm)
-                      ReceiptReviewPanel(state: state),
-                    Container(
-                      key: const Key('amount-display'),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 4, horizontal: 12),
-                      alignment: Alignment.centerRight,
-                      decoration: BoxDecoration(
-                        color: state.mode == EntryMode.receiptConfirm
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 24,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）
+                      if (state.mode != EntryMode.edit)
+                        SegmentedButton<TxnType>(
+                          segments: const [
+                            ButtonSegment(
+                              value: TxnType.expense,
+                              label: Text('支出'),
+                            ),
+                            ButtonSegment(
+                              value: TxnType.income,
+                              label: Text('収入'),
+                            ),
+                          ],
+                          selected: {state.type},
+                          onSelectionChanged: (s) => ctrl.setType(s.single),
+                        ),
+                      ListTile(
+                        key: const Key('date-tile'),
+                        dense: true,
+                        leading: const Icon(Icons.event),
+                        title: Text(_dateLabel(state.date)),
+                        tileColor: state.mode == EntryMode.receiptConfirm
                             ? confidenceTint(
-                                state.matchedTotalCandidate?.confidence)
+                                state.matchedDateCandidate?.confidence,
+                              )
                             : null,
-                        borderRadius: BorderRadius.circular(8),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: dateTimeOfCivil(state.date),
+                            firstDate: DateTime(2000, 1, 1),
+                            lastDate: DateTime(2100, 12, 31),
+                          );
+                          if (picked != null) {
+                            ctrl.setDate(civilOfDateTime(picked));
+                          }
+                        },
                       ),
-                      child: Text(
-                        state.amountYen == 0
-                            ? '¥0'
-                            : formatYen(state.amountYen),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineLarge
-                            ?.copyWith(fontFeatures: kTabularFigures),
+                      if (state.mode == EntryMode.receiptConfirm)
+                        ReceiptReviewPanel(state: state),
+                      Container(
+                        key: const Key('amount-display'),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 12,
+                        ),
+                        alignment: Alignment.centerRight,
+                        decoration: BoxDecoration(
+                          color: state.mode == EntryMode.receiptConfirm
+                              ? confidenceTint(
+                                  state.matchedTotalCandidate?.confidence,
+                                )
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          state.amountYen == 0
+                              ? '¥0'
+                              : formatYen(state.amountYen),
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(fontFeatures: kTabularFigures),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: numpadH,
-                      child: Numpad(
+                      Numpad(
                         onDigit: ctrl.tapDigit,
                         onDoubleZero: ctrl.tapDoubleZero,
                         onBackspace: ctrl.backspace,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    CategoryGrid(
-                      type: state.type,
-                      selectedId: state.categoryId,
-                      onTapCategory: ctrl.tapCategory,
-                    ),
-                    const SizedBox(height: 4),
-                    // 内訳チップの固定枠（グリッドの下・メモの上）。
-                    // チップの有無に関わらず高さ一定＝メモ・保存は動かない。
-                    SizedBox(
-                      height: _chipSlotHeight,
-                      child: state.expandedParentId != null
-                          ? SubcategoryChips(
-                              key: const Key('subcategory-chips'),
-                              parentId: state.expandedParentId!,
-                              selectedId: state.categoryId,
-                              onToggle: ctrl.toggleSubcategory,
-                            )
-                          : null,
-                    ),
-                    // メモは常時入力欄を表示（トグル廃止）。formSeqでリセット時にクリア。
-                    TextFormField(
-                      key: ValueKey('memo-field-${state.formSeq}'),
-                      initialValue: state.memo,
-                      decoration: const InputDecoration(
-                        labelText: 'メモ・店名',
-                        border: OutlineInputBorder(),
-                        isDense: true,
+                      const SizedBox(height: 8),
+                      CategoryGrid(
+                        type: state.type,
+                        selectedId: state.categoryId,
+                        onTapCategory: ctrl.tapCategory,
                       ),
-                      onChanged: ctrl.setMemo,
-                    ),
-                    const SizedBox(height: 10),
-                    Row(children: [
-                      Expanded(
-                        child: FilledButton(
-                          key: const Key('save-btn'),
-                          onPressed: state.canSave
-                              ? () async {
-                                  final date = state.date;
-                                  await ctrl.save();
-                                  if (embedded) {
-                                    // 保存できたと分かるようカレンダーへ切替（その日を表示）
-                                    ref
-                                        .read(selectedDayProvider.notifier)
-                                        .select(date);
-                                    ctrl.startCreate(
-                                        ref.read(clockProvider)());
-                                    ref
-                                        .read(homeTabIndexProvider.notifier)
-                                        .set(0);
-                                  } else if (context.mounted) {
-                                    Navigator.pop(context);
-                                  }
-                                }
-                              : null,
-                          child: const Text('保存'),
-                        ),
-                      ),
-                      if (state.mode != EntryMode.edit) ...[
-                        // create + receiptConfirm（spec §7.4 分割入力）
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton(
-                            key: const Key('save-continue-btn'),
-                            onPressed: state.canSave
-                                ? () async {
-                                    final messenger =
-                                        ScaffoldMessenger.of(context);
-                                    await ctrl.saveAndContinue();
-                                    messenger.showSnackBar(const SnackBar(
-                                        content: Text('保存しました')));
-                                  }
-                                : null,
-                            child: const Text('保存して続ける'),
+                      const SizedBox(height: 8),
+                      // メモは常時表示。内訳チップは同じ場所にオーバーレイ（重ねる）ので
+                      // 高さを取らず、メモ・保存は動かない（内訳選択中はメモを打たない前提）。
+                      Stack(
+                        children: [
+                          TextFormField(
+                            key: ValueKey('memo-field-${state.formSeq}'),
+                            initialValue: state.memo,
+                            decoration: const InputDecoration(
+                              labelText: 'メモ・店名',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: ctrl.setMemo,
                           ),
-                        ),
-                      ],
-                    ]),
-                  ],
+                          if (state.expandedParentId != null)
+                            Positioned.fill(
+                              child: Container(
+                                key: const Key('subcategory-chips'),
+                                color: Theme.of(
+                                  context,
+                                ).scaffoldBackgroundColor,
+                                alignment: Alignment.centerLeft,
+                                child: SubcategoryChips(
+                                  parentId: state.expandedParentId!,
+                                  selectedId: state.categoryId,
+                                  onToggle: ctrl.toggleSubcategory,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const Spacer(),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton(
+                              key: const Key('save-btn'),
+                              onPressed: state.canSave
+                                  ? () async {
+                                      final date = state.date;
+                                      await ctrl.save();
+                                      if (embedded) {
+                                        // 保存できたと分かるようカレンダーへ切替（その日を表示）
+                                        ref
+                                            .read(selectedDayProvider.notifier)
+                                            .select(date);
+                                        ctrl.startCreate(
+                                          ref.read(clockProvider)(),
+                                        );
+                                        ref
+                                            .read(homeTabIndexProvider.notifier)
+                                            .set(0);
+                                      } else if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    }
+                                  : null,
+                              child: const Text('保存'),
+                            ),
+                          ),
+                          if (state.mode != EntryMode.edit) ...[
+                            // create + receiptConfirm（spec §7.4 分割入力）
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton(
+                                key: const Key('save-continue-btn'),
+                                onPressed: state.canSave
+                                    ? () async {
+                                        final messenger = ScaffoldMessenger.of(
+                                          context,
+                                        );
+                                        await ctrl.saveAndContinue();
+                                        messenger.showSnackBar(
+                                          const SnackBar(
+                                            content: Text('保存しました'),
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                child: const Text('保存して続ける'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
