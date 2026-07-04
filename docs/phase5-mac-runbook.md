@@ -25,7 +25,7 @@ MacでClaude Codeを使う場合は、このファイルと `docs/phase45-handof
 | 4 署名 | ✅ 完了（CLI） | pbxprojのRunner 3コンフィグに `CODE_SIGN_STYLE=Automatic`＋`DEVELOPMENT_TEAM=Q7T6APPS23` を追記（Xcode GUI不要）。`xcodebuild -showBuildSettings` で反映確認済み（Appleサーバー未接触）。コミット `38eadcd` |
 | 5 スモーク確認 | ◐ 一部 | iPhone 17シミュレータ(iOS 26.4)でビルド＆起動成功・テーマ/カレンダー描画OK・DB初期化OK。UIタップ確認はユーザーで |
 | 6 App Store Connect | ✅ 完了 | App「経理の家計簿」作成・App ID `com.hidefozu.kakeibo` 自動登録・Bundle ID永久固定（2026-07-04） |
-| 7 build ipa→配信 | ✅ 完了 | `flutter build ipa`→`kakeibo_app.ipa`(21MB・App Store署名)→Transporterアップロード成功→内部グループ「111」に2テスター招待済み |
+| 7 build ipa→配信 | ✅ build1配信済 / build3生成済 | build1はTestFlight配信・母テスト実施。入力画面リデザイン後の**build 3 ipa生成済み（未アップロード）**。以降の続きは `docs/phase5-handoff.md` を参照 |
 
 ## Windows側で設定済みのもの（2026-07-03）
 
