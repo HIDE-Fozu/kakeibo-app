@@ -9,6 +9,7 @@ import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../calendar/application/calendar_providers.dart';
+import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
@@ -33,6 +34,16 @@ class EntryScreen extends ConsumerWidget {
       EntryMode.receiptConfirm => 'レシート確認',
       EntryMode.edit => '編集',
     };
+
+    // グリッドは2行横スクロール（偶数index=上段 / 奇数index=下段）。
+    // 内訳ありカテゴリが下段なら上段側に、上段なら下段側にオーバーレイを出す
+    // （＝押した行を隠さず、押したカテゴリの隣に必ず出す）。
+    final entryCats =
+        ref.watch(entryCategoriesProvider(state.type)).valueOrNull ?? const [];
+    final expandedIdx = state.expandedParentId == null
+        ? -1
+        : entryCats.indexWhere((c) => c.id == state.expandedParentId);
+    final overlayAbove = expandedIdx.isOdd;
 
     return Scaffold(
       appBar: AppBar(
@@ -149,7 +160,8 @@ class EntryScreen extends ConsumerWidget {
                             Positioned(
                               left: 0,
                               right: 0,
-                              bottom: 0,
+                              top: overlayAbove ? 0 : null,
+                              bottom: overlayAbove ? null : 0,
                               height: 66,
                               child: Container(
                                 key: const Key('subcategory-chips'),
@@ -160,10 +172,6 @@ class EntryScreen extends ConsumerWidget {
                                       .colorScheme
                                       .primaryContainer,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 1.5,
-                                  ),
                                 ),
                                 child: SubcategoryChips(
                                   parentId: state.expandedParentId!,
