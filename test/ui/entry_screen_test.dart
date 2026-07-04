@@ -269,6 +269,36 @@ void main() {
     expect(tester.getRect(find.byKey(const Key('save-btn'))), saveBefore);
   });
 
+  testWidgets('追加ダイアログの「既存の内容を編集」から内訳を削除できる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+
+    // ＋追加 → ダイアログ → 折りたたみ「既存の内容を編集」を開く → 外食を削除
+    await tester.tap(find.byKey(const Key('add-sub-inline')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('edit-existing-subs')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('edit-sub-delete-$eatOutId')));
+    await tester.pumpAndSettle();
+
+    final after = container.read(allCategoriesProvider).valueOrNull!;
+    expect(after.firstWhere((c) => c.id == eatOutId).isArchived, isTrue);
+  });
+
   testWidgets('内訳チップ長押し→削除でその内訳がアーカイブされる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();

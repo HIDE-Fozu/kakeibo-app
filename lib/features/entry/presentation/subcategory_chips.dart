@@ -83,7 +83,7 @@ class SubcategoryChips extends ConsumerWidget {
       BuildContext context, WidgetRef ref, CategoryEntity parent) async {
     final result = await showDialog<(String, String)>(
       context: context,
-      builder: (_) => const _AddSubDialog(),
+      builder: (_) => _AddSubDialog(parent: parent),
     );
     if (result == null) return;
     final id = await ref.read(categoryRepositoryProvider).addCategory(
@@ -188,15 +188,17 @@ class _RenameSubDialogState extends State<_RenameSubDialog> {
   }
 }
 
-/// controllerの寿命をダイアログ自身に閉じ込める（popアニメーション中のdispose事故防止）
-class _AddSubDialog extends StatefulWidget {
-  const _AddSubDialog();
+/// 内訳の追加ダイアログ。下部の折りたたみ「既存の内容を編集」から既存内訳の
+/// 名前変更・削除もできる（追加は従来どおりpopで返して呼び出し側が選択）。
+class _AddSubDialog extends ConsumerStatefulWidget {
+  final CategoryEntity parent;
+  const _AddSubDialog({required this.parent});
 
   @override
-  State<_AddSubDialog> createState() => _AddSubDialogState();
+  ConsumerState<_AddSubDialog> createState() => _AddSubDialogState();
 }
 
-class _AddSubDialogState extends State<_AddSubDialog> {
+class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
   final _name = TextEditingController();
   final _icon = TextEditingController();
 
@@ -207,38 +209,108 @@ class _AddSubDialogState extends State<_AddSubDialog> {
     super.dispose();
   }
 
+  Future<void> _renameSub(CategoryEntity sub) async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameSubDialog(initial: sub.name),
+    );
+    if (name != null && name.trim().isNotEmpty) {
+      await ref.read(categoryRepositoryProvider).rename(sub.id, name.trim());
+    }
+  }
+
+  // 管理画面と同じくアーカイブで消す（取引があってもFK RESTRICTで壊れない）
+  Future<void> _deleteSub(CategoryEntity sub) =>
+      ref.read(categoryRepositoryProvider).setArchived(sub.id, true);
+
   @override
   Widget build(BuildContext context) {
+    final subs =
+        ref.watch(entrySubcategoriesProvider(widget.parent.id)).valueOrNull ??
+            const <CategoryEntity>[];
     return AlertDialog(
       title: const Text('内訳を追加'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            key: const Key('category-name-field'),
-            controller: _name,
-            decoration: const InputDecoration(labelText: '名前'),
+      // ボタンを本文内に入れ、「既存の内容を編集」を追加ボタンの下に置く
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                key: const Key('category-name-field'),
+                controller: _name,
+                decoration: const InputDecoration(labelText: '名前'),
+              ),
+              TextField(
+                key: const Key('category-icon-field'),
+                controller: _icon,
+                decoration:
+                    const InputDecoration(labelText: 'アイコン（絵文字・任意）'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('キャンセル'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      if (_name.text.trim().isEmpty) return;
+                      Navigator.pop(context, (_name.text, _icon.text));
+                    },
+                    child: const Text('追加'),
+                  ),
+                ],
+              ),
+              if (subs.isNotEmpty) ...[
+                const Divider(),
+                Theme(
+                  // ExpansionTileの上下線を消して素朴に
+                  data: Theme.of(context)
+                      .copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    key: const Key('edit-existing-subs'),
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: EdgeInsets.zero,
+                    title: const Text('既存の内容を編集'),
+                    children: [
+                      for (final s in subs)
+                        ListTile(
+                          key: Key('edit-sub-${s.id}'),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(s.name),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                key: Key('edit-sub-rename-${s.id}'),
+                                icon: const Icon(Icons.edit_outlined),
+                                tooltip: '名前を変更',
+                                onPressed: () => _renameSub(s),
+                              ),
+                              IconButton(
+                                key: Key('edit-sub-delete-${s.id}'),
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: '削除',
+                                onPressed: () => _deleteSub(s),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
-          TextField(
-            key: const Key('category-icon-field'),
-            controller: _icon,
-            decoration:
-                const InputDecoration(labelText: 'アイコン（絵文字・任意）'),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル')),
-        FilledButton(
-          onPressed: () {
-            if (_name.text.trim().isEmpty) return;
-            Navigator.pop(context, (_name.text, _icon.text));
-          },
-          child: const Text('追加'),
         ),
-      ],
+      ),
     );
   }
 }
