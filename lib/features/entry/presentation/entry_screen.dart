@@ -136,33 +136,35 @@ class EntryScreen extends ConsumerWidget {
                         onBackspace: ctrl.backspace,
                       ),
                       const SizedBox(height: 8),
-                      CategoryGrid(
-                        type: state.type,
-                        selectedId: state.categoryId,
-                        onTapCategory: ctrl.tapCategory,
-                      ),
-                      const SizedBox(height: 8),
-                      // メモは常時表示。内訳チップは同じ場所にオーバーレイ（重ねる）ので
-                      // 高さを取らず、メモ・保存は動かない（内訳選択中はメモを打たない前提）。
+                      // 内訳チップは押したカテゴリの真下（グリッド下段＝日用品の位置）に
+                      // 薄緑パネルで重ねる。背景と別色なので気づきやすい。高さは取らない。
                       Stack(
                         children: [
-                          TextFormField(
-                            key: ValueKey('memo-field-${state.formSeq}'),
-                            initialValue: state.memo,
-                            decoration: const InputDecoration(
-                              labelText: 'メモ・店名',
-                              border: OutlineInputBorder(),
-                            ),
-                            onChanged: ctrl.setMemo,
+                          CategoryGrid(
+                            type: state.type,
+                            selectedId: state.categoryId,
+                            onTapCategory: ctrl.tapCategory,
                           ),
                           if (state.expandedParentId != null)
-                            Positioned.fill(
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: 66,
                               child: Container(
                                 key: const Key('subcategory-chips'),
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
-                                alignment: Alignment.centerLeft,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    width: 1.5,
+                                  ),
+                                ),
                                 child: SubcategoryChips(
                                   parentId: state.expandedParentId!,
                                   selectedId: state.categoryId,
@@ -171,6 +173,16 @@ class EntryScreen extends ConsumerWidget {
                               ),
                             ),
                         ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        key: ValueKey('memo-field-${state.formSeq}'),
+                        initialValue: state.memo,
+                        decoration: const InputDecoration(
+                          labelText: 'メモ・店名',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: ctrl.setMemo,
                       ),
                       const Spacer(),
                       const SizedBox(height: 10),

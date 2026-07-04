@@ -269,6 +269,66 @@ void main() {
     expect(tester.getRect(find.byKey(const Key('save-btn'))), saveBefore);
   });
 
+  testWidgets('内訳チップ長押し→削除でその内訳がアーカイブされる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+
+    // 外食チップを長押し → ボトムシート → 削除
+    await tester.longPress(find.byKey(Key('sub-chip-$eatOutId')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sub-delete')));
+    await tester.pumpAndSettle();
+
+    // 外食はアーカイブされ、アクティブ内訳から消える
+    final after = container.read(allCategoriesProvider).valueOrNull!;
+    expect(after.firstWhere((c) => c.id == eatOutId).isArchived, isTrue);
+    expect(find.byKey(Key('sub-chip-$eatOutId')), findsNothing);
+  });
+
+  testWidgets('内訳チップ長押し→名前変更で改名される', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(Key('sub-chip-$eatOutId')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sub-rename')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('sub-rename-field')), 'ランチ');
+    await tester.tap(find.byKey(const Key('sub-rename-save')));
+    await tester.pumpAndSettle();
+
+    final after = container.read(allCategoriesProvider).valueOrNull!;
+    expect(after.firstWhere((c) => c.id == eatOutId).name, 'ランチ');
+  });
+
   testWidgets('内訳チップ右端の＋でその場追加→追加した内訳が選択される', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();

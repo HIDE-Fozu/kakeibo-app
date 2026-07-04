@@ -47,11 +47,15 @@ class SubcategoryChips extends ConsumerWidget {
                   for (final s in subs)
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        key: Key('sub-chip-${s.id}'),
-                        label: Text(s.name),
-                        selected: s.id == selectedId,
-                        onSelected: (_) => onToggle(s.id),
+                      // 長押しで内訳を編集（名前変更・削除）
+                      child: GestureDetector(
+                        onLongPress: () => _showEditSheet(context, ref, s),
+                        child: ChoiceChip(
+                          key: Key('sub-chip-${s.id}'),
+                          label: Text(s.name),
+                          selected: s.id == selectedId,
+                          onSelected: (_) => onToggle(s.id),
+                        ),
                       ),
                     ),
                 ],
@@ -85,6 +89,97 @@ class SubcategoryChips extends ConsumerWidget {
         );
     // 追加した内訳をそのまま選択（チップ列は格納され、すぐ金額入力に戻れる）
     onToggle(id);
+  }
+
+  /// 内訳チップの長押し: 名前変更・削除。
+  Future<void> _showEditSheet(
+      BuildContext context, WidgetRef ref, CategoryEntity sub) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(sub.name,
+                  style: Theme.of(ctx).textTheme.titleMedium),
+              dense: true,
+            ),
+            ListTile(
+              key: const Key('sub-rename'),
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('名前を変更'),
+              onTap: () => Navigator.pop(ctx, 'rename'),
+            ),
+            ListTile(
+              key: const Key('sub-delete'),
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('削除'),
+              onTap: () => Navigator.pop(ctx, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !context.mounted) return;
+    final repo = ref.read(categoryRepositoryProvider);
+    if (action == 'rename') {
+      final name = await showDialog<String>(
+        context: context,
+        builder: (_) => _RenameSubDialog(initial: sub.name),
+      );
+      if (name != null && name.trim().isNotEmpty) {
+        await repo.rename(sub.id, name.trim());
+      }
+    } else if (action == 'delete') {
+      // 管理画面と同じくアーカイブで消す（取引があってもFK RESTRICTで壊れない）
+      await repo.setArchived(sub.id, true);
+      // 選択中の内訳を消したら親へ戻す
+      if (selectedId == sub.id) onToggle(sub.id);
+    }
+  }
+}
+
+/// 内訳の名前変更ダイアログ（controllerの寿命をダイアログ内に閉じ込める）。
+class _RenameSubDialog extends StatefulWidget {
+  final String initial;
+  const _RenameSubDialog({required this.initial});
+
+  @override
+  State<_RenameSubDialog> createState() => _RenameSubDialogState();
+}
+
+class _RenameSubDialogState extends State<_RenameSubDialog> {
+  late final _name = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('内訳を改名'),
+      content: TextField(
+        key: const Key('sub-rename-field'),
+        controller: _name,
+        autofocus: true,
+        decoration: const InputDecoration(labelText: '名前'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('キャンセル'),
+        ),
+        FilledButton(
+          key: const Key('sub-rename-save'),
+          onPressed: () => Navigator.pop(context, _name.text),
+          child: const Text('保存'),
+        ),
+      ],
+    );
   }
 }
 
