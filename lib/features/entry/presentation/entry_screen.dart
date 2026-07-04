@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../calendar/application/calendar_providers.dart';
 import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
@@ -14,7 +16,11 @@ import 'receipt_review_panel.dart';
 import 'subcategory_chips.dart';
 
 class EntryScreen extends ConsumerWidget {
-  const EntryScreen({super.key});
+  /// true=ボトムタブに埋め込み（Xで閉じず、保存後はカレンダーへ切替）。
+  /// false=編集モーダル（fullscreenDialog・保存でpop）。
+  final bool embedded;
+
+  const EntryScreen({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,32 +108,10 @@ class EntryScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 内訳チップは押したタイルの真上（＝グリッド直上）に被せて出す。
-              // テンキー下端に重なるが画面は動かない（数字を打ちながら内訳は選ばない）
-              Stack(
-                children: [
-                  Numpad(
-                    onDigit: ctrl.tapDigit,
-                    onDoubleZero: ctrl.tapDoubleZero,
-                    onBackspace: ctrl.backspace,
-                  ),
-                  if (state.expandedParentId != null)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        key: const Key('subcategory-overlay'),
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        padding: const EdgeInsets.only(top: 4),
-                        child: SubcategoryChips(
-                          parentId: state.expandedParentId!,
-                          selectedId: state.categoryId,
-                          onToggle: ctrl.toggleSubcategory,
-                        ),
-                      ),
-                    ),
-                ],
+              Numpad(
+                onDigit: ctrl.tapDigit,
+                onDoubleZero: ctrl.tapDoubleZero,
+                onBackspace: ctrl.backspace,
               ),
               const SizedBox(height: 8),
               CategoryGrid(
@@ -135,24 +119,27 @@ class EntryScreen extends ConsumerWidget {
                 selectedId: state.categoryId,
                 onTapCategory: ctrl.tapCategory,
               ),
-              const SizedBox(height: 8),
-              if (state.memoExpanded)
-                TextFormField(
-                  key: const Key('memo-field'),
-                  initialValue: state.memo,
-                  decoration: const InputDecoration(
-                    labelText: 'メモ・店名',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: ctrl.setMemo,
-                )
-              else
-                TextButton.icon(
-                  key: const Key('memo-toggle'),
-                  onPressed: ctrl.toggleMemoExpanded,
-                  icon: const Icon(Icons.notes),
-                  label: const Text('メモを追加'),
+              // 内訳チップは押したカテゴリの真下に出す（母テストで選択に気づきにくかった対策）
+              if (state.expandedParentId != null) ...[
+                const SizedBox(height: 8),
+                SubcategoryChips(
+                  key: const Key('subcategory-chips'),
+                  parentId: state.expandedParentId!,
+                  selectedId: state.categoryId,
+                  onToggle: ctrl.toggleSubcategory,
                 ),
+              ],
+              const SizedBox(height: 8),
+              // メモは常時入力欄を表示（トグル廃止）。formSeqでリセット時にクリア。
+              TextFormField(
+                key: ValueKey('memo-field-${state.formSeq}'),
+                initialValue: state.memo,
+                decoration: const InputDecoration(
+                  labelText: 'メモ・店名',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: ctrl.setMemo,
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -161,8 +148,20 @@ class EntryScreen extends ConsumerWidget {
                       key: const Key('save-btn'),
                       onPressed: state.canSave
                           ? () async {
+                              final date = state.date;
                               await ctrl.save();
-                              if (context.mounted) Navigator.pop(context);
+                              if (embedded) {
+                                // 保存できたことが分かるようカレンダーへ切替（その日を表示）
+                                ref
+                                    .read(selectedDayProvider.notifier)
+                                    .select(date);
+                                ctrl.startCreate(ref.read(clockProvider)());
+                                ref
+                                    .read(homeTabIndexProvider.notifier)
+                                    .set(0);
+                              } else if (context.mounted) {
+                                Navigator.pop(context);
+                              }
                             }
                           : null,
                       child: const Text('保存'),

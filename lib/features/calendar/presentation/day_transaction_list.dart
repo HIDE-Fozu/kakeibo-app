@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/category_emoji.dart';
+import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
@@ -40,7 +41,7 @@ class DayTransactionList extends ConsumerWidget {
               key: const Key('add-on-day'),
               icon: const Icon(Icons.add),
               label: const Text('この日に追加'),
-              onPressed: () => _openCreate(context, ref),
+              onPressed: () => _openCreate(ref),
             ),
             if (monthEmpty)
               Text('右下の＋から最初の記録を追加できます',
@@ -101,13 +102,10 @@ class DayTransactionList extends ConsumerWidget {
     );
   }
 
-  void _openCreate(BuildContext context, WidgetRef ref) {
+  void _openCreate(WidgetRef ref) {
+    // 新規入力は入力タブへ（選択日を既定に）
     ref.read(entryFormControllerProvider.notifier).startCreate(day);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          fullscreenDialog: true, builder: (_) => const EntryScreen()),
-    );
+    ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
   }
 
   /// Undo は同内容の再add（id/createdAtは新規になる: v1の既知の限界）

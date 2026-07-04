@@ -96,17 +96,18 @@ void main() {
     expect(find.text('右下の＋から最初の記録を追加できます'), findsOneWidget); // 空カレンダーCTA（spec §5.5）
     await tester.tap(find.byKey(const Key('add-on-day')));
     await tester.pumpAndSettle();
-    expect(find.text('入力'), findsOneWidget);
-    expect(find.text('2026/07/20'), findsOneWidget); // 選択日が既定（spec §5.3）
+    // 入力タブが開く（テンキーが出る）・選択日が既定（spec §5.3）
+    expect(find.byKey(const Key('np-00')), findsOneWidget);
+    expect(find.text('2026/07/20'), findsOneWidget);
   });
 
-  testWidgets('FAB: 選択日を既定に入力を開く', (tester) async {
+  testWidgets('FAB: 選択日を既定に入力タブへ切替', (tester) async {
     await pumpShell(tester);
     await tester.tap(find.text('18'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
-    expect(find.text('入力'), findsOneWidget);
+    expect(find.byKey(const Key('np-00')), findsOneWidget);
     expect(find.text('2026/07/18'), findsOneWidget);
   });
 }

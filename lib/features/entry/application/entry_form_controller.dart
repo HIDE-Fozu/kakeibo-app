@@ -27,6 +27,10 @@ class EntryFormState {
   /// 内訳チップ列を開いている親カテゴリ（null=閉）。選択とは独立。
   final int? expandedParentId;
 
+  /// フォーム世代。start*/saveAndContinueごとに増える。
+  /// 常時表示のメモ欄をリセットするためのwidget keyに使う。
+  final int formSeq;
+
   const EntryFormState({
     required this.mode,
     this.editingId,
@@ -40,6 +44,7 @@ class EntryFormState {
     this.imagePath,
     this.memoExpanded = false,
     this.expandedParentId,
+    this.formSeq = 0,
   });
 
   bool get canSave => amountYen > 0 && categoryId != null;
@@ -77,8 +82,10 @@ class EntryFormState {
     Object? imagePath = _unset,
     bool? memoExpanded,
     Object? expandedParentId = _unset,
+    int? formSeq,
   }) =>
       EntryFormState(
+        formSeq: formSeq ?? this.formSeq,
         mode: mode ?? this.mode,
         editingId:
             identical(editingId, _unset) ? this.editingId : editingId as int?,
@@ -106,11 +113,14 @@ class EntryFormState {
 class EntryFormController extends Notifier<EntryFormState?> {
   static const int maxAmount = 9999999;
 
+  int _seq = 0;
+
   @override
   EntryFormState? build() => null;
 
   void startCreate(CivilDate date) {
     state = EntryFormState(
+      formSeq: ++_seq,
       mode: EntryMode.create,
       type: TxnType.expense,
       amountYen: 0,
@@ -122,6 +132,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void startEdit(TransactionEntity tx) {
     state = EntryFormState(
+      formSeq: ++_seq,
       mode: EntryMode.edit,
       editingId: tx.id,
       type: tx.type,
@@ -137,6 +148,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void startReceipt(ParsedReceipt parsed, {String? imagePath}) {
     state = EntryFormState(
+      formSeq: ++_seq,
       mode: EntryMode.receiptConfirm,
       type: TxnType.expense,
       amountYen: parsed.total?.yen ?? 0,
@@ -255,6 +267,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     await save();
     final s = _s;
     state = EntryFormState(
+      formSeq: ++_seq,
       mode: EntryMode.create,
       type: s.type,
       amountYen: 0,

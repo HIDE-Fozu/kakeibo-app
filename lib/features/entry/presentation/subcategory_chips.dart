@@ -59,10 +59,10 @@ class SubcategoryChips extends ConsumerWidget {
             ),
           ),
           if (parentCat != null)
-            IconButton(
+            TextButton.icon(
               key: const Key('add-sub-inline'),
-              icon: const Icon(Icons.add_circle_outline),
-              tooltip: '内訳を追加',
+              icon: const Icon(Icons.add_circle_outline, size: 20),
+              label: const Text('追加'),
               onPressed: () => _showAddDialog(context, ref, parentCat),
             ),
         ],

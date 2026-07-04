@@ -98,7 +98,7 @@ void main() {
         isNull);
   });
 
-  testWidgets('メモは折りたたみ→展開で入力できる', (tester) async {
+  testWidgets('メモ欄は常時表示され入力できる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -109,10 +109,10 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('memo-field')), findsNothing);
-    await tester.tap(find.byKey(const Key('memo-toggle')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('memo-field')), 'スーパーA');
+    // トグルなしで最初から入力欄が出ている
+    final memo = find.byType(TextFormField);
+    expect(memo, findsOneWidget);
+    await tester.enterText(memo, 'スーパーA');
     expect(containerOf(tester).read(entryFormControllerProvider)!.memo, 'スーパーA');
   });
 
@@ -172,7 +172,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('編集'), findsOneWidget);
     expect(find.text('¥1,200'), findsOneWidget);
-    expect(find.byKey(const Key('memo-field')), findsOneWidget); // memoありは展開済み
+    expect(find.byType(TextFormField), findsOneWidget); // メモ欄は常時表示
     expect(find.byType(SegmentedButton<TxnType>), findsNothing); // 編集では型不変
 
     await tester.tap(find.byKey(const Key('delete-entry')));
@@ -183,7 +183,7 @@ void main() {
     expect(await repo.forMonth(2026, 7), isEmpty);
   });
 
-  testWidgets('内訳: チップはテンキー上のオーバーレイ（画面は動かない）・選択で自動格納→保存は内訳idに',
+  testWidgets('内訳: チップはカテゴリの真下に出る・選択で自動格納→保存は内訳idに',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -205,16 +205,16 @@ void main() {
     await tester.tap(find.byKey(const Key('np-00')));
     await tester.pump();
 
-    // 食費タイル（▾付き）をタップ → チップがテンキー上に被さる。
-    // レイアウトシフト0: グリッドと保存ボタンの位置は1pxも動かない
-    final gridRectBefore = tester.getRect(find.byKey(Key('cat-tile-$foodId')));
-    final saveRectBefore = tester.getRect(find.byKey(const Key('save-btn')));
+    // 食費タイル（▾付き）をタップ → チップがグリッドの真下に出る
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('subcategory-overlay')), findsOneWidget);
+    expect(find.byKey(const Key('subcategory-chips')), findsOneWidget);
     expect(find.byKey(Key('sub-chip-$eatOutId')), findsOneWidget);
-    expect(tester.getRect(find.byKey(Key('cat-tile-$foodId'))), gridRectBefore);
-    expect(tester.getRect(find.byKey(const Key('save-btn'))), saveRectBefore);
+    // チップはグリッドより下（真下）にある
+    final gridBottom =
+        tester.getRect(find.byKey(Key('cat-tile-$foodId'))).bottom;
+    expect(tester.getRect(find.byKey(Key('sub-chip-$eatOutId'))).top,
+        greaterThanOrEqualTo(gridBottom - 1));
 
     // 外食チップを選択 → ラベルが「外食 ▾」に変わり、チップは自動格納
     await tester.tap(find.byKey(Key('sub-chip-$eatOutId')));
@@ -222,7 +222,7 @@ void main() {
     final tileTexts = tester.widgetList<Text>(find.descendant(
         of: find.byKey(Key('cat-tile-$foodId')), matching: find.byType(Text)));
     expect(tileTexts.any((t) => t.data == '外食 ▾'), isTrue);
-    expect(find.byKey(const Key('subcategory-overlay')), findsNothing);
+    expect(find.byKey(const Key('subcategory-chips')), findsNothing);
 
     // 同じタイルを再タップ → 再展開（選択は維持）→ もう一度で格納
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
@@ -233,6 +233,7 @@ void main() {
     expect(find.byKey(Key('sub-chip-$eatOutId')), findsNothing);
 
     // 保存 → categoryIdは外食のid
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
     await tester.tap(find.byKey(const Key('save-btn')));
     await tester.pumpAndSettle();
     final txs =
@@ -262,7 +263,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
         find.byKey(const Key('category-name-field')), 'カフェ');
-    await tester.tap(find.text('追加'));
+    // ダイアログの「追加」ボタン（インラインの追加ボタンと同名なので型で限定）
+    await tester.tap(find.widgetWithText(FilledButton, '追加'));
     await tester.pumpAndSettle();
 
     // DBに内訳として追加され、そのまま選択・チップ列は格納・ラベル変化
@@ -270,7 +272,7 @@ void main() {
     final cafe = after.firstWhere((c) => c.name == 'カフェ');
     expect(cafe.parentId, foodId);
     expect(container.read(entryFormControllerProvider)!.categoryId, cafe.id);
-    expect(find.byKey(const Key('subcategory-overlay')), findsNothing);
+    expect(find.byKey(const Key('subcategory-chips')), findsNothing);
     final tileTexts = tester.widgetList<Text>(find.descendant(
         of: find.byKey(Key('cat-tile-$foodId')), matching: find.byType(Text)));
     expect(tileTexts.any((t) => t.data == 'カフェ ▾'), isTrue);
