@@ -242,6 +242,33 @@ void main() {
     expect(txs.single.amountYen, 500);
   });
 
+  testWidgets('内訳チップの有無でメモ欄・保存ボタンが動かない（枠を予約）', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // チップが出ていない状態のメモ欄・保存ボタン位置
+    final memoBefore = tester.getRect(find.byType(TextFormField));
+    final saveBefore = tester.getRect(find.byKey(const Key('save-btn')));
+
+    // 食費タップでチップが固定枠に出る → メモ・保存は1pxも動かない
+    await tester.tap(find.byKey(Key('cat-tile-$foodId')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('subcategory-chips')), findsOneWidget);
+    expect(tester.getRect(find.byType(TextFormField)), memoBefore);
+    expect(tester.getRect(find.byKey(const Key('save-btn'))), saveBefore);
+  });
+
   testWidgets('内訳チップ右端の＋でその場追加→追加した内訳が選択される', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();

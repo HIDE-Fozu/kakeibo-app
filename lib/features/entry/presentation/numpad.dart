@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// テンキー。高さは親（SizedBox）が決める。各行は残余を等分して埋める。
 class Numpad extends StatelessWidget {
   final void Function(int digit) onDigit;
   final VoidCallback onDoubleZero;
@@ -18,18 +19,19 @@ class Numpad extends StatelessWidget {
           child: InkWell(
             key: key,
             onTap: onTap,
-            child: SizedBox(height: 56, child: Center(child: child)),
+            child: Center(child: child),
           ),
         );
     Widget digit(int d, {Key? key}) => cell(
         Text('$d', style: const TextStyle(fontSize: 24)), () => onDigit(d),
         key: key);
+    Widget row(List<Widget> cells) => Expanded(child: Row(children: cells));
 
     return Column(children: [
-      Row(children: [digit(1), digit(2), digit(3)]),
-      Row(children: [digit(4), digit(5), digit(6)]),
-      Row(children: [digit(7), digit(8), digit(9)]),
-      Row(children: [
+      row([digit(1), digit(2), digit(3)]),
+      row([digit(4), digit(5), digit(6)]),
+      row([digit(7), digit(8), digit(9)]),
+      row([
         cell(const Text('00', style: TextStyle(fontSize: 24)), onDoubleZero,
             key: const Key('np-00')),
         digit(0, key: const Key('np-0')),
