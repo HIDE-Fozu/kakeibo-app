@@ -153,10 +153,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
       type: TxnType.expense,
       amountYen: parsed.total?.yen ?? 0,
       date: parsed.date.date,
-      memo: '',
+      // 店名が読めていればメモにプリフィル（spec: memo=店名・自由記述）
+      memo: parsed.storeName ?? '',
       source: TxnSource.receiptOcr,
       receipt: parsed,
       imagePath: imagePath,
+      memoExpanded: parsed.storeName != null,
     );
   }
 

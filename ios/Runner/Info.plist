@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>レシートを撮影して金額・日付を自動で読み取るために使います。写真は端末内でのみ処理し、外部には送信しません。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>保存済みのレシート写真から金額・日付を読み取るために使います。写真は端末内でのみ処理し、外部には送信しません。</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

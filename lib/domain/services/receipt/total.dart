@@ -36,6 +36,12 @@ final _reSubtotal = RegExp(r'小計');
 final _reTax = RegExp(r'消費税|外税|内税(?!込)');
 final _reTendered = RegExp(r'預');
 final _reChange = RegExp(r'釣|つり');
+// 支払手段行。合計ラベル欠落レシート（サミット型: 小計→税→クレジット）では
+// これが実質の合計。番号/会員/ポイント等を伴う行は支払額ではないので除く。
+final _rePayment = RegExp(r'クレジット|クレカ|カード払|カード支払');
+final _rePaymentGuard = RegExp(r'番号|会員|ポイント|残高|返金|取消');
+// 内税の注記（税額が既に小計へ含まれている）。内税込は税込系ラベル(_reP2)。
+final _reInnerTaxNote = RegExp(r'内税(?!込)|内消費税|うち消費税');
 
 class _RowInfo {
   final ReceiptRow row;
@@ -69,6 +75,36 @@ TotalExtraction extractTotal(List<ReceiptRow> rows) {
   }
   final cashIdentity =
       (tendered != null && change != null) ? tendered - change : null;
+
+  // --- 支払手段行（クレジット等）の額。裸数字は不採用（カード番号断片の誤爆回避） ---
+  int? payment;
+  String? paymentText;
+  for (final info in infos) {
+    final text = info.row.text;
+    if (!_rePayment.hasMatch(text) || _rePaymentGuard.hasMatch(text)) continue;
+    final anchored =
+        info.tokens.where((t) => !t.negative && t.tier != AmountTier.bare);
+    if (anchored.isEmpty) continue;
+    payment ??= anchored.last.yen;
+    paymentText ??= text;
+  }
+
+  // --- 小計と税（外税は加算 / 内税注記は「既に込み」フラグ） ---
+  int? subtotal;
+  var outerTax = 0;
+  var innerTaxSeen = false;
+  for (final info in infos) {
+    final text = info.row.text;
+    final amount = _rowAmount(info.tokens);
+    if (_reSubtotal.hasMatch(text) && amount != null) subtotal ??= amount;
+    if (_reInnerTaxNote.hasMatch(text)) {
+      innerTaxSeen = true;
+    } else if (_reTax.hasMatch(text) &&
+        amount != null &&
+        !_reExclusion.hasMatch(text)) {
+      outerTax += amount;
+    }
+  }
 
   // --- キーワード候補のスコアリング ---
   final scored = <(int score, int rowIndex, AmountCandidate cand)>[];
@@ -159,6 +195,39 @@ TotalExtraction extractTotal(List<ReceiptRow> rows) {
     }
   }
 
+  // --- 小計±税の導出＋支払行クロスチェック（合計ラベル欠落: サミット型） ---
+  if (best == null) {
+    int? derived;
+    var derivedSrc = '';
+    if (subtotal != null && outerTax > 0) {
+      derived = subtotal + outerTax; // 外税方式: 小計(税抜)+消費税
+      derivedSrc = '小計+消費税';
+    } else if (subtotal != null && innerTaxSeen) {
+      derived = subtotal; // 内税方式: 小計が既に税込
+      derivedSrc = '小計(内税)';
+    }
+    if (derived != null) {
+      // 支払行と一致すれば2経路の相互検証が成立 = high
+      final agrees = payment != null && payment == derived;
+      best = AmountCandidate(
+        yen: derived,
+        confidence:
+            agrees ? ExtractionConfidence.high : ExtractionConfidence.medium,
+        sourceText: derivedSrc,
+        reason: agrees ? 'derived=payment' : 'synthesized(subtotal+tax)',
+      );
+      addCandidate(best);
+    } else if (payment != null) {
+      best = AmountCandidate(
+        yen: payment,
+        confidence: ExtractionConfidence.medium,
+        sourceText: paymentText!,
+        reason: 'payment-line',
+      );
+      addCandidate(best);
+    }
+  }
+
   // --- フォールバック: 除外行以外の Tier A/B 最大値 ---
   if (best == null) {
     final pool = <AmountToken>[];
@@ -201,6 +270,17 @@ TotalExtraction extractTotal(List<ReceiptRow> rows) {
       reason: 'cash-identity',
     );
     addCandidate(best);
+  }
+
+  // クレジット等の支払額は常に候補チップへ載せる（合計と同額ならdedup）。
+  // 合計行のOCR誤読時にユーザーがワンタップで支払額を参照できる。
+  if (payment != null) {
+    addCandidate(AmountCandidate(
+      yen: payment,
+      confidence: ExtractionConfidence.medium,
+      sourceText: paymentText!,
+      reason: 'payment-line',
+    ));
   }
 
   return TotalExtraction(best: best, candidates: candidates);

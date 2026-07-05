@@ -3,6 +3,7 @@ import '../ocr/ocr_types.dart';
 import 'date.dart';
 import 'normalize.dart';
 import 'rows.dart';
+import 'store.dart';
 import 'total.dart';
 
 export 'date.dart' show DateCandidate, DateExtraction;
@@ -14,11 +15,15 @@ class ParsedReceipt {
   final List<AmountCandidate> totalCandidates;
   final DateCandidate date; // 常に非null（見つからなければ今日・low）
   final List<DateCandidate> dateCandidates;
+  final String? storeName; // 店名。読めなければ null（UIは「店名不明」）
+  final List<String> storeCandidates; // 上部行の店名候補（チップ切替用）
   const ParsedReceipt({
     required this.total,
     required this.totalCandidates,
     required this.date,
     required this.dateCandidates,
+    this.storeName,
+    this.storeCandidates = const [],
   });
 }
 
@@ -43,11 +48,15 @@ class ReceiptParser {
     final rows = groupRows(normalized);
     final total = extractTotal(rows);
     final date = extractDate(rows, _today());
+    // 店名は生ブロックから（normalizeは長音ーを潰すため表示に使えない）
+    final stores = extractStoreCandidates(groupRows(blocks));
     return ParsedReceipt(
       total: total.best,
       totalCandidates: total.candidates,
       date: date.best!,
       dateCandidates: date.candidates,
+      storeName: stores.isEmpty ? null : stores.first,
+      storeCandidates: stores,
     );
   }
 }

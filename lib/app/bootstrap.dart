@@ -8,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/db/database.dart';
+import '../data/ocr/apple_vision_ocr_service.dart';
+import '../data/ocr/image_picker_receipt_capture.dart';
 import '../domain/services/ocr/ocr_types.dart';
 import '../domain/services/ocr/receipt_capture.dart';
 import 'app.dart';
@@ -33,9 +35,18 @@ Future<void> bootstrap() async {
       exportsDirProvider.overrideWith((ref) => Directory('${docs.path}${sep}exports')),
       receiptImagesDirProvider.overrideWith((ref) => Directory('${support.path}${sep}receipt_images')),
       sharedPreferencesProvider.overrideWith((ref) => prefs),
-      // Phase 5（Mac）で AppleVisionOcrService / 実カメラ capture に差し替える
-      ocrServiceProvider.overrideWith((ref) => const FakeOcrService([])),
-      receiptCaptureProvider.overrideWith((ref) => const UnavailableReceiptCapture()),
+      // iOS は実物（Apple Vision / image_picker）。他プラットフォームは
+      // レシート機能が縫い目のまま無効（Fake/Unavailable）で安全に起動する。
+      ocrServiceProvider.overrideWith(
+        (ref) => Platform.isIOS
+            ? AppleVisionOcrService()
+            : const FakeOcrService([]),
+      ),
+      receiptCaptureProvider.overrideWith(
+        (ref) => Platform.isIOS
+            ? ImagePickerReceiptCapture()
+            : const UnavailableReceiptCapture(),
+      ),
     ],
     child: const KakeiboApp(),
   ));

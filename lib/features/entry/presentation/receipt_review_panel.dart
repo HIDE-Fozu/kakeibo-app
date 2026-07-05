@@ -51,6 +51,50 @@ class ReceiptReviewPanel extends ConsumerWidget {
             ),
             child: const Text('画像なし'),
           ),
+        // 店名: 候補チップから選ぶ（選択→メモへ）。1位の自動特定は不安定なため
+        // 金額/日付と同じ「候補提示＋ワンタップ切替」に統一。
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Icon(Icons.storefront_outlined,
+                    size: 16, color: Theme.of(context).colorScheme.outline),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: receipt.storeCandidates.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          '店名不明',
+                          key: const Key('store-name'),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.outline),
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 8,
+                        children: [
+                          for (final cand in receipt.storeCandidates)
+                            ChoiceChip(
+                              label: ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 180),
+                                child: Text(cand,
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                              selected: state.memo == cand,
+                              onSelected: (_) => ctrl.setMemo(cand),
+                            ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
         if (receipt.total == null)
           Padding(
             padding: const EdgeInsets.only(top: 8),

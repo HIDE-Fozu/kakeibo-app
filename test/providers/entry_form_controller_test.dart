@@ -12,7 +12,7 @@ import 'package:kakeibo_app/features/settings/application/settings_controller.da
 
 import '../support/test_app.dart';
 
-ParsedReceipt receiptOf({int? yen, required CivilDate date}) {
+ParsedReceipt receiptOf({int? yen, required CivilDate date, String? store}) {
   final total = yen == null
       ? null
       : AmountCandidate(
@@ -30,6 +30,7 @@ ParsedReceipt receiptOf({int? yen, required CivilDate date}) {
     totalCandidates: [?total],
     date: d,
     dateCandidates: [d],
+    storeName: store,
   );
 }
 
@@ -186,6 +187,16 @@ void main() {
     ctrl().startReceipt(receiptOf(yen: null, date: day));
     expect(st().amountYen, 0);
     expect(st().receipt!.total, isNull);
+  });
+
+  test('startReceipt: 店名をメモにプリフィル / 無ければ空のまま', () {
+    ctrl().startReceipt(receiptOf(yen: 500, date: day, store: 'スーパーA'));
+    expect(st().memo, 'スーパーA');
+    expect(st().memoExpanded, isTrue);
+
+    ctrl().startReceipt(receiptOf(yen: 500, date: day));
+    expect(st().memo, '');
+    expect(st().memoExpanded, isFalse);
   });
 
   test('レシート保存: 保持OFFで一時画像が消える', () async {

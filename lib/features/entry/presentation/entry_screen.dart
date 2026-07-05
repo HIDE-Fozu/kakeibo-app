@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../../domain/services/ocr/receipt_capture.dart';
 import '../../calendar/application/calendar_providers.dart';
 import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
@@ -276,7 +278,9 @@ class EntryScreen extends ConsumerWidget {
 
   Future<void> _scanReceipt(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
-    final path = await ref.read(receiptCaptureProvider).capture();
+    final source = await _pickReceiptSource(context);
+    if (source == null) return; // シート外タップ＝キャンセル
+    final path = await ref.read(receiptCaptureProvider).capture(source);
     if (path == null) {
       messenger.showSnackBar(
         const SnackBar(content: Text('この端末ではレシート撮影を利用できません')),
@@ -285,6 +289,13 @@ class EntryScreen extends ConsumerWidget {
     }
     try {
       final blocks = await ref.read(ocrServiceProvider).recognize(path);
+      if (!kReleaseMode) {
+        // フィクスチャ収集（spec §8.2、debug/profileのみ）。失敗してもスキャンは続行。
+        // 実機での標本収集はprofileビルド（debugはホーム画面から起動不可のため）。
+        try {
+          ref.read(ocrFixtureRecorderProvider).record(blocks);
+        } catch (_) {}
+      }
       final parsed = ref.read(receiptParserProvider).parse(blocks);
       ref
           .read(entryFormControllerProvider.notifier)
@@ -292,6 +303,32 @@ class EntryScreen extends ConsumerWidget {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('読み取りに失敗しました: $e')));
     }
+  }
+
+  /// レシート画像の取得元を選ぶボトムシート。外タップ（キャンセル）は null。
+  Future<ReceiptSource?> _pickReceiptSource(BuildContext context) {
+    return showModalBottomSheet<ReceiptSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              key: const Key('receipt-source-camera'),
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('カメラで撮影'),
+              onTap: () => Navigator.pop(ctx, ReceiptSource.camera),
+            ),
+            ListTile(
+              key: const Key('receipt-source-library'),
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('写真から選ぶ'),
+              onTap: () => Navigator.pop(ctx, ReceiptSource.library),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {

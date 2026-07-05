@@ -48,10 +48,13 @@ void main() {
 
     await tester.tap(find.byKey(const Key('scan-receipt')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('receipt-source-camera')));
+    await tester.pumpAndSettle();
 
     expect(find.text('レシート確認'), findsOneWidget);
     expect(find.text('¥1,080'), findsWidgets); // 金額表示＋候補chip
     expect(find.text('2026/07/14'), findsOneWidget); // 日付プリフィル
+    expect(find.text('スーパーA'), findsWidgets); // 店名表示＋メモプリフィル
   });
 
   testWidgets('候補切替: chipタップで金額・日付が変わる', (tester) async {
@@ -116,10 +119,13 @@ void main() {
 
     await tester.tap(find.byKey(const Key('scan-receipt')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('receipt-source-camera')));
+    await tester.pumpAndSettle();
     expect(find.text('レシート確認'), findsOneWidget);
     expect(find.text('¥0'), findsOneWidget);
     expect(find.byKey(const Key('ocr-fallback-note')), findsOneWidget);
     expect(find.text('2026/07/15'), findsOneWidget); // 今日既定（固定時計）
+    expect(find.text('店名不明'), findsOneWidget); // OCR空→店名なし
   });
 
   testWidgets('撮影未対応: SnackBarでcreateに留まる', (tester) async {
@@ -132,6 +138,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('scan-receipt')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('receipt-source-camera')));
     await tester.pumpAndSettle();
     expect(find.text('この端末ではレシート撮影を利用できません'), findsOneWidget);
     expect(find.text('入力'), findsOneWidget);

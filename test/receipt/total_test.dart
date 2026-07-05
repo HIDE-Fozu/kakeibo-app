@@ -107,4 +107,43 @@ void main() {
     expect(r.best, isNull);
     expect(r.candidates, isEmpty);
   });
+
+  // --- 合計ラベル欠落（サミット型: 小計→税→クレジット） ---
+
+  test('サミット型: 小計+消費税=クレジットの相互検証 → high', () {
+    final r = extractTotal(receipt(['小計 3,500', '消費税 350', 'クレジット ¥3,850']));
+    expect(r.best!.yen, 3850);
+    expect(r.best!.confidence, ExtractionConfidence.high);
+    expect(r.best!.reason, 'derived=payment');
+  });
+
+  test('合計なし: 小計+外税の導出 → medium', () {
+    final r = extractTotal(receipt(['小計 3,500', '消費税 350']));
+    expect(r.best!.yen, 3850);
+    expect(r.best!.confidence, ExtractionConfidence.medium);
+  });
+
+  test('合計なし・内税方式: 小計がそのまま税込合計', () {
+    final r = extractTotal(receipt(['小計 3,850', '(内税 350)']));
+    expect(r.best!.yen, 3850);
+    expect(r.best!.confidence, ExtractionConfidence.medium);
+  });
+
+  test('合計なし・小計なし: クレジット行を合計とみなす → medium', () {
+    final r = extractTotal(receipt(['牛乳 ¥258', 'クレジット ¥3,850']));
+    expect(r.best!.yen, 3850);
+    expect(r.best!.confidence, ExtractionConfidence.medium);
+    expect(r.best!.reason, 'payment-line');
+  });
+
+  test('クレジット額は合計があっても候補チップに載る（額が違うケース）', () {
+    final r = extractTotal(receipt(['合計 3,850', 'クレジット ¥3,700']));
+    expect(r.best!.yen, 3850); // bestは合計のまま
+    expect(r.candidates.map((c) => c.yen), contains(3700));
+  });
+
+  test('カード番号断片（裸数字）は支払額として拾わない', () {
+    final r = extractTotal(receipt(['クレジットカード番号 ****1234']));
+    expect(r.best, isNull);
+  });
 }

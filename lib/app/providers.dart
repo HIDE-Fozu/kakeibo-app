@@ -7,6 +7,7 @@ import '../data/backup/auto_backup_store.dart';
 import '../data/backup/backup_crypto.dart';
 import '../data/backup/backup_service.dart';
 import '../data/db/database.dart';
+import '../data/ocr/ocr_fixture_recorder.dart';
 import '../data/repositories/drift_category_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
 import '../domain/entities.dart';
@@ -87,6 +88,16 @@ final backupCryptoProvider = Provider<BackupCrypto>((ref) => BackupCrypto());
 
 final receiptParserProvider = Provider<ReceiptParser>(
   (ref) => ReceiptParser(today: ref.watch(clockProvider)),
+);
+
+/// スキャンごとのOCRブロックを exports/ocr-fixtures へ保存（debugビルドのみ使用）。
+/// 実レシートのフィクスチャ収集（spec §8.2・§13宿題）の回収経路。
+final ocrFixtureRecorderProvider = Provider<OcrFixtureRecorder>(
+  (ref) => OcrFixtureRecorder(
+    Directory(
+        '${ref.watch(exportsDirProvider).path}${Platform.pathSeparator}ocr-fixtures'),
+    now: ref.watch(utcNowProvider),
+  ),
 );
 
 final allCategoriesProvider = StreamProvider<List<CategoryEntity>>(

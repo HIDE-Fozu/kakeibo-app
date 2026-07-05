@@ -115,7 +115,7 @@ class FakeReceiptCapture implements ReceiptCapture {
   final String? path;
   const FakeReceiptCapture(this.path);
   @override
-  Future<String?> capture() async => path;
+  Future<String?> capture(ReceiptSource source) async => path;
 }
 
 /// iPhone相当の論理サイズ（390x844）。縦長フォームのoverflow検知のため必ず使う。
