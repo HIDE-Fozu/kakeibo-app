@@ -4,15 +4,18 @@ import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../settings/application/settings_controller.dart';
 
 final categoryLastUsedProvider = StreamProvider.autoDispose<Map<int, CivilDate>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchLastUsedByCategory(),
 );
 
-/// 高速入力のカテゴリグリッド: 親カテゴリのみ・最近使った順 → sortOrder順（spec §5.2）。
+/// 高速入力のカテゴリグリッド: 親カテゴリのみ（spec §5.2）。
+/// 並び順は設定で切替: 既定=最近使った順→sortOrder順 / manual=固定順（sortOrderのみ）。
 /// 内訳の利用実績は親の「最近使った」に取り込む（自身と内訳のmax）。
 final entryCategoriesProvider = Provider.autoDispose
     .family<AsyncValue<List<CategoryEntity>>, TxnType>((ref, type) {
+  final mode = ref.watch(appSettingsProvider).categoryOrder;
   final lastUsed =
       ref.watch(categoryLastUsedProvider).valueOrNull ?? const <int, CivilDate>{};
   return ref.watch(allCategoriesProvider).whenData((all) {
@@ -36,14 +39,17 @@ final entryCategoriesProvider = Provider.autoDispose
             !c.isSystem &&
             c.type == wanted)
         .toList();
+    // 固定順: sortOrderのみ。最近使った順: 実績のある方を前に→タイブレークでsortOrder。
     list.sort((a, b) {
-      final ua = effectiveLastUsed[a.id];
-      final ub = effectiveLastUsed[b.id];
-      if (ua != null || ub != null) {
-        if (ua == null) return 1;
-        if (ub == null) return -1;
-        final cmp = ub.compareTo(ua);
-        if (cmp != 0) return cmp;
+      if (mode == CategoryOrderMode.recentlyUsed) {
+        final ua = effectiveLastUsed[a.id];
+        final ub = effectiveLastUsed[b.id];
+        if (ua != null || ub != null) {
+          if (ua == null) return 1;
+          if (ub == null) return -1;
+          final cmp = ub.compareTo(ua);
+          if (cmp != 0) return cmp;
+        }
       }
       return a.sortOrder.compareTo(b.sortOrder);
     });

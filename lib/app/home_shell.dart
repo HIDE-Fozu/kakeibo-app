@@ -11,7 +11,6 @@ import '../features/settings/presentation/onboarding_dialog.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
 import 'navigation.dart';
-import 'providers.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -41,25 +40,19 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     });
   }
 
-  void _onSelect(int i) {
-    if (i == kInputTabIndex) _ensureCreate();
-    ref.read(homeTabIndexProvider.notifier).set(i);
-  }
+  /// ボトムタブに出す並び → IndexedStack の index。
+  /// 入力(1)はタブに出さず、カレンダーのFABから開く（保存/戻るでカレンダーへ）。
+  static const _navToShell = [0, 2, 3];
 
-  /// 入力タブは新規作成で開く（編集/レシート状態を持ち越さない）。
-  /// 既に新規作成の途中なら維持する（タブ往復で入力中の内容を失わない）。
-  void _ensureCreate() {
-    final s = ref.read(entryFormControllerProvider);
-    if (s == null || s.mode != EntryMode.create) {
-      ref
-          .read(entryFormControllerProvider.notifier)
-          .startCreate(ref.read(clockProvider)());
-    }
+  void _onSelect(int navIndex) {
+    ref.read(homeTabIndexProvider.notifier).set(_navToShell[navIndex]);
   }
 
   @override
   Widget build(BuildContext context) {
     final index = ref.watch(homeTabIndexProvider);
+    // 入力画面(1)表示中はタブ選択なし → カレンダーを選択表示にしておく。
+    final navSelected = _navToShell.indexOf(index);
     return Scaffold(
       body: IndexedStack(
         index: index,
@@ -71,25 +64,25 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ],
       ),
       floatingActionButton: index == 0
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
               key: const Key('fab-entry'),
               onPressed: () {
-                // 選択日を既定に入力タブへ
+                // 選択日を既定に入力画面へ
                 ref
                     .read(entryFormControllerProvider.notifier)
                     .startCreate(ref.read(selectedDayProvider));
                 ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
               },
-              child: const Icon(Icons.add),
+              icon: const Icon(Icons.add),
+              label: const Text('金額を入力する'),
             )
           : null,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
+        selectedIndex: navSelected < 0 ? 0 : navSelected,
         onDestinationSelected: _onSelect,
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.calendar_month), label: 'カレンダー'),
-          NavigationDestination(icon: Icon(Icons.add_circle), label: '入力'),
           NavigationDestination(icon: Icon(Icons.bar_chart), label: 'サマリ'),
           NavigationDestination(icon: Icon(Icons.settings), label: '設定'),
         ],

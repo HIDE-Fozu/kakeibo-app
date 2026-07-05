@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/app/theme.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
@@ -41,6 +43,34 @@ void main() {
     expect(container.read(appSettingsProvider).retainReceiptImages, isFalse);
     await container.read(appSettingsProvider.notifier).setRetainReceiptImages(true);
     expect(container.read(appSettingsProvider).retainReceiptImages, isTrue);
+  });
+
+  test('ページ色/アクセント色の既定と永続化', () async {
+    // 未設定なら既定（kPaper / kPrimary）
+    expect(container.read(appSettingsProvider).pageColor.toARGB32(),
+        kPaper.toARGB32());
+    expect(container.read(appSettingsProvider).accentColor.toARGB32(),
+        kPrimary.toARGB32());
+
+    const newPage = Color(0xFFEAF4EF);
+    const newAccent = Color(0xFF4F80B0);
+    await container.read(appSettingsProvider.notifier).setPageColor(newPage);
+    await container.read(appSettingsProvider.notifier).setAccentColor(newAccent);
+    expect(container.read(appSettingsProvider).pageColor.toARGB32(),
+        newPage.toARGB32());
+    expect(container.read(appSettingsProvider).accentColor.toARGB32(),
+        newAccent.toARGB32());
+  });
+
+  test('カテゴリ並び順モードの既定と永続化', () async {
+    // 既定は「最近使った順」
+    expect(container.read(appSettingsProvider).categoryOrder,
+        CategoryOrderMode.recentlyUsed);
+    await container
+        .read(appSettingsProvider.notifier)
+        .setCategoryOrder(CategoryOrderMode.manual);
+    expect(container.read(appSettingsProvider).categoryOrder,
+        CategoryOrderMode.manual);
   });
 
   test('allCategoriesProviderがシード済みカテゴリを流す', () async {

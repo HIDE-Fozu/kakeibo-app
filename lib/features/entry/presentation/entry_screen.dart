@@ -43,10 +43,21 @@ class EntryScreen extends ConsumerWidget {
     final expandedIdx = state.expandedParentId == null
         ? -1
         : entryCats.indexWhere((c) => c.id == state.expandedParentId);
-    final overlayAbove = expandedIdx.isOdd;
+    // 押したカテゴリが下段なら内訳オーバーレイを上段側に出す（押した行を隠さない）。
+    final overlayAbove = expandedIdx >= 0 && catIsBottomRow(expandedIdx);
 
     return Scaffold(
       appBar: AppBar(
+        // タブ埋め込み時は左上に戻る（カレンダーへ）。タブからもカレンダーへ戻れる。
+        // モーダル(push)時は既定の閉じるボタンに任せる。
+        leading: embedded
+            ? IconButton(
+                key: const Key('entry-back'),
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () =>
+                    ref.read(homeTabIndexProvider.notifier).set(0),
+              )
+            : null,
         title: Text(title),
         actions: [
           if (state.mode == EntryMode.create)

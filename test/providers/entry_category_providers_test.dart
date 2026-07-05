@@ -5,6 +5,7 @@ import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/entry/application/entry_category_providers.dart';
+import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
 import '../support/test_app.dart';
 
@@ -54,6 +55,36 @@ void main() {
     final foodIdx = grid.indexWhere((x) => x.name == '食費');
     final dailyIdx = grid.indexWhere((x) => x.name == '日用品');
     expect(foodIdx, lessThan(dailyIdx)); // 食費（外食経由7/10）が日用品（7/1）より先
+  });
+
+  test('固定順(manual): 最近使った順を無視しsortOrder順で並ぶ', () async {
+    final daily = await idOf('日用品');
+    await spend(daily, const CivilDate(2026, 7, 20)); // recentlyUsedなら前に来る
+    final sub = c.listen(entryCategoriesProvider(TxnType.expense), (_, _) {});
+    addTearDown(sub.close);
+    await c
+        .read(appSettingsProvider.notifier)
+        .setCategoryOrder(CategoryOrderMode.manual);
+    await pumpEventQueue();
+    final grid = c.read(entryCategoriesProvider(TxnType.expense)).value!;
+    final sorted = [...grid]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    // 最近使った日用品が前に浮かず、sortOrder順（固定順）に一致
+    expect(grid.map((e) => e.id).toList(), sorted.map((e) => e.id).toList());
+  });
+
+  test('固定順(manual): reorderした並びがグリッドに反映される', () async {
+    final sub = c.listen(entryCategoriesProvider(TxnType.expense), (_, _) {});
+    addTearDown(sub.close);
+    await c
+        .read(appSettingsProvider.notifier)
+        .setCategoryOrder(CategoryOrderMode.manual);
+    await pumpEventQueue();
+    final before = c.read(entryCategoriesProvider(TxnType.expense)).value!;
+    final reversedIds = before.map((e) => e.id).toList().reversed.toList();
+    await c.read(categoryRepositoryProvider).reorder(reversedIds);
+    await pumpEventQueue();
+    final after = c.read(entryCategoriesProvider(TxnType.expense)).value!;
+    expect(after.map((e) => e.id).toList(), reversedIds);
   });
 
   test('entrySubcategoriesProvider: 親の内訳をsortOrder順・アーカイブ除外', () async {

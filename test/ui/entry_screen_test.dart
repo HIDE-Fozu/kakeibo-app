@@ -5,8 +5,10 @@ import 'package:kakeibo_app/app/providers.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/features/entry/application/entry_category_providers.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
 import 'package:kakeibo_app/features/entry/presentation/entry_screen.dart';
+import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
 import '../support/test_app.dart';
 
@@ -299,6 +301,42 @@ void main() {
     expect(after.firstWhere((c) => c.id == eatOutId).isArchived, isTrue);
   });
 
+  testWidgets('内訳追加ダイアログ「アイコンの表示順設定」で親アイコンを並べ替え→固定順保存',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('cat-tile-$foodId'))); // 内訳チップを開く
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-sub-inline'))); // 追加ダイアログ
+    await tester.pumpAndSettle();
+
+    // 「アイコンの表示順設定」を開く → 先頭(食費)をindex3へ並べ替え
+    await tester.tap(find.byKey(const Key('reorder-icons')));
+    await tester.pumpAndSettle();
+    final rlv = tester
+        .widget<ReorderableListView>(find.byType(ReorderableListView).first);
+    rlv.onReorderItem!(0, 3);
+    await tester.pumpAndSettle();
+
+    // 固定順に切替＆食費は先頭でなくなる（一覧には残る）
+    expect(container.read(appSettingsProvider).categoryOrder,
+        CategoryOrderMode.manual);
+    final after = container.read(entryCategoriesProvider(TxnType.expense)).value!;
+    expect(after.first.name, isNot('食費'));
+    expect(after.map((c) => c.name), contains('食費'));
+  });
+
   testWidgets('内訳チップ長押し→削除でその内訳がアーカイブされる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -395,7 +433,69 @@ void main() {
     expect(tileTexts.any((t) => t.data == 'カフェ ▾'), isTrue);
   });
 
-  testWidgets('カテゴリの右送りボタン: タップで続きのカテゴリが見える', (tester) async {
+  testWidgets('カテゴリ長押しドラッグで並べ替え→固定順で保存される', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // 既定sortOrderで食費が先頭
+    final before = container.read(entryCategoriesProvider(TxnType.expense)).value!;
+    expect(before.first.name, '食費');
+    expect(container.read(appSettingsProvider).categoryOrder,
+        CategoryOrderMode.recentlyUsed);
+
+    // 食費(左上)を長押し→右へドラッグ→ドロップ
+    final start = tester.getCenter(find.byKey(Key('cat-tile-$foodId')));
+    final gesture = await tester.startGesture(start);
+    await tester.pump(const Duration(milliseconds: 600)); // 長押し成立
+    for (var i = 0; i < 6; i++) {
+      await gesture.moveBy(const Offset(40, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // 固定順に切替＆食費は先頭ではなくなる（後方へ移動）が一覧には残る
+    expect(container.read(appSettingsProvider).categoryOrder,
+        CategoryOrderMode.manual);
+    final after = container.read(entryCategoriesProvider(TxnType.expense)).value!;
+    expect(after.first.name, isNot('食費'));
+    expect(after.map((c) => c.name), contains('食費'));
+  });
+
+  testWidgets('横スクロールで2ページ目の末尾カテゴリが見えてくる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) =>
+                ref.read(entryFormControllerProvider.notifier).startCreate(day)));
+    final container = containerOf(tester);
+    final cats = await waitForData(container, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // その他は2ページ目にあり初期は可視領域の右外
+    final beforeLeft = tester.getRect(find.text('その他')).left;
+    // タイル上を横ドラッグ（長押しでないのでグリッドがスクロールする）
+    await tester.drag(find.byKey(Key('cat-tile-$foodId')), const Offset(-240, 0));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.text('その他')).left, lessThan(beforeLeft));
+  });
+
+  testWidgets('右送りボタンで2ページ目のカテゴリが見えてくる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -406,14 +506,10 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // 末尾側のカテゴリは画面外（未レンダリング）
-    expect(find.text('その他'), findsNothing);
-
+    final beforeLeft = tester.getRect(find.text('その他')).left;
     await tester.tap(find.byKey(const Key('cat-scroll-right')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('cat-scroll-right')));
-    await tester.pumpAndSettle();
-    expect(find.text('その他'), findsOneWidget); // 右送りで到達
+    expect(tester.getRect(find.text('その他')).left, lessThan(beforeLeft));
   });
 
   testWidgets('内訳未選択のまま保存すると親カテゴリに計上される', (tester) async {

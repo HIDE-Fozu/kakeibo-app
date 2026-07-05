@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../core/category_emoji.dart';
 import '../../../domain/entities.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/entry_category_providers.dart';
 
 /// 内訳チップ列（押したタイルの真上に出るオーバーレイの中身）。
@@ -223,11 +225,38 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
   Future<void> _deleteSub(CategoryEntity sub) =>
       ref.read(categoryRepositoryProvider).setArchived(sub.id, true);
 
+  /// グリッドの親カテゴリ（アイコン）の並び替え。並べ替えたら「自分の順（固定順）」で
+  /// 表示されるよう設定も切替える（設定でいつでも戻せる）。
+  Future<void> _reorderParents(List<CategoryEntity> parents, int oldIndex,
+      int newIndex) async {
+    final ids = parents.map((c) => c.id).toList();
+    final moved = ids.removeAt(oldIndex);
+    ids.insert(newIndex, moved);
+    await ref.read(categoryRepositoryProvider).reorder(ids);
+    if (ref.read(appSettingsProvider).categoryOrder ==
+        CategoryOrderMode.recentlyUsed) {
+      await ref
+          .read(appSettingsProvider.notifier)
+          .setCategoryOrder(CategoryOrderMode.manual);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final subs =
         ref.watch(entrySubcategoriesProvider(widget.parent.id)).valueOrNull ??
             const <CategoryEntity>[];
+    // グリッドに並ぶ親カテゴリ（アイコン）を sortOrder 順で取得。
+    final all =
+        ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
+    final parents = all
+        .where((c) =>
+            c.parentId == null &&
+            !c.isArchived &&
+            !c.isSystem &&
+            c.type == widget.parent.type)
+        .toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     return AlertDialog(
       title: const Text('内訳を追加'),
       // ボタンを本文内に入れ、「既存の内容を編集」を追加ボタンの下に置く
@@ -307,6 +336,50 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                   ),
                 ),
               ],
+              const Divider(),
+              Theme(
+                data: Theme.of(context)
+                    .copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  key: const Key('reorder-icons'),
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: EdgeInsets.zero,
+                  title: const Text('アイコンの表示順設定'),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('ドラッグで並べ替え（自分の順で表示されます）',
+                            style: Theme.of(context).textTheme.bodySmall),
+                      ),
+                    ),
+                    ReorderableListView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      buildDefaultDragHandles: false,
+                      onReorderItem: (oldIndex, newIndex) =>
+                          _reorderParents(parents, oldIndex, newIndex),
+                      children: [
+                        for (final (i, p) in parents.indexed)
+                          ListTile(
+                            key: ValueKey('reorder-parent-${p.id}'),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            leading: Text(categoryEmoji(p.icon, p.name),
+                                style: const TextStyle(fontSize: 20)),
+                            title: Text(p.name),
+                            trailing: ReorderableDragStartListener(
+                              key: Key('reorder-parent-drag-${p.id}'),
+                              index: i,
+                              child: const Icon(Icons.drag_handle),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

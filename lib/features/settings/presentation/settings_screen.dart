@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../app/theme.dart';
 import '../../../core/format.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
 import 'category_manage_page.dart';
+import 'color_picker_dialog.dart';
 import 'restore_picker_page.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -75,6 +77,51 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const CategoryManagePage()),
             ),
           ),
+          SwitchListTile(
+            key: const Key('category-order-switch'),
+            secondary: const Icon(Icons.sort),
+            title: const Text('カテゴリを自分の順で並べる'),
+            subtitle: const Text('オフ=最近使った順 / オン=固定順（入力画面でタイル長押し→並べ替え）'),
+            value: settings.categoryOrder == CategoryOrderMode.manual,
+            onChanged: (v) =>
+                ref.read(appSettingsProvider.notifier).setCategoryOrder(
+                      v
+                          ? CategoryOrderMode.manual
+                          : CategoryOrderMode.recentlyUsed,
+                    ),
+          ),
+          const Divider(),
+          ListTile(
+            key: const Key('page-color-tile'),
+            leading: const Icon(Icons.palette_outlined),
+            title: const Text('ページの色（背景）'),
+            trailing: _swatch(settings.pageColor),
+            onTap: () => _pickColor(
+              context,
+              ref,
+              title: 'ページの色（背景）',
+              current: settings.pageColor,
+              defaultColor: kPaper,
+              onPicked: (c) =>
+                  ref.read(appSettingsProvider.notifier).setPageColor(c),
+            ),
+          ),
+          ListTile(
+            key: const Key('accent-color-tile'),
+            leading: const Icon(Icons.format_color_fill),
+            title: const Text('アクセント色'),
+            subtitle: const Text('ボタンや選択の色'),
+            trailing: _swatch(settings.accentColor),
+            onTap: () => _pickColor(
+              context,
+              ref,
+              title: 'アクセント色',
+              current: settings.accentColor,
+              defaultColor: kPrimary,
+              onPicked: (c) =>
+                  ref.read(appSettingsProvider.notifier).setAccentColor(c),
+            ),
+          ),
           const Divider(),
           ListTile(
             key: const Key('about-data-tile'),
@@ -85,6 +132,34 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// 現在色を示す小さな見本。
+  Widget _swatch(Color color) => Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: kLine),
+        ),
+      );
+
+  Future<void> _pickColor(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    required Color current,
+    required Color defaultColor,
+    required void Function(Color) onPicked,
+  }) async {
+    final picked = await showColorPickerDialog(
+      context,
+      initial: current,
+      title: title,
+      defaultColor: defaultColor,
+    );
+    if (picked != null) onPicked(picked);
   }
 
   Future<void> _backupNow(BuildContext context, WidgetRef ref) async {

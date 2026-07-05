@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/category_emoji.dart';
-import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
@@ -37,15 +36,14 @@ class DayTransactionList extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('${day.month}月${day.day}日の記録はありません'),
-            TextButton.icon(
-              key: const Key('add-on-day'),
-              icon: const Icon(Icons.add),
-              label: const Text('この日に追加'),
-              onPressed: () => _openCreate(ref),
+            const SizedBox(height: 4),
+            Text(
+              monthEmpty
+                  ? '右下の「金額を入力する」から最初の記録を追加できます'
+                  : '右下の「金額を入力する」から追加できます',
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
-            if (monthEmpty)
-              Text('右下の＋から最初の記録を追加できます',
-                  style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       );
@@ -100,12 +98,6 @@ class DayTransactionList extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _openCreate(WidgetRef ref) {
-    // 新規入力は入力タブへ（選択日を既定に）
-    ref.read(entryFormControllerProvider.notifier).startCreate(day);
-    ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
   }
 
   /// Undo は同内容の再add（id/createdAtは新規になる: v1の既知の限界）

@@ -88,20 +88,21 @@ void main() {
     expect(restored.single.amountYen, 800);
   });
 
-  testWidgets('空の日: 「この日に追加」から選択日既定で入力が開く', (tester) async {
+  testWidgets('空の日: 追加ボタンは無く、FABから選択日既定で入力が開く', (tester) async {
     await pumpShell(tester);
     await tester.tap(find.text('20'));
     await tester.pumpAndSettle();
     expect(find.textContaining('記録はありません'), findsOneWidget);
-    expect(find.text('右下の＋から最初の記録を追加できます'), findsOneWidget); // 空カレンダーCTA（spec §5.5）
-    await tester.tap(find.byKey(const Key('add-on-day')));
+    expect(find.byKey(const Key('add-on-day')), findsNothing); // 旧「この日に追加」は削除
+    expect(find.textContaining('金額を入力する'), findsWidgets); // FAB＋空状態の案内
+    // FABから選択日既定で入力が開く（テンキーが出る）
+    await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
-    // 入力タブが開く（テンキーが出る）・選択日が既定（spec §5.3）
     expect(find.byKey(const Key('np-00')), findsOneWidget);
     expect(find.text('2026/07/20'), findsOneWidget);
   });
 
-  testWidgets('FAB: 選択日を既定に入力タブへ切替', (tester) async {
+  testWidgets('FAB: 選択日を既定に入力画面へ', (tester) async {
     await pumpShell(tester);
     await tester.tap(find.text('18'));
     await tester.pumpAndSettle();

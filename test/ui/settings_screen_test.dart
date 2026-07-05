@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/app/home_shell.dart';
 import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/app/theme.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
@@ -82,5 +83,27 @@ void main() {
     // CSVエクスポートのSnackBar Timer(4s)を消化
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('ページの色: フルカラーピッカーで背景色を変更できる', (tester) async {
+    final c = await openSettings(tester);
+    // 設定リストの色タイルまでスクロール
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('page-color-tile')), 200);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('accent-color-tile')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('page-color-tile')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('color-preview')), findsOneWidget);
+
+    // Bスライダを左端へ動かす → 背景色が既定(kPaper)から変わる
+    await tester.drag(find.byType(Slider).last, const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('color-apply')));
+    await tester.pumpAndSettle();
+
+    expect(c.read(appSettingsProvider).pageColor.toARGB32(),
+        isNot(kPaper.toARGB32()));
   });
 }
