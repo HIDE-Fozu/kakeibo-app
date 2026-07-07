@@ -12,6 +12,9 @@ class SettingsState {
   final bool onboardingDone;
   final bool retainReceiptImages;
 
+  /// 【テスト期間限定】収集データをCloudKitへ自動送信（オプトイン・既定OFF）。
+  final bool autoUploadTestData;
+
   /// ページ背景色・アクセント（テーマ）色。未設定なら既定（kPaper / kPrimary）。
   final Color pageColor;
   final Color accentColor;
@@ -19,6 +22,7 @@ class SettingsState {
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
+    this.autoUploadTestData = false,
     required this.pageColor,
     required this.accentColor,
     required this.categoryOrder,
@@ -29,6 +33,7 @@ class SettingsState {
 class AppSettings extends Notifier<SettingsState> {
   static const kOnboardingDone = 'onboardingDone';
   static const kRetainReceiptImages = 'retainReceiptImages';
+  static const kAutoUploadTestData = 'autoUploadTestData';
   static const kPageColor = 'pageColor';
   static const kAccentColor = 'accentColor';
   static const kCategoryOrder = 'categoryOrder';
@@ -41,6 +46,7 @@ class AppSettings extends Notifier<SettingsState> {
     return SettingsState(
       onboardingDone: p.getBool(kOnboardingDone) ?? false,
       retainReceiptImages: p.getBool(kRetainReceiptImages) ?? false,
+      autoUploadTestData: p.getBool(kAutoUploadTestData) ?? false,
       pageColor: page == null ? kPaper : Color(page),
       accentColor: accent == null ? kPrimary : Color(accent),
       categoryOrder: p.getString(kCategoryOrder) == 'manual'
@@ -56,6 +62,11 @@ class AppSettings extends Notifier<SettingsState> {
 
   Future<void> setRetainReceiptImages(bool value) async {
     await ref.read(sharedPreferencesProvider).setBool(kRetainReceiptImages, value);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAutoUploadTestData(bool value) async {
+    await ref.read(sharedPreferencesProvider).setBool(kAutoUploadTestData, value);
     ref.invalidateSelf();
   }
 

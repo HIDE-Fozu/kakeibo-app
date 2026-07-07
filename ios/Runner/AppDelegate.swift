@@ -15,5 +15,8 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ReceiptOcrPlugin") {
       ReceiptOcrPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "CloudFixturePlugin") {
+      CloudFixturePlugin.register(with: registrar)
+    }
   }
 }

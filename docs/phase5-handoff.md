@@ -1,15 +1,15 @@
-# Phase 5 ハンドオフ（2026-07-07 更新 / build 5 時点・feature/receipt-ocr）
+# Phase 5 ハンドオフ（2026-07-07 更新 / build 8 時点・feature/receipt-ocr）
 
 次セッションはこのファイルと `memory/`、`docs/phase5-mac-runbook.md` から再開する。
 
 ## いまどこ（TL;DR）
 
 - **ブランチ: `feature/receipt-ocr`**（e9ccf49=OCR実装、2115097=一括内訳+splitGroupId。main未マージ・未push）。
-- **build 5 の ipa を生成**（`1.0.0+5`、`build/ios/ipa/kakeibo_app.ipa`）。内容: レシートOCR（Apple Vision+カメラ/写真）・クレジット/小計±税対応・店名候補チップ・**一括内訳モード**（OCR明細を写真の行切り抜きで表示→D1選んで割当/D2塗り分け・税ヘッダ+行上書き・差額行）・**「1枚のレシート」**（schema v3 splitGroupId・日別一覧C1グループカード・開き直し置換保存）・電卓分割（＋−×÷切り捨て）。**TestFlight へのアップロードはユーザー手動待ち**（Transporter → Deliver で内部グループ「111」へ自動配信）。
+- **build 8 の ipa を生成**（`1.0.0+8`、`build/ios/ipa/kakeibo_app.ipa`）。内容: レシートOCR（Apple Vision+カメラ/写真）・クレジット/小計±税対応・店名候補チップ・**一括内訳モード**（OCR明細を写真の行切り抜きで表示→D1選んで割当/D2塗り分け・税ヘッダ+行上書き・差額行）・**「1枚のレシート」**（schema v3 splitGroupId・日別一覧C1グループカード・開き直し置換保存）・電卓分割（＋−×÷切り捨て）。**TestFlight へのアップロードはユーザー手動待ち**（Transporter → Deliver で内部グループ「111」へ自動配信）。
 - **フィクスチャ記録は release でも有効**（exports/ocr-fixtures・直近200件）。母親のデータは Files アプリ「このiPhone内/家計簿/exports/ocr-fixtures」を共有してもらい回収。自機からは `xcrun devicectl device copy from --domain-type appDataContainer --domain-identifier com.hidefozu.kakeibo --source Documents/exports/ocr-fixtures`。
 - コード: **323テスト全緑・analyze 0**。実レシートフィクスチャ10枚を test/fixtures/receipts/ に同梱（probe: test/receipt/real_fixture_probe_test.dart）。
 - UI確定の経緯: HTMLモック（ユーザー明示指示・実配色統一）で D1+D2/A4改/B2/C1 を選定。https://claude.ai/code/artifact/ade361b4-d022-4590-aa77-288bc167ed1f
-- 注意: **debugビルドはホーム画面から起動不可**（JIT制約）。実機確認は `flutter build ios --profile` → `devicectl device install/launch`。次のビルド番号は **+6**。
+- 注意: **debugビルドはホーム画面から起動不可**（JIT制約）。実機確認は `flutter build ios --profile` → `devicectl device install/launch`。次のビルド番号は **+9**。CloudKit自動送信（テスト期間限定オプトイン）: 初回のみ開発ビルドで1回送信→CloudKit ConsoleでインデックスとProductionデプロイが必要。
 
 ## build 4 の変更（このセッション）
 

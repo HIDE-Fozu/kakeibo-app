@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/ocr/ocr_fixture_recorder.dart';
 import '../features/calendar/application/calendar_providers.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/entry/application/entry_form_controller.dart';
@@ -11,6 +12,7 @@ import '../features/settings/presentation/onboarding_dialog.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
 import 'navigation.dart';
+import 'providers.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -37,6 +39,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           .read(backupControllerProvider.notifier)
           .runStartupBackupIfStale()
           .catchError((_) => false);
+      // 【テスト期間限定・オプトイン】未送信の収集データを再送
+      if (kCollectReceiptPhotosDuringTest &&
+          ref.read(appSettingsProvider).autoUploadTestData) {
+        ref
+            .read(cloudFixtureUploaderProvider)
+            .syncPending()
+            .catchError((_) => 0);
+      }
     });
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -823,6 +824,13 @@ class EntryFormController extends Notifier<EntryFormState?> {
             dateIso: s.date.toIso(),
             store: memo.isEmpty ? null : memo,
           );
+      // オプトイン時のみ: ラベル込みで再送（失敗しても保存は妨げない）
+      if (ref.read(appSettingsProvider).autoUploadTestData) {
+        unawaited(ref
+            .read(cloudFixtureUploaderProvider)
+            .resendAfterLabel(path)
+            .catchError((_) {}));
+      }
     } catch (_) {}
   }
 

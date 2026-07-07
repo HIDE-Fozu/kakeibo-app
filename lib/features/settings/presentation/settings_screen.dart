@@ -64,16 +64,34 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const RestorePickerPage()),
             ),
           ),
-          // テスト期間限定: 収集済みOCRデータ（JSON+写真）を共有シートで送る。
-          // ユーザーの明示操作でのみ端末外へ出る（spec §2.1と両立）
-          if (kCollectReceiptPhotosDuringTest)
+          // テスト期間限定: 収集済みOCRデータ（JSON+写真）の送信まわり。
+          // 自動送信はオプトイン（既定OFF）。一般公開前にフラグごと撤去する
+          if (kCollectReceiptPhotosDuringTest) ...[
+            SwitchListTile(
+              key: const Key('auto-upload-switch'),
+              title: const Text('テスト協力（自動送信）'),
+              subtitle: const Text(
+                  'レシート読み取りの改善のため、スキャンの記録と写真を開発者へ自動送信します（テスト期間限定）。家計簿の入力内容そのものは送信しません'),
+              value: settings.autoUploadTestData,
+              onChanged: (v) => ref
+                  .read(appSettingsProvider.notifier)
+                  .setAutoUploadTestData(v),
+            ),
             ListTile(
               key: const Key('share-test-data'),
               leading: const Icon(Icons.outbox_outlined),
               title: const Text('テストデータを送る'),
-              subtitle: const Text('レシート読み取りの改善用（スキャンの記録と写真）'),
+              subtitle: const Text('手動でまとめて共有（LINE/AirDrop）'),
               onTap: () => _shareTestData(context, ref),
             ),
+            ListTile(
+              key: const Key('fetch-collected'),
+              leading: const Icon(Icons.cloud_download_outlined),
+              title: const Text('収集データを取り込む（開発者用）'),
+              subtitle: const Text('全端末分をこの端末の exports/ocr-collected へ'),
+              onTap: () => _fetchCollected(context, ref),
+            ),
+          ],
           const Divider(),
           SwitchListTile(
             key: const Key('retain-images-switch'),
@@ -214,6 +232,21 @@ class SettingsScreen extends ConsumerWidget {
           SnackBar(content: Text('保存しました: ${file.uri.pathSegments.last}')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
+    }
+  }
+
+  /// 開発者用: CloudKitに集まった全端末分を exports/ocr-collected へ取り込む。
+  Future<void> _fetchCollected(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final out = Directory(
+          '${ref.read(exportsDirProvider).path}${Platform.pathSeparator}ocr-collected');
+      final count =
+          await ref.read(cloudFixtureUploaderProvider).fetchAllTo(out);
+      messenger.showSnackBar(
+          SnackBar(content: Text('$count 件を取り込みました（exports/ocr-collected）')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('取り込みに失敗しました: $e')));
     }
   }
 

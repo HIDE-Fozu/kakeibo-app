@@ -7,6 +7,7 @@ import '../data/backup/auto_backup_store.dart';
 import '../data/backup/backup_crypto.dart';
 import '../data/backup/backup_service.dart';
 import '../data/db/database.dart';
+import '../data/ocr/cloud_fixture_uploader.dart';
 import '../data/ocr/ocr_fixture_recorder.dart';
 import '../data/repositories/drift_category_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
@@ -97,6 +98,14 @@ final ocrFixtureRecorderProvider = Provider<OcrFixtureRecorder>(
     Directory(
         '${ref.watch(exportsDirProvider).path}${Platform.pathSeparator}ocr-fixtures'),
     now: ref.watch(utcNowProvider),
+  ),
+);
+
+/// 【テスト期間限定】収集データのCloudKit送信（オプトイン時のみ呼ばれる）。
+final cloudFixtureUploaderProvider = Provider<CloudFixtureUploader>(
+  (ref) => CloudFixtureUploader(
+    ref.watch(ocrFixtureRecorderProvider).dir,
+    ref.watch(sharedPreferencesProvider),
   ),
 );
 
