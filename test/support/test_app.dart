@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:kakeibo_app/app/app.dart';
 import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/app/theme.dart';
 import 'package:kakeibo_app/data/backup/auto_backup_store.dart';
 import 'package:kakeibo_app/data/backup/backup_crypto.dart';
 import 'package:kakeibo_app/data/db/database.dart';
@@ -91,7 +92,10 @@ Future<void> pumpApp(
 }) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [...h.overrides(), ...extra],
-    child: home != null ? MaterialApp(home: home) : const KakeiboApp(),
+    // home指定でも実テーマを使う（kakeiboColors拡張に依存する画面があるため）
+    child: home != null
+        ? MaterialApp(theme: buildKakeiboTheme(), home: home)
+        : const KakeiboApp(),
   ));
   await tester.pumpAndSettle();
 }

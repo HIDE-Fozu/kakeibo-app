@@ -615,6 +615,17 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _splitGroupIdMeta = const VerificationMeta(
+    'splitGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> splitGroupId = GeneratedColumn<String>(
+    'split_group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -650,6 +661,7 @@ class $TransactionsTable extends Transactions
     memo,
     source,
     imagePath,
+    splitGroupId,
     createdAt,
     updatedAt,
   ];
@@ -694,6 +706,15 @@ class $TransactionsTable extends Transactions
       context.handle(
         _imagePathMeta,
         imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta),
+      );
+    }
+    if (data.containsKey('split_group_id')) {
+      context.handle(
+        _splitGroupIdMeta,
+        splitGroupId.isAcceptableOrUnknown(
+          data['split_group_id']!,
+          _splitGroupIdMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -761,6 +782,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}image_path'],
       ),
+      splitGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}split_group_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -803,6 +828,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final String? memo;
   final TxnSource source;
   final String? imagePath;
+
+  /// 同じレシート（詳細入力の1回）から生まれた取引を束ねるID。null=単独取引。
+  /// v3で追加。日別一覧のグループカード表示と「詳細入力で開き直す」に使う。
+  final String? splitGroupId;
   final DateTime createdAt;
   final DateTime updatedAt;
   const TransactionRow({
@@ -815,6 +844,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     this.memo,
     required this.source,
     this.imagePath,
+    this.splitGroupId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -850,6 +880,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
     }
+    if (!nullToAbsent || splitGroupId != null) {
+      map['split_group_id'] = Variable<String>(splitGroupId);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -870,6 +903,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
+      splitGroupId: splitGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(splitGroupId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -896,6 +932,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
         serializer.fromJson<String>(json['source']),
       ),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
+      splitGroupId: serializer.fromJson<String?>(json['splitGroupId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -919,6 +956,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
         $TransactionsTable.$convertersource.toJson(source),
       ),
       'imagePath': serializer.toJson<String?>(imagePath),
+      'splitGroupId': serializer.toJson<String?>(splitGroupId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -934,6 +972,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     Value<String?> memo = const Value.absent(),
     TxnSource? source,
     Value<String?> imagePath = const Value.absent(),
+    Value<String?> splitGroupId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => TransactionRow(
@@ -948,6 +987,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     memo: memo.present ? memo.value : this.memo,
     source: source ?? this.source,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
+    splitGroupId: splitGroupId.present ? splitGroupId.value : this.splitGroupId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -966,6 +1006,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       memo: data.memo.present ? data.memo.value : this.memo,
       source: data.source.present ? data.source.value : this.source,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      splitGroupId: data.splitGroupId.present
+          ? data.splitGroupId.value
+          : this.splitGroupId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -983,6 +1026,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('memo: $memo, ')
           ..write('source: $source, ')
           ..write('imagePath: $imagePath, ')
+          ..write('splitGroupId: $splitGroupId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1000,6 +1044,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     memo,
     source,
     imagePath,
+    splitGroupId,
     createdAt,
     updatedAt,
   );
@@ -1016,6 +1061,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.memo == this.memo &&
           other.source == this.source &&
           other.imagePath == this.imagePath &&
+          other.splitGroupId == this.splitGroupId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1030,6 +1076,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<String?> memo;
   final Value<TxnSource> source;
   final Value<String?> imagePath;
+  final Value<String?> splitGroupId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const TransactionsCompanion({
@@ -1042,6 +1089,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.memo = const Value.absent(),
     this.source = const Value.absent(),
     this.imagePath = const Value.absent(),
+    this.splitGroupId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1055,6 +1103,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.memo = const Value.absent(),
     required TxnSource source,
     this.imagePath = const Value.absent(),
+    this.splitGroupId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : type = Value(type),
@@ -1072,6 +1121,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<String>? memo,
     Expression<String>? source,
     Expression<String>? imagePath,
+    Expression<String>? splitGroupId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1085,6 +1135,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (memo != null) 'memo': memo,
       if (source != null) 'source': source,
       if (imagePath != null) 'image_path': imagePath,
+      if (splitGroupId != null) 'split_group_id': splitGroupId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1100,6 +1151,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<String?>? memo,
     Value<TxnSource>? source,
     Value<String?>? imagePath,
+    Value<String?>? splitGroupId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -1113,6 +1165,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       memo: memo ?? this.memo,
       source: source ?? this.source,
       imagePath: imagePath ?? this.imagePath,
+      splitGroupId: splitGroupId ?? this.splitGroupId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1156,6 +1209,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
     }
+    if (splitGroupId.present) {
+      map['split_group_id'] = Variable<String>(splitGroupId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1177,6 +1233,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('memo: $memo, ')
           ..write('source: $source, ')
           ..write('imagePath: $imagePath, ')
+          ..write('splitGroupId: $splitGroupId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1682,6 +1739,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<String?> memo,
       required TxnSource source,
       Value<String?> imagePath,
+      Value<String?> splitGroupId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -1696,6 +1754,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String?> memo,
       Value<TxnSource> source,
       Value<String?> imagePath,
+      Value<String?> splitGroupId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -1772,6 +1831,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get imagePath => $composableBuilder(
     column: $table.imagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1858,6 +1922,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1928,6 +1997,11 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
 
+  GeneratedColumn<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -1995,6 +2069,7 @@ class $$TransactionsTableTableManager
                 Value<String?> memo = const Value.absent(),
                 Value<TxnSource> source = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
+                Value<String?> splitGroupId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion(
@@ -2007,6 +2082,7 @@ class $$TransactionsTableTableManager
                 memo: memo,
                 source: source,
                 imagePath: imagePath,
+                splitGroupId: splitGroupId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -2021,6 +2097,7 @@ class $$TransactionsTableTableManager
                 Value<String?> memo = const Value.absent(),
                 required TxnSource source,
                 Value<String?> imagePath = const Value.absent(),
+                Value<String?> splitGroupId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion.insert(
@@ -2033,6 +2110,7 @@ class $$TransactionsTableTableManager
                 memo: memo,
                 source: source,
                 imagePath: imagePath,
+                splitGroupId: splitGroupId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

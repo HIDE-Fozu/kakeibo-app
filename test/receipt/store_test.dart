@@ -54,6 +54,25 @@ void main() {
     expect(extractStoreName(const []), isNull);
   });
 
+  test('OK型: 店名が0.35より下でも日付行より上なら候補に入る', () {
+    // 実レシート(OKストア): スローガンが長く、店名は y≈0.36-0.43 に来る
+    final cands = extractStoreCandidates(receipt([
+      '高品質・Everyday Low Price', // y=0.05
+      'オーククラブ会員で現金払に限り、食料品は', // 会員→除外
+      '単品毎に本体価格の3/10（3%相当）を割引', // 数字→除外
+      '事業者番号 6010801001974', // 除外
+      'オーケー', // y=0.25
+      'あおば店', // y=0.30
+      '03-3378-3921', // y=0.35 電話→除外
+      '営業時間8:30～21:30', // y=0.40 除外
+      '2026年04月19日（日）20:32', // y=0.45 日付行=ゾーン終端
+      'レジ0804', // 日付より下→対象外
+    ]));
+    expect(cands, contains('オーケー'));
+    expect(cands, contains('あおば店'));
+    expect(cands.first, '高品質・Everyday Low Price');
+  });
+
   test('候補は上から複数返す（URL・番号行は除外）: 実レシートのサミット型', () {
     final cands = extractStoreCandidates(receipt([
       'サミット',

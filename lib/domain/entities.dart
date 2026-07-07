@@ -11,6 +11,7 @@ class TransactionEntity {
   final String? memo;
   final TxnSource source;
   final String? imagePath; // §14-C: 保持設定ON時のみ非null
+  final String? splitGroupId; // 同じレシート（詳細入力）由来の取引を束ねる。null=単独
 
   const TransactionEntity({
     this.id,
@@ -22,6 +23,7 @@ class TransactionEntity {
     this.memo,
     required this.source,
     this.imagePath,
+    this.splitGroupId,
   });
 }
 

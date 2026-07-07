@@ -8,8 +8,60 @@ import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
 import '../../settings/application/settings_controller.dart';
+import 'split_calc.dart';
 
 enum EntryMode { create, receiptConfirm, edit }
+
+/// 詳細入力（分割）の1行。合計をカテゴリ別に分けて複数取引として保存する。
+class SplitLine {
+  final String expr; // 電卓式（evalCalcExpr が評価。空=残額行/未入力）
+  final int taxPercent; // 0=内税(そのまま) / 8 / 10（外税・切り捨て）
+  final int? categoryId;
+  const SplitLine({this.expr = '', this.taxPercent = 0, this.categoryId});
+
+  SplitLine copyWith({String? expr, int? taxPercent, int? categoryId}) =>
+      SplitLine(
+        expr: expr ?? this.expr,
+        taxPercent: taxPercent ?? this.taxPercent,
+        categoryId: categoryId ?? this.categoryId,
+      );
+
+  /// 式の評価結果に外税を適用した金額。式が空/不正なら null。
+  int? get amountYen {
+    final v = evalCalcExpr(expr);
+    return v == null ? null : applyTax(v, taxPercent);
+  }
+}
+
+/// 一括内訳の1品目（OCR明細行＋割り当て状態）。
+class BatchItem {
+  final ReceiptItem item;
+  final int? categoryId; // null=未割当
+  final int? taxOverride; // null=ヘッダ既定に従う / 0,8,10=行上書き
+  final bool selected; // D1（選んで割当）のチェック
+  const BatchItem({
+    required this.item,
+    this.categoryId,
+    this.taxOverride,
+    this.selected = false,
+  });
+
+  static const _unset = Object();
+  BatchItem copyWith({
+    Object? categoryId = _unset,
+    Object? taxOverride = _unset,
+    bool? selected,
+  }) =>
+      BatchItem(
+        item: item,
+        categoryId:
+            identical(categoryId, _unset) ? this.categoryId : categoryId as int?,
+        taxOverride: identical(taxOverride, _unset)
+            ? this.taxOverride
+            : taxOverride as int?,
+        selected: selected ?? this.selected,
+      );
+}
 
 class EntryFormState {
   final EntryMode mode;
@@ -26,6 +78,21 @@ class EntryFormState {
 
   /// 内訳チップ列を開いている親カテゴリ（null=閉）。選択とは独立。
   final int? expandedParentId;
+
+  /// 詳細入力（分割）の行。null=通常モード。amountYen が分割対象の合計。
+  final List<SplitLine>? splits;
+  final int activeSplitIndex;
+
+  /// 一括内訳モード（OCR明細ベース）。null=非表示。amountYen が対象の合計。
+  final List<BatchItem>? batchItems;
+  final int batchHeaderTax; // レシート単位の税方式: 0=内税 / 8 / 10
+  final bool batchPaintMode; // false=D1選んで割当 / true=D2塗り分け
+  final int? batchPaintCategoryId; // D2で塗るカテゴリ
+  final int? batchDiffCategoryId; // 差額行のカテゴリ（null=未設定）
+
+  /// グループの開き直し編集: 保存時に置換削除する既存取引と再利用するgroupId。
+  final List<int>? replacesTxIds;
+  final String? reuseSplitGroupId;
 
   /// フォーム世代。start*/saveAndContinueごとに増える。
   /// 常時表示のメモ欄をリセットするためのwidget keyに使う。
@@ -44,10 +111,96 @@ class EntryFormState {
     this.imagePath,
     this.memoExpanded = false,
     this.expandedParentId,
+    this.splits,
+    this.activeSplitIndex = 0,
+    this.batchItems,
+    this.batchHeaderTax = 0,
+    this.batchPaintMode = false,
+    this.batchPaintCategoryId,
+    this.batchDiffCategoryId,
+    this.replacesTxIds,
+    this.reuseSplitGroupId,
     this.formSeq = 0,
   });
 
-  bool get canSave => amountYen > 0 && categoryId != null;
+  bool get canSave => batchItems != null
+      ? _batchValid
+      : splits != null
+          ? _splitsValid
+          : amountYen > 0 && categoryId != null;
+
+  // --- 一括内訳の導出 ---
+
+  /// 行の実効税率: 上書き > (※マーク かつ ヘッダ外税10% → 8%) > ヘッダ。
+  int batchItemTax(BatchItem b) =>
+      b.taxOverride ??
+      (b.item.reducedTaxMark && batchHeaderTax == 10 ? 8 : batchHeaderTax);
+
+  /// 行の税適用後金額。
+  int batchItemAmount(BatchItem b) => applyTax(b.item.yen, batchItemTax(b));
+
+  /// カテゴリ→金額の集約（割当順）。
+  Map<int, int> get batchGroups {
+    final out = <int, int>{};
+    for (final b in batchItems ?? const <BatchItem>[]) {
+      final cat = b.categoryId;
+      if (cat == null) continue;
+      out[cat] = (out[cat] ?? 0) + batchItemAmount(b);
+    }
+    return out;
+  }
+
+  /// 差額 = レシート合計 − 割当済み合計。正なら差額行が担う。負=割り過ぎ。
+  int get batchDiff =>
+      amountYen - batchGroups.values.fold(0, (a, v) => a + v);
+
+  bool get _batchValid {
+    if (amountYen <= 0) return false;
+    final groups = batchGroups;
+    if (groups.isEmpty) return false;
+    final diff = batchDiff;
+    if (diff < 0) return false; // 割当がレシート合計を超えている
+    if (diff > 0 && batchDiffCategoryId == null) return false;
+    return true;
+  }
+
+  /// D1で選択中の品目index。
+  List<int> get batchSelectedIndexes => [
+        for (final (i, b) in (batchItems ?? const <BatchItem>[]).indexed)
+          if (b.selected) i
+      ];
+
+  /// 式あり行の金額合計（不正行は0扱い＝保存不可側で検出される）。
+  int get splitFixedSum =>
+      (splits ?? const []).fold(0, (a, l) => a + (l.amountYen ?? 0));
+
+  /// 残額（合計 − 式あり行合計）。末尾の空行がこれを担う。マイナス=入れ過ぎ。
+  int get splitRemainder => amountYen - splitFixedSum;
+
+  /// 行の実効金額。空の式は「末尾の行だけ」残額を自動で担う。
+  /// それ以外の空/不正行は null（保存不可）。
+  int? splitLineAmount(int i) {
+    final lines = splits!;
+    final l = lines[i];
+    if (l.expr.isEmpty) {
+      return (i == lines.length - 1 && splitRemainder > 0)
+          ? splitRemainder
+          : null;
+    }
+    return l.amountYen;
+  }
+
+  bool get _splitsValid {
+    final lines = splits;
+    if (lines == null || amountYen <= 0) return false;
+    var sum = 0;
+    for (var i = 0; i < lines.length; i++) {
+      final a = splitLineAmount(i);
+      if (a == null || a <= 0 || lines[i].categoryId == null) return false;
+      sum += a;
+    }
+    return sum == amountYen;
+  }
 
   AmountCandidate? get matchedTotalCandidate {
     final r = receipt;
@@ -82,6 +235,15 @@ class EntryFormState {
     Object? imagePath = _unset,
     bool? memoExpanded,
     Object? expandedParentId = _unset,
+    Object? splits = _unset,
+    int? activeSplitIndex,
+    Object? batchItems = _unset,
+    int? batchHeaderTax,
+    bool? batchPaintMode,
+    Object? batchPaintCategoryId = _unset,
+    Object? batchDiffCategoryId = _unset,
+    Object? replacesTxIds = _unset,
+    Object? reuseSplitGroupId = _unset,
     int? formSeq,
   }) =>
       EntryFormState(
@@ -105,6 +267,27 @@ class EntryFormState {
         expandedParentId: identical(expandedParentId, _unset)
             ? this.expandedParentId
             : expandedParentId as int?,
+        splits: identical(splits, _unset)
+            ? this.splits
+            : splits as List<SplitLine>?,
+        activeSplitIndex: activeSplitIndex ?? this.activeSplitIndex,
+        batchItems: identical(batchItems, _unset)
+            ? this.batchItems
+            : batchItems as List<BatchItem>?,
+        batchHeaderTax: batchHeaderTax ?? this.batchHeaderTax,
+        batchPaintMode: batchPaintMode ?? this.batchPaintMode,
+        batchPaintCategoryId: identical(batchPaintCategoryId, _unset)
+            ? this.batchPaintCategoryId
+            : batchPaintCategoryId as int?,
+        batchDiffCategoryId: identical(batchDiffCategoryId, _unset)
+            ? this.batchDiffCategoryId
+            : batchDiffCategoryId as int?,
+        replacesTxIds: identical(replacesTxIds, _unset)
+            ? this.replacesTxIds
+            : replacesTxIds as List<int>?,
+        reuseSplitGroupId: identical(reuseSplitGroupId, _unset)
+            ? this.reuseSplitGroupId
+            : reuseSplitGroupId as String?,
       );
 }
 
@@ -206,6 +389,18 @@ class EntryFormController extends Notifier<EntryFormState?> {
           expandedParentId: _s.expandedParentId == null ? categoryId : null);
       return;
     }
+    // 一括内訳モード: D1=選択中の品目へ割当 / D2=塗るカテゴリを切替
+    if (_s.batchItems != null) {
+      _batchAssignCategory(categoryId,
+          expandedParentId: hasSubs ? categoryId : null);
+      return;
+    }
+    // 分割モード中はアクティブ行のカテゴリに書く
+    if (_s.splits != null) {
+      _updateActiveSplit((l) => l.copyWith(categoryId: categoryId),
+          expandedParentId: hasSubs ? categoryId : null);
+      return;
+    }
     state = _s.copyWith(
       categoryId: categoryId,
       expandedParentId: hasSubs ? categoryId : null,
@@ -217,10 +412,276 @@ class EntryFormController extends Notifier<EntryFormState?> {
   void toggleSubcategory(int subId) {
     final parent = _s.expandedParentId;
     if (parent == null) return; // チップ列が閉じているときは呼ばれない
+    if (_s.batchItems != null) {
+      if (_s.batchPaintMode) {
+        state = _s.copyWith(
+          batchPaintCategoryId:
+              _s.batchPaintCategoryId == subId ? parent : subId,
+          expandedParentId: null,
+        );
+      } else {
+        // 直前に割り当てた品目群を内訳へ差し替え（親タップ→チップの自然な流れ）
+        final items = [..._s.batchItems!];
+        for (final i in _lastBatchAssigned) {
+          items[i] = items[i].copyWith(
+              categoryId: items[i].categoryId == subId ? parent : subId);
+        }
+        state = _s.copyWith(batchItems: items, expandedParentId: null);
+      }
+      return;
+    }
+    if (_s.splits != null) {
+      _updateActiveSplit(
+          (l) => l.copyWith(categoryId: l.categoryId == subId ? parent : subId),
+          expandedParentId: null);
+      return;
+    }
     state = _s.copyWith(
       categoryId: _s.categoryId == subId ? parent : subId,
       expandedParentId: null,
     );
+  }
+
+  // --- 一括内訳（OCR明細ベース）。品目を束ねてカテゴリ割当→複数取引で保存 ---
+
+  /// D1=選んで割当（既定）/ D2=塗り分け。UIの切替で両方試せる。
+  void startBatchItemize() {
+    final r = _s.receipt;
+    if (r == null ||
+        r.itemLines.isEmpty ||
+        _s.amountYen <= 0 ||
+        _s.mode == EntryMode.edit ||
+        _s.batchItems != null) {
+      return;
+    }
+    _lastBatchAssigned = const [];
+    state = _s.copyWith(
+      batchItems: [for (final it in r.itemLines) BatchItem(item: it)],
+      batchHeaderTax: 0,
+      batchPaintMode: false,
+      batchPaintCategoryId: null,
+      batchDiffCategoryId: null,
+      splits: null,
+      expandedParentId: null,
+    );
+  }
+
+  void cancelBatchItemize() => state = _s.copyWith(
+        batchItems: null,
+        batchPaintCategoryId: null,
+        batchDiffCategoryId: null,
+      );
+
+  void setBatchHeaderTax(int percent) {
+    assert(percent == 0 || percent == 8 || percent == 10);
+    state = _s.copyWith(batchHeaderTax: percent);
+  }
+
+  /// 行の%チップ: 同じ%を再タップでヘッダ既定に戻す。
+  void setBatchItemTax(int index, int percent) {
+    assert(percent == 8 || percent == 10);
+    final items = [..._s.batchItems!];
+    if (index < 0 || index >= items.length) return;
+    final cur = items[index].taxOverride;
+    items[index] =
+        items[index].copyWith(taxOverride: cur == percent ? null : percent);
+    state = _s.copyWith(batchItems: items);
+  }
+
+  void setBatchPaintMode(bool paint) {
+    // モード切替時はD1の選択をクリア（塗り分けと混ざらないように）
+    final items = [
+      for (final b in _s.batchItems!) b.copyWith(selected: false)
+    ];
+    state = _s.copyWith(batchItems: items, batchPaintMode: paint);
+  }
+
+  /// 品目行のタップ。D1=選択トグル / D2=塗るカテゴリを付与（同色なら剥がす）。
+  void tapBatchItem(int index) {
+    final items = [..._s.batchItems!];
+    if (index < 0 || index >= items.length) return;
+    final b = items[index];
+    if (_s.batchPaintMode) {
+      final paint = _s.batchPaintCategoryId;
+      if (paint == null) return; // 塗るカテゴリ未選択
+      items[index] = b.copyWith(
+          categoryId: b.categoryId == paint ? null : paint);
+    } else {
+      items[index] = b.copyWith(selected: !b.selected);
+    }
+    state = _s.copyWith(batchItems: items);
+  }
+
+  void setBatchDiffCategory(int categoryId) =>
+      state = _s.copyWith(batchDiffCategoryId: categoryId);
+
+  /// カテゴリグリッドのタップ（一括内訳中）。
+  /// D2: 塗るカテゴリ切替 / D1: 選択中の品目へ割当（→内訳チップで差し替え可）。
+  List<int> _lastBatchAssigned = const [];
+  void _batchAssignCategory(int categoryId, {required int? expandedParentId}) {
+    if (_s.batchPaintMode) {
+      state = _s.copyWith(
+        batchPaintCategoryId: categoryId,
+        expandedParentId: expandedParentId,
+      );
+      return;
+    }
+    final sel = _s.batchSelectedIndexes;
+    if (sel.isEmpty) {
+      state = _s.copyWith(expandedParentId: expandedParentId);
+      return;
+    }
+    final items = [..._s.batchItems!];
+    for (final i in sel) {
+      items[i] = items[i].copyWith(categoryId: categoryId, selected: false);
+    }
+    _lastBatchAssigned = sel;
+    state =
+        _s.copyWith(batchItems: items, expandedParentId: expandedParentId);
+  }
+
+  /// 保存済みグループ（同じsplitGroupIdの取引群）を詳細入力で開き直す。
+  /// 保存時に旧取引を置換し、groupIdは引き継ぐ。
+  void startEditSplitGroup(List<TransactionEntity> txs) {
+    assert(txs.isNotEmpty && txs.every((t) => t.id != null));
+    final first = txs.first;
+    state = EntryFormState(
+      formSeq: ++_seq,
+      mode: EntryMode.create,
+      type: first.type,
+      amountYen: txs.fold(0, (a, t) => a + t.amountYen),
+      date: first.date,
+      memo: first.memo ?? '',
+      source: first.source,
+      imagePath: first.imagePath,
+      memoExpanded: (first.memo ?? '').isNotEmpty,
+      splits: [
+        for (final t in txs)
+          SplitLine(expr: '${t.amountYen}', categoryId: t.categoryId)
+      ],
+      replacesTxIds: [for (final t in txs) t.id!],
+      reuseSplitGroupId: first.splitGroupId,
+    );
+  }
+
+  // --- 詳細入力（分割）。合計をカテゴリ別に分けて複数取引として保存 ---
+
+  void startSplit() {
+    if (_s.amountYen <= 0 || _s.mode == EntryMode.edit || _s.splits != null) {
+      return;
+    }
+    state = _s.copyWith(
+      splits: const [SplitLine()],
+      activeSplitIndex: 0,
+      batchItems: null,
+      expandedParentId: null,
+    );
+  }
+
+  void cancelSplit() =>
+      state = _s.copyWith(splits: null, activeSplitIndex: 0);
+
+  void setActiveSplit(int i) {
+    final lines = _s.splits;
+    if (lines == null || i < 0 || i >= lines.length) return;
+    state = _s.copyWith(activeSplitIndex: i);
+  }
+
+  void removeSplitLine(int i) {
+    final lines = [..._s.splits!];
+    if (i < 0 || i >= lines.length) return;
+    lines.removeAt(i);
+    if (lines.isEmpty) lines.add(const SplitLine());
+    state = _s.copyWith(
+      splits: lines,
+      activeSplitIndex: _s.activeSplitIndex.clamp(0, lines.length - 1),
+    );
+  }
+
+  void splitTapDigit(int digit) {
+    assert(digit >= 0 && digit <= 9);
+    _updateActiveSplit(
+        (l) => l.expr.length >= 30 ? l : l.copyWith(expr: '${l.expr}$digit'));
+  }
+
+  void splitTapDoubleZero() {
+    _updateActiveSplit((l) {
+      // 通常モードの00と同じ思想: 数字の後にのみ意味を持つ
+      if (!RegExp(r'\d$').hasMatch(l.expr)) return l;
+      return l.expr.length >= 29 ? l : l.copyWith(expr: '${l.expr}00');
+    });
+  }
+
+  /// 演算子キー。空の式には +/− のみ置ける（+100形式）。
+  /// 末尾が演算子なら置き換え（連続演算子を作らない＝電卓の標準挙動）。
+  void splitTapOperator(String op) {
+    assert(const ['+', '-', '×', '÷'].contains(op));
+    _updateActiveSplit((l) {
+      final e = l.expr;
+      if (e.isEmpty) {
+        return (op == '+' || op == '-') ? l.copyWith(expr: op) : l;
+      }
+      if (RegExp(r'[+\-×÷]$').hasMatch(e)) {
+        return l.copyWith(expr: e.substring(0, e.length - 1) + op);
+      }
+      return l.copyWith(expr: '$e$op');
+    });
+  }
+
+  void splitBackspace() {
+    _updateActiveSplit((l) => l.expr.isEmpty
+        ? l
+        : l.copyWith(expr: l.expr.substring(0, l.expr.length - 1)));
+  }
+
+  /// 税トグル: 同じ%を再タップで内税(0)に戻す。
+  void setSplitTax(int index, int percent) {
+    assert(percent == 8 || percent == 10);
+    final lines = [..._s.splits!];
+    if (index < 0 || index >= lines.length) return;
+    final l = lines[index];
+    lines[index] = SplitLine(
+      expr: l.expr,
+      taxPercent: l.taxPercent == percent ? 0 : percent,
+      categoryId: l.categoryId,
+    );
+    state = _s.copyWith(splits: _autoExtend(lines));
+  }
+
+  void _updateActiveSplit(SplitLine Function(SplitLine) f,
+      {Object? expandedParentId = const _Keep()}) {
+    final lines = [..._s.splits!];
+    final i = _s.activeSplitIndex;
+    lines[i] = f(lines[i]);
+    final adjusted = _autoExtend(lines);
+    // 末尾の空行が畳まれた場合に active が範囲外にならないように
+    final active = _s.activeSplitIndex.clamp(0, adjusted.length - 1);
+    state = expandedParentId is _Keep
+        ? _s.copyWith(splits: adjusted, activeSplitIndex: active)
+        : _s.copyWith(
+            splits: adjusted,
+            activeSplitIndex: active,
+            expandedParentId: expandedParentId as int?);
+  }
+
+  /// 末尾行が入力済みで残額が残るなら、残額を担う空行を自動生成
+  /// （ユーザー仕様:「内訳1を入れると内訳2に合計−内訳1が出る」）。
+  /// 逆に残額が消えたら、役割を失った末尾の空行を畳む（編集し直しで発生）。
+  List<SplitLine> _autoExtend(List<SplitLine> lines) {
+    final fixed = lines.fold(0, (a, l) => a + (l.amountYen ?? 0));
+    final remainder = _s.amountYen - fixed;
+    final last = lines.last;
+    if (last.expr.isNotEmpty && last.amountYen != null && remainder > 0) {
+      return [...lines, const SplitLine()];
+    }
+    if (remainder <= 0 && lines.length > 1 && last.expr.isEmpty) {
+      final out = [...lines];
+      while (out.length > 1 && out.last.expr.isEmpty) {
+        out.removeLast();
+      }
+      return out;
+    }
+    return lines;
   }
 
   void setDate(CivilDate date) => state = _s.copyWith(date: date);
@@ -238,6 +699,28 @@ class EntryFormController extends Notifier<EntryFormState?> {
   Future<void> save() async {
     final s = _s;
     if (!s.canSave) throw StateError('金額とカテゴリが必要です');
+    if (s.batchItems != null) {
+      // 差額は同カテゴリの行があればそこへ合算（食費¥534と食費¥2に分かれない）
+      final groups = Map<int, int>.of(s.batchGroups);
+      final diff = s.batchDiff;
+      if (diff > 0) {
+        final cat = s.batchDiffCategoryId!;
+        groups[cat] = (groups[cat] ?? 0) + diff;
+      }
+      return _saveGroupLines(
+          s, [for (final e in groups.entries) (e.key, e.value)]);
+    }
+    if (s.splits != null) {
+      final splitLines = s.splits!;
+      return _saveGroupLines(s, [
+        for (var i = 0; i < splitLines.length; i++)
+          (splitLines[i].categoryId!, s.splitLineAmount(i)!),
+      ]);
+    }
+    // 開き直しから通常保存に落ちたケースも置換を保証する
+    if (s.replacesTxIds != null) {
+      return _saveGroupLines(s, [(s.categoryId!, s.amountYen)]);
+    }
     final repo = ref.read(transactionRepositoryProvider);
     final memo = s.memo.trim();
     if (s.mode == EntryMode.edit) {
@@ -263,6 +746,35 @@ class EntryFormController extends Notifier<EntryFormState?> {
       source: s.source,
       imagePath: storedImage,
     ));
+  }
+
+  /// 分割/一括内訳の保存: 各行を別々の取引として追加し、同じ splitGroupId で
+  /// 束ねる（=「1枚のレシート」）。開き直しなら旧取引を置換しIDを引き継ぐ。
+  /// 画像は先頭の取引にのみ紐づける（重複参照による削除時の破綻を回避）。
+  Future<void> _saveGroupLines(
+      EntryFormState s, List<(int categoryId, int amountYen)> lines) async {
+    assert(lines.isNotEmpty);
+    final repo = ref.read(transactionRepositoryProvider);
+    final memo = s.memo.trim();
+    for (final id in s.replacesTxIds ?? const <int>[]) {
+      await repo.delete(id);
+    }
+    final groupId = s.reuseSplitGroupId ??
+        '${ref.read(utcNowProvider)().microsecondsSinceEpoch}-${++_seq}';
+    var image = _finalizeReceiptImage(s);
+    for (final (categoryId, amountYen) in lines) {
+      await repo.add(TransactionEntity(
+        type: s.type,
+        amountYen: amountYen,
+        date: s.date,
+        categoryId: categoryId,
+        memo: memo.isEmpty ? null : memo,
+        source: s.source,
+        imagePath: image,
+        splitGroupId: groupId,
+      ));
+      image = null;
+    }
   }
 
   Future<void> saveAndContinue() async {
@@ -308,6 +820,11 @@ class EntryFormController extends Notifier<EntryFormState?> {
       return null;
     }
   }
+}
+
+/// _updateActiveSplit の「expandedParentIdを触らない」既定値センチネル。
+class _Keep {
+  const _Keep();
 }
 
 final entryFormControllerProvider =

@@ -31,4 +31,26 @@ void main() {
     expect(fixture.blocks.first.confidence, closeTo(0.99, 1e-9));
     expect(fixture.expectedTotalYen, isNull); // expected は収集後に手で書く
   });
+
+  test('ローリング保持: maxFilesを超えた古いファイルは消える', () {
+    final dir = Directory.systemTemp.createTempSync('ocr-fixtures-prune');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    var tick = 0;
+    final recorder = OcrFixtureRecorder(dir,
+        maxFiles: 3,
+        now: () => DateTime.utc(2026, 7, 7).add(Duration(seconds: tick++)));
+    for (var i = 0; i < 5; i++) {
+      recorder.record(const [
+        OcrBlock(text: 'x', rect: OcrRect(0, 0, 1, 0.03), confidence: 0.9),
+      ]);
+    }
+    final names = dir
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.uri.pathSegments.last)
+        .toList()
+      ..sort();
+    expect(names, hasLength(3));
+    expect(names.first, contains('00-00-02')); // 古い2件（00,01秒）が消えた
+  });
 }

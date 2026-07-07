@@ -22,6 +22,7 @@ class DriftTransactionRepository implements TransactionRepository {
       paymentMethod: Value(tx.paymentMethod),
       memo: Value(tx.memo),
       imagePath: Value(tx.imagePath),
+      splitGroupId: Value(tx.splitGroupId),
     ));
   }
 
@@ -98,5 +99,6 @@ class DriftTransactionRepository implements TransactionRepository {
         memo: r.memo,
         source: r.source,
         imagePath: r.imagePath,
+        splitGroupId: r.splitGroupId,
       );
 }

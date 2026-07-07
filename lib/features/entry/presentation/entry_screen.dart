@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,14 +7,17 @@ import '../../../app/theme.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
+import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/ocr/receipt_capture.dart';
 import '../../calendar/application/calendar_providers.dart';
 import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
+import 'batch_itemize_panel.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
 import 'receipt_review_panel.dart';
+import 'split_entry_panel.dart';
 import 'subcategory_chips.dart';
 
 class EntryScreen extends ConsumerWidget {
@@ -47,6 +49,23 @@ class EntryScreen extends ConsumerWidget {
         : entryCats.indexWhere((c) => c.id == state.expandedParentId);
     // 押したカテゴリが下段なら内訳オーバーレイを上段側に出す（押した行を隠さない）。
     final overlayAbove = expandedIdx >= 0 && catIsBottomRow(expandedIdx);
+
+    // 詳細入力（分割）モード: テンキー/グリッドはアクティブ行に入る
+    final splitMode = state.splits != null;
+    final activeSplitCategoryId =
+        splitMode ? state.splits![state.activeSplitIndex].categoryId : null;
+    // 一括内訳モード: グリッドは割当/塗り分けに使う
+    final batchMode = state.batchItems != null;
+    final allCats = ref.watch(allCategoriesProvider).valueOrNull ??
+        const <CategoryEntity>[];
+    final categoriesById = {for (final c in allCats) c.id: c};
+    final categoryNames = {for (final c in allCats) c.id: c.name};
+    // グリッドの選択表示: batch=塗るカテゴリ / split=アクティブ行 / 通常=state
+    final gridSelectedId = batchMode
+        ? (state.batchPaintMode ? state.batchPaintCategoryId : null)
+        : splitMode
+            ? activeSplitCategoryId
+            : state.categoryId;
 
     return Scaffold(
       appBar: AppBar(
@@ -154,11 +173,49 @@ class EntryScreen extends ConsumerWidget {
                               ?.copyWith(fontFeatures: kTabularFigures),
                         ),
                       ),
-                      Numpad(
-                        onDigit: ctrl.tapDigit,
-                        onDoubleZero: ctrl.tapDoubleZero,
-                        onBackspace: ctrl.backspace,
-                      ),
+                      // 詳細入力: OCR明細があれば一括内訳、なければ電卓分割
+                      if (!splitMode &&
+                          !batchMode &&
+                          state.mode != EntryMode.edit &&
+                          state.amountYen > 0)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            key: const Key('start-split'),
+                            onPressed: () {
+                              final hasItems =
+                                  state.receipt?.itemLines.isNotEmpty ?? false;
+                              if (hasItems) {
+                                ctrl.startBatchItemize();
+                              } else {
+                                ctrl.startSplit();
+                              }
+                            },
+                            icon: const Icon(Icons.call_split, size: 18),
+                            label: const Text('詳細入力'),
+                          ),
+                        ),
+                      if (batchMode)
+                        BatchItemizePanel(
+                          state: state,
+                          categoriesById: categoriesById,
+                          pickableCategories: entryCats,
+                        ),
+                      if (splitMode)
+                        SplitEntryPanel(
+                            state: state, categoryNames: categoryNames),
+                      // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
+                      if (!batchMode)
+                        Numpad(
+                          onDigit:
+                              splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
+                          onDoubleZero: splitMode
+                              ? ctrl.splitTapDoubleZero
+                              : ctrl.tapDoubleZero,
+                          onBackspace:
+                              splitMode ? ctrl.splitBackspace : ctrl.backspace,
+                          onOperator: splitMode ? ctrl.splitTapOperator : null,
+                        ),
                       const SizedBox(height: 8),
                       // 内訳チップは押したカテゴリの真下（グリッド下段＝日用品の位置）に
                       // 薄緑パネルで重ねる。背景と別色なので気づきやすい。高さは取らない。
@@ -166,7 +223,7 @@ class EntryScreen extends ConsumerWidget {
                         children: [
                           CategoryGrid(
                             type: state.type,
-                            selectedId: state.categoryId,
+                            selectedId: gridSelectedId,
                             onTapCategory: ctrl.tapCategory,
                           ),
                           if (state.expandedParentId != null)
@@ -190,7 +247,7 @@ class EntryScreen extends ConsumerWidget {
                                 ),
                                 child: SubcategoryChips(
                                   parentId: state.expandedParentId!,
-                                  selectedId: state.categoryId,
+                                  selectedId: gridSelectedId,
                                   onToggle: ctrl.toggleSubcategory,
                                 ),
                               ),
@@ -289,13 +346,12 @@ class EntryScreen extends ConsumerWidget {
     }
     try {
       final blocks = await ref.read(ocrServiceProvider).recognize(path);
-      if (!kReleaseMode) {
-        // フィクスチャ収集（spec §8.2、debug/profileのみ）。失敗してもスキャンは続行。
-        // 実機での標本収集はprofileビルド（debugはホーム画面から起動不可のため）。
-        try {
-          ref.read(ocrFixtureRecorderProvider).record(blocks);
-        } catch (_) {}
-      }
+      // フィクスチャ収集（spec §8.2）。releaseでも記録する＝TestFlightテスター
+      // （母親）の実レシートデータを Files アプリ経由で回収できるようにする。
+      // 端末内保存のみで自動送信はしない（spec §2.1）。失敗してもスキャンは続行。
+      try {
+        ref.read(ocrFixtureRecorderProvider).record(blocks);
+      } catch (_) {}
       final parsed = ref.read(receiptParserProvider).parse(blocks);
       ref
           .read(entryFormControllerProvider.notifier)

@@ -4,7 +4,7 @@ import 'rows.dart';
 // --- 店名になり得ない行の語彙 ---
 final _reBlacklist = RegExp(
     r'TEL|FAX|電話|〒|T\d{13}|登録番号|事業者番号|レジ|責任者|取引|伝票|会員|領収|レシート|明細|'
-    r'ありがとう|毎度|お買上|営業時間|担当|'
+    r'ありがとう|毎度|お買上|営業時間|担当|割引|単品|'
     r'https?|www\.|\.co|\.jp|\.com', // URL行（実フィクスチャ: サミット）
     caseSensitive: false);
 final _reDateLike = RegExp(r'\d{2,4}\s*[/\-.年]\s*\d{1,2}');
@@ -31,13 +31,27 @@ String? extractStoreName(List<ReceiptRow> rows) {
   return candidates.isEmpty ? null : candidates.first;
 }
 
+final _reDateTimeRow =
+    RegExp(r'\d{2,4}\s*[/\-.年]\s*\d{1,2}\s*[/\-.月]\s*\d{1,2}|\d{1,2}\s*[:時]\s*\d{2}');
+
 /// 店名候補を上から順に最大[max]件返す（確認UIのチップ切替用）。
 /// 実レシートではロゴ断片・スローガン・モール名が1位に来ることがあり、
 /// 1位の完全自動特定は原理的に不安定＝ユーザー選択で解決する。
+///
+/// ゾーン: **最初の日付/時刻行より上**（レシートの構造。OKストアのように
+/// スローガンが長く店名が0.35より下に来るレシートに対応）。日付行が
+/// 見つからなければ上部35%で近似。下限0.5でクランプ（日付が最下部の店対策）。
 List<String> extractStoreCandidates(List<ReceiptRow> rows, {int max = 4}) {
+  var limit = 0.35;
+  for (final row in rows) {
+    if (_reDateTimeRow.hasMatch(normalizeOcrText(row.text))) {
+      limit = row.centerY < 0.5 ? row.centerY : 0.5;
+      break;
+    }
+  }
   final out = <String>[];
   for (final row in rows) {
-    if (row.centerY >= 0.35) break; // 店名は上部にしか無い
+    if (row.centerY >= limit) break; // 店名は日付行より上にしか無い
     final raw = row.text.trim();
     final text = normalizeOcrText(raw);
     if (text.length < 2 || !_reHasLetter.hasMatch(text)) continue;

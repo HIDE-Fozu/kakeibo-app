@@ -6,13 +6,24 @@ import 'package:kakeibo_app/app/providers.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/domain/services/ocr/ocr_types.dart';
 import 'package:kakeibo_app/domain/services/receipt/receipt_parser.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
 import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
 import '../support/test_app.dart';
 
-ParsedReceipt receiptOf({int? yen, required CivilDate date, String? store}) {
+ReceiptItem itemOf(int yen, {bool mark = false}) => ReceiptItem(
+    text: 'item-$yen',
+    yen: yen,
+    rect: const OcrRect(0.05, 0.2, 0.9, 0.03),
+    reducedTaxMark: mark);
+
+ParsedReceipt receiptOf(
+    {int? yen,
+    required CivilDate date,
+    String? store,
+    List<ReceiptItem> items = const []}) {
   final total = yen == null
       ? null
       : AmountCandidate(
@@ -31,6 +42,7 @@ ParsedReceipt receiptOf({int? yen, required CivilDate date, String? store}) {
     date: d,
     dateCandidates: [d],
     storeName: store,
+    itemLines: items,
   );
 }
 
@@ -187,6 +199,231 @@ void main() {
     ctrl().startReceipt(receiptOf(yen: null, date: day));
     expect(st().amountYen, 0);
     expect(st().receipt!.total, isNull);
+  });
+
+  group('詳細入力（分割）', () {
+    late int dailyId;
+    setUp(() async {
+      final cats = await waitForData(c, allCategoriesProvider);
+      dailyId = cats.firstWhere((x) => x.name == '日用品').id;
+    });
+
+    test('フロー: 合計→開始→行1入力で残額行が自動生成→保存で2取引', () async {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0);
+      expect(st().amountYen, 1000);
+
+      ctrl().startSplit();
+      expect(st().splits, hasLength(1));
+      expect(st().canSave, isFalse);
+
+      // 行1: 300円（外税なし）＋食費
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero();
+      // 残額700が残る → 空の残額行が自動生成されている
+      expect(st().splits, hasLength(2));
+      expect(st().splitLineAmount(1), 700); // 末尾空行=残額
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splits![0].categoryId, foodId);
+
+      // 行2（残額行）: カテゴリだけ選べば残額700で確定できる
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(2));
+      expect(txs.map((t) => t.amountYen).toSet(), {300, 700});
+      expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
+    });
+
+    test('式と外税: 100+100 に 8% → 216。合計一致まで保存不可', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(5);
+      ctrl().tapDoubleZero(); // 500
+      ctrl().startSplit();
+
+      ctrl().splitTapDigit(1);
+      ctrl().splitTapDoubleZero();
+      ctrl().splitTapOperator('+');
+      ctrl().splitTapDigit(1);
+      ctrl().splitTapDoubleZero(); // "100+100"
+      expect(st().splits![0].amountYen, 200);
+      ctrl().setSplitTax(0, 8);
+      expect(st().splits![0].amountYen, 216);
+      // 再タップで内税に戻る
+      ctrl().setSplitTax(0, 8);
+      expect(st().splits![0].amountYen, 200);
+
+      // 行1にカテゴリ、残額行(300)にもカテゴリ→保存可
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isFalse); // 残額行が未カテゴリ
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().splitLineAmount(1), 300);
+      expect(st().canSave, isTrue);
+    });
+
+    test('入れ過ぎ（残額マイナス）は保存不可・演算子の置換・キャンセル', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero(); // 100
+      ctrl().startSplit();
+
+      // 連続演算子は置換される: "5+×" → "5×"
+      ctrl().splitTapDigit(5);
+      ctrl().splitTapOperator('+');
+      ctrl().splitTapOperator('×');
+      expect(st().splits![0].expr, '5×');
+      ctrl().splitBackspace();
+      ctrl().splitTapDigit(0);
+      ctrl().splitTapDigit(0); // "500" > 合計100
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splitRemainder, lessThan(0));
+      expect(st().canSave, isFalse);
+
+      ctrl().cancelSplit();
+      expect(st().splits, isNull);
+      expect(st().amountYen, 100); // 合計は保持
+    });
+
+    test('編集モード・金額0では開始できない', () {
+      ctrl().startCreate(day);
+      ctrl().startSplit(); // 金額0
+      expect(st().splits, isNull);
+    });
+  });
+
+  group('一括内訳（OCR明細）', () {
+    late int dailyId;
+    setUp(() async {
+      final cats = await waitForData(c, allCategoriesProvider);
+      dailyId = cats.firstWhere((x) => x.name == '日用品').id;
+    });
+
+    test('D1: 選択→割当→差額0→保存で同一groupIdの取引群', () async {
+      // 明細: 198(※軽減) + 398。ヘッダ外税10% → ※行は8%: 213 + 437 = 650
+      ctrl().startReceipt(receiptOf(
+          yen: 650,
+          date: day,
+          items: [itemOf(198, mark: true), itemOf(398)]));
+      ctrl().startBatchItemize();
+      expect(st().batchItems, hasLength(2));
+      ctrl().setBatchHeaderTax(10);
+      expect(st().batchItemAmount(st().batchItems![0]), 213); // ※→8%
+      expect(st().batchItemAmount(st().batchItems![1]), 437);
+
+      ctrl().tapBatchItem(0); // D1選択
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().batchItems![0].categoryId, foodId);
+      expect(st().batchItems![0].selected, isFalse); // 割当後は選択解除
+      expect(st().canSave, isFalse); // 残り437が未割当=差額あり・差額カテゴリなし
+
+      ctrl().tapBatchItem(1);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().batchDiff, 0);
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(2));
+      expect(txs.map((t) => t.amountYen).toSet(), {213, 437});
+      final gids = txs.map((t) => t.splitGroupId).toSet();
+      expect(gids, hasLength(1));
+      expect(gids.single, isNotNull);
+    });
+
+    test('D2: 塗り分け（同色再タップで剥がす）と行の%上書き', () {
+      ctrl().startReceipt(
+          receiptOf(yen: 1000, date: day, items: [itemOf(300), itemOf(500)]));
+      ctrl().startBatchItemize();
+      ctrl().setBatchPaintMode(true);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().batchPaintCategoryId, foodId);
+      ctrl().tapBatchItem(0);
+      expect(st().batchItems![0].categoryId, foodId);
+      ctrl().tapBatchItem(0); // 再タップで剥がす
+      expect(st().batchItems![0].categoryId, isNull);
+
+      // 行の%上書き: ヘッダ内税のまま行だけ外税8%
+      ctrl().setBatchItemTax(1, 8);
+      expect(st().batchItemAmount(st().batchItems![1]), 540);
+      ctrl().setBatchItemTax(1, 8); // 再タップでヘッダ既定へ
+      expect(st().batchItemAmount(st().batchItems![1]), 500);
+    });
+
+    test('差額: 未割当分を差額行として保存（合計一致）', () async {
+      ctrl().startReceipt(
+          receiptOf(yen: 700, date: day, items: [itemOf(300), itemOf(350)]));
+      ctrl().startBatchItemize();
+      ctrl().tapBatchItem(0);
+      ctrl().tapBatchItem(1);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().batchDiff, 50); // 読み落とし分
+      expect(st().canSave, isFalse);
+      ctrl().setBatchDiffCategory(dailyId);
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs.fold(0, (a, t) => a + t.amountYen), 700);
+      expect(txs.map((t) => t.splitGroupId).toSet(), hasLength(1));
+    });
+
+    test('開き直し: グループを詳細入力で開いて置換保存（groupId引き継ぎ）', () async {
+      // まず分割保存で2件のグループを作る
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero(); // 300
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      await ctrl().save();
+      var txs = await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      final gid = txs.first.splitGroupId;
+      expect(gid, isNotNull);
+      final oldIds = txs.map((t) => t.id).toSet();
+
+      // 開き直し → 行1を350に修正して保存
+      ctrl().startEditSplitGroup(txs);
+      expect(st().amountYen, 1000);
+      expect(st().splits, hasLength(2));
+      ctrl().setActiveSplit(0);
+      ctrl().splitBackspace();
+      ctrl().splitBackspace();
+      ctrl().splitTapDigit(5);
+      ctrl().splitTapDigit(0); // 300 → 350
+      // 合計1000に合わせて行2も直す: 700 → 650
+      ctrl().setActiveSplit(1);
+      for (var i = 0; i < 3; i++) {
+        ctrl().splitBackspace();
+      }
+      ctrl().splitTapDigit(6);
+      ctrl().splitTapDigit(5);
+      ctrl().splitTapDigit(0);
+      expect(st().canSave, isTrue);
+      await ctrl().save();
+
+      txs = await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(2)); // 置換（増殖しない）
+      expect(txs.map((t) => t.amountYen).toSet(), {350, 650});
+      expect(txs.map((t) => t.splitGroupId).toSet().single, gid); // 引き継ぎ
+      expect(txs.map((t) => t.id).toSet().intersection(oldIds), isEmpty);
+    });
   });
 
   test('startReceipt: 店名をメモにプリフィル / 無ければ空のまま', () {

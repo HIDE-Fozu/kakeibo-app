@@ -32,10 +32,16 @@ void main() {
         print('  [y=${r.centerY.toStringAsFixed(2)}] ${r.text}');
       }
       // ignore: avoid_print
+      print('  -> storeCands=${parsed.storeCandidates}');
+      // ignore: avoid_print
       print('  -> store=${parsed.storeName} / '
           'total=${parsed.total?.yen}(${parsed.total?.confidence.name}:${parsed.total?.reason}) / '
           'date=${parsed.date.date}(${parsed.date.confidence.name}) / '
           'cands=${parsed.totalCandidates.map((c) => c.yen).toList()}');
+      final itemSum = parsed.itemLines.fold(0, (a, x) => a + x.yen);
+      // ignore: avoid_print
+      print('  -> items=${parsed.itemLines.length} sum=$itemSum '
+          '${parsed.itemLines.map((x) => '${x.yen}${x.reducedTaxMark ? '※' : ''}').toList()}');
     }
   });
 }

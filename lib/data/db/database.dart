@@ -15,7 +15,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -26,6 +26,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             // v2: 内訳機能。既存カテゴリは全て親（parentId=null）のまま。
             await m.addColumn(categories, categories.parentId);
+          }
+          if (from < 3) {
+            // v3: 詳細入力（分割）のレシート紐づけ。既存行は null=単独取引。
+            await m.addColumn(transactions, transactions.splitGroupId);
           }
         },
         beforeOpen: (details) async {

@@ -28,6 +28,10 @@ class Transactions extends Table {
   TextColumn get memo => text().nullable()();
   TextColumn get source => textEnum<TxnSource>()();
   TextColumn get imagePath => text().nullable()();
+
+  /// 同じレシート（詳細入力の1回）から生まれた取引を束ねるID。null=単独取引。
+  /// v3で追加。日別一覧のグループカード表示と「詳細入力で開き直す」に使う。
+  TextColumn get splitGroupId => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

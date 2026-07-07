@@ -40,6 +40,7 @@ class BackupCodec {
             'memo': t.memo,
             'source': t.source.name,
             'imagePath': t.imagePath,
+            'splitGroupId': t.splitGroupId,
             'createdAt': t.createdAt.toUtc().toIso8601String(),
             'updatedAt': t.updatedAt.toUtc().toIso8601String(),
           },
@@ -207,6 +208,7 @@ class BackupCodec {
         source: enumByName(TxnSource.values, req<String>(raw, 'source', ctx),
             '$ctx.source'),
         imagePath: opt<String>(raw, 'imagePath', ctx),
+        splitGroupId: opt<String>(raw, 'splitGroupId', ctx),
         createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
         updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
       );

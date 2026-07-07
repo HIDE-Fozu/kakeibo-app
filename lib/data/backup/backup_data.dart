@@ -84,6 +84,7 @@ class BackupTxn {
   final String? memo;
   final TxnSource source;
   final String? imagePath;
+  final String? splitGroupId; // v3列。旧バックアップには無い（null復元）
   final DateTime createdAt;
   final DateTime updatedAt;
   const BackupTxn({
@@ -96,6 +97,7 @@ class BackupTxn {
     required this.memo,
     required this.source,
     required this.imagePath,
+    this.splitGroupId,
     required this.createdAt,
     required this.updatedAt,
   });

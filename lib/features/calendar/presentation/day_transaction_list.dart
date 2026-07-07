@@ -22,7 +22,6 @@ class DayTransactionList extends ConsumerWidget {
     final cats =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final byId = {for (final c in cats) c.id: c};
-    final scheme = Theme.of(context).colorScheme;
     // 月全体が空＝初回/空カレンダー状態。FABへの誘導CTAを足す（spec §5.5）
     final monthEmpty = (ref
                 .watch(monthTransactionsProvider((day.year, day.month)))
@@ -49,44 +48,58 @@ class DayTransactionList extends ConsumerWidget {
       );
     }
 
+    // 「1枚のレシート」（詳細入力）を1単位に束ねる（C1: グループカード）。
+    // 2件以上残っているグループだけカード化。1件だけなら通常行に落とす。
+    final grouped = <String, List<TransactionEntity>>{};
+    final units = <Object>[]; // TransactionEntity | String(groupId)
+    for (final tx in txs) {
+      final gid = tx.splitGroupId;
+      if (gid == null) {
+        units.add(tx);
+        continue;
+      }
+      final list = grouped.putIfAbsent(gid, () {
+        units.add(gid);
+        return [];
+      });
+      list.add(tx);
+    }
+
     return ListView.builder(
-      itemCount: txs.length,
+      itemCount: units.length,
       itemBuilder: (context, i) {
-        final tx = txs[i];
-        final cat = byId[tx.categoryId];
-        final name = cat == null
-            ? '不明'
-            : cat.isArchived
-                ? '${cat.name}（アーカイブ）'
-                : cat.name;
-        return Dismissible(
-          key: ValueKey('tx-${tx.id}'),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: scheme.error,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            child: Icon(Icons.delete, color: scheme.onError),
-          ),
-          onDismissed: (_) => _deleteWithUndo(context, ref, tx),
-          child: ListTile(
-            leading: Text(categoryEmoji(cat?.icon, cat?.name),
-                style: const TextStyle(fontSize: 20)),
-            title: Text(name),
-            subtitle:
-                (tx.memo != null && tx.memo!.isNotEmpty) ? Text(tx.memo!) : null,
-            trailing: Text(
-              signedYen(tx.type, tx.amountYen),
-              style: TextStyle(
-                color: tx.type == TxnType.expense
-                    ? context.kakeiboColors.expense
-                    : context.kakeiboColors.income,
-                fontWeight: FontWeight.w600,
-                fontFeatures: kTabularFigures,
-              ),
-            ),
+        final unit = units[i];
+        if (unit is TransactionEntity) return _txTile(context, ref, byId, unit);
+        final group = grouped[unit as String]!;
+        if (group.length == 1) return _txTile(context, ref, byId, group.single);
+        return _groupCard(context, ref, byId, group);
+      },
+    );
+  }
+
+  /// C1: レシート1枚=1カード。ヘッダに店名メモと合計、中に内訳行。
+  /// ヘッダタップ→詳細入力で開き直し（置換保存）。行は従来どおり個別編集/削除。
+  Widget _groupCard(BuildContext context, WidgetRef ref,
+      Map<int, CategoryEntity> byId, List<TransactionEntity> group) {
+    final scheme = Theme.of(context).colorScheme;
+    final sum = group.fold(0, (a, t) => a + t.amountYen);
+    final memo = group.first.memo;
+    return Card(
+      key: ValueKey('txg-${group.first.splitGroupId}'),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      elevation: 0,
+      child: Column(
+        children: [
+          InkWell(
+            key: ValueKey('txg-head-${group.first.splitGroupId}'),
             onTap: () {
-              ref.read(entryFormControllerProvider.notifier).startEdit(tx);
+              ref
+                  .read(entryFormControllerProvider.notifier)
+                  .startEditSplitGroup(group);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -94,9 +107,94 @@ class DayTransactionList extends ConsumerWidget {
                     builder: (_) => const EntryScreen()),
               );
             },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: Row(
+                children: [
+                  const Text('🧾', style: TextStyle(fontSize: 17)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      (memo == null || memo.isEmpty) ? 'レシート' : memo,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    signedYen(group.first.type, sum),
+                    style: TextStyle(
+                      color: group.first.type == TxnType.expense
+                          ? context.kakeiboColors.expense
+                          : context.kakeiboColors.income,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: kTabularFigures,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, size: 18, color: scheme.outline),
+                ],
+              ),
+            ),
           ),
-        );
-      },
+          Divider(height: 1, color: scheme.outlineVariant),
+          for (final tx in group)
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: _txTile(context, ref, byId, tx, dense: true),
+            ),
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  Widget _txTile(BuildContext context, WidgetRef ref,
+      Map<int, CategoryEntity> byId, TransactionEntity tx,
+      {bool dense = false}) {
+    final scheme = Theme.of(context).colorScheme;
+    final cat = byId[tx.categoryId];
+    final name = cat == null
+        ? '不明'
+        : cat.isArchived
+            ? '${cat.name}（アーカイブ）'
+            : cat.name;
+    return Dismissible(
+      key: ValueKey('tx-${tx.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: scheme.error,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: Icon(Icons.delete, color: scheme.onError),
+      ),
+      onDismissed: (_) => _deleteWithUndo(context, ref, tx),
+      child: ListTile(
+        dense: dense,
+        visualDensity: dense ? VisualDensity.compact : null,
+        leading: Text(categoryEmoji(cat?.icon, cat?.name),
+            style: TextStyle(fontSize: dense ? 17 : 20)),
+        title: Text(name),
+        subtitle: !dense && (tx.memo != null && tx.memo!.isNotEmpty)
+            ? Text(tx.memo!)
+            : null,
+        trailing: Text(
+          signedYen(tx.type, tx.amountYen),
+          style: TextStyle(
+            color: tx.type == TxnType.expense
+                ? context.kakeiboColors.expense
+                : context.kakeiboColors.income,
+            fontWeight: FontWeight.w600,
+            fontFeatures: kTabularFigures,
+          ),
+        ),
+        onTap: () {
+          ref.read(entryFormControllerProvider.notifier).startEdit(tx);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                fullscreenDialog: true, builder: (_) => const EntryScreen()),
+          );
+        },
+      ),
     );
   }
 
