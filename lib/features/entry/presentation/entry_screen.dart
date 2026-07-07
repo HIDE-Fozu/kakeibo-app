@@ -348,9 +348,10 @@ class EntryScreen extends ConsumerWidget {
       final blocks = await ref.read(ocrServiceProvider).recognize(path);
       // フィクスチャ収集（spec §8.2）。releaseでも記録する＝TestFlightテスター
       // （母親）の実レシートデータを Files アプリ経由で回収できるようにする。
+      // テスト期間中は写真も同名で保存（kCollectReceiptPhotosDuringTest）。
       // 端末内保存のみで自動送信はしない（spec §2.1）。失敗してもスキャンは続行。
       try {
-        ref.read(ocrFixtureRecorderProvider).record(blocks);
+        ref.read(ocrFixtureRecorderProvider).record(blocks, imagePath: path);
       } catch (_) {}
       final parsed = ref.read(receiptParserProvider).parse(blocks);
       ref

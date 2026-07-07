@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
+import '../../../data/ocr/ocr_fixture_recorder.dart';
+import '../../../data/ocr/ocr_fixture_share.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
 import 'category_manage_page.dart';
@@ -59,6 +64,16 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const RestorePickerPage()),
             ),
           ),
+          // テスト期間限定: 収集済みOCRデータ（JSON+写真）を共有シートで送る。
+          // ユーザーの明示操作でのみ端末外へ出る（spec §2.1と両立）
+          if (kCollectReceiptPhotosDuringTest)
+            ListTile(
+              key: const Key('share-test-data'),
+              leading: const Icon(Icons.outbox_outlined),
+              title: const Text('テストデータを送る'),
+              subtitle: const Text('レシート読み取りの改善用（スキャンの記録と写真）'),
+              onTap: () => _shareTestData(context, ref),
+            ),
           const Divider(),
           SwitchListTile(
             key: const Key('retain-images-switch'),
@@ -199,6 +214,28 @@ class SettingsScreen extends ConsumerWidget {
           SnackBar(content: Text('保存しました: ${file.uri.pathSegments.last}')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
+    }
+  }
+
+  /// テスト期間限定: 収集済みOCRデータ（JSON+写真）をzipして共有シートへ。
+  Future<void> _shareTestData(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final dir = ref.read(ocrFixtureRecorderProvider).dir;
+      final count = countOcrFixtures(dir);
+      if (count == 0) {
+        messenger.showSnackBar(
+            const SnackBar(content: Text('まだスキャンの記録がありません')));
+        return;
+      }
+      final zipPath = zipOcrFixtures(dir, Directory.systemTemp);
+      if (zipPath == null) return;
+      await Share.shareXFiles(
+        [XFile(zipPath)],
+        subject: '家計簿テストデータ（$count件）',
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('送信に失敗しました: $e')));
     }
   }
 }
