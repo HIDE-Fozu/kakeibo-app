@@ -94,6 +94,9 @@ class EntryFormState {
   final List<int>? replacesTxIds;
   final String? reuseSplitGroupId;
 
+  /// このフォームの元になったOCRフィクスチャ（保存時に正解ラベルを書き戻す）。
+  final String? fixturePath;
+
   /// フォーム世代。start*/saveAndContinueごとに増える。
   /// 常時表示のメモ欄をリセットするためのwidget keyに使う。
   final int formSeq;
@@ -120,6 +123,7 @@ class EntryFormState {
     this.batchDiffCategoryId,
     this.replacesTxIds,
     this.reuseSplitGroupId,
+    this.fixturePath,
     this.formSeq = 0,
   });
 
@@ -244,6 +248,7 @@ class EntryFormState {
     Object? batchDiffCategoryId = _unset,
     Object? replacesTxIds = _unset,
     Object? reuseSplitGroupId = _unset,
+    Object? fixturePath = _unset,
     int? formSeq,
   }) =>
       EntryFormState(
@@ -288,6 +293,9 @@ class EntryFormState {
         reuseSplitGroupId: identical(reuseSplitGroupId, _unset)
             ? this.reuseSplitGroupId
             : reuseSplitGroupId as String?,
+        fixturePath: identical(fixturePath, _unset)
+            ? this.fixturePath
+            : fixturePath as String?,
       );
 }
 
@@ -329,7 +337,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
     );
   }
 
-  void startReceipt(ParsedReceipt parsed, {String? imagePath}) {
+  void startReceipt(ParsedReceipt parsed,
+      {String? imagePath, String? fixturePath}) {
     state = EntryFormState(
       formSeq: ++_seq,
       mode: EntryMode.receiptConfirm,
@@ -341,6 +350,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       source: TxnSource.receiptOcr,
       receipt: parsed,
       imagePath: imagePath,
+      fixturePath: fixturePath,
       memoExpanded: parsed.storeName != null,
     );
   }
@@ -721,6 +731,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     if (s.replacesTxIds != null) {
       return _saveGroupLines(s, [(s.categoryId!, s.amountYen)]);
     }
+    _labelFixture(s, s.amountYen);
     final repo = ref.read(transactionRepositoryProvider);
     final memo = s.memo.trim();
     if (s.mode == EntryMode.edit) {
@@ -754,6 +765,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   Future<void> _saveGroupLines(
       EntryFormState s, List<(int categoryId, int amountYen)> lines) async {
     assert(lines.isNotEmpty);
+    _labelFixture(s, lines.fold(0, (a, l) => a + l.$2));
     final repo = ref.read(transactionRepositoryProvider);
     final memo = s.memo.trim();
     for (final id in s.replacesTxIds ?? const <int>[]) {
@@ -796,6 +808,22 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final id = _s.editingId;
     if (id == null) throw StateError('編集中の取引がありません');
     await ref.read(transactionRepositoryProvider).delete(id);
+  }
+
+  /// 保存確定＝人間の正解。OCRフィクスチャへラベルを書き戻す
+  /// （普通に使うだけで正解付きデータが溜まる）。失敗しても保存は続行。
+  void _labelFixture(EntryFormState s, int totalYen) {
+    final path = s.fixturePath;
+    if (path == null) return;
+    try {
+      final memo = s.memo.trim();
+      ref.read(ocrFixtureRecorderProvider).writeExpected(
+            path,
+            totalYen: totalYen,
+            dateIso: s.date.toIso(),
+            store: memo.isEmpty ? null : memo,
+          );
+    } catch (_) {}
   }
 
   /// レシート一時画像の後始末（spec §7.6 / §14-C）。

@@ -347,16 +347,19 @@ class EntryScreen extends ConsumerWidget {
     try {
       final blocks = await ref.read(ocrServiceProvider).recognize(path);
       // フィクスチャ収集（spec §8.2）。releaseでも記録する＝TestFlightテスター
-      // （母親）の実レシートデータを Files アプリ経由で回収できるようにする。
+      // （母親）が普通に使うだけで実レシートデータが端末内に溜まる。
       // テスト期間中は写真も同名で保存（kCollectReceiptPhotosDuringTest）。
+      // 保存確定時に正解ラベルを書き戻すため、パスをフォームへ引き継ぐ。
       // 端末内保存のみで自動送信はしない（spec §2.1）。失敗してもスキャンは続行。
+      String? fixturePath;
       try {
-        ref.read(ocrFixtureRecorderProvider).record(blocks, imagePath: path);
+        fixturePath =
+            ref.read(ocrFixtureRecorderProvider).record(blocks, imagePath: path);
       } catch (_) {}
       final parsed = ref.read(receiptParserProvider).parse(blocks);
       ref
           .read(entryFormControllerProvider.notifier)
-          .startReceipt(parsed, imagePath: path);
+          .startReceipt(parsed, imagePath: path, fixturePath: fixturePath);
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('読み取りに失敗しました: $e')));
     }

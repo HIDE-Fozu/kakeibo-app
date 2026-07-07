@@ -11,6 +11,7 @@ import 'package:kakeibo_app/domain/services/receipt/receipt_parser.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
 import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
+import '../support/receipt_fixtures.dart';
 import '../support/test_app.dart';
 
 ReceiptItem itemOf(int yen, {bool mark = false}) => ReceiptItem(
@@ -424,6 +425,29 @@ void main() {
       expect(txs.map((t) => t.splitGroupId).toSet().single, gid); // 引き継ぎ
       expect(txs.map((t) => t.id).toSet().intersection(oldIds), isEmpty);
     });
+  });
+
+  test('保存で正解ラベルがフィクスチャへ書き戻る（普通に使う=ラベル付きデータ）', () async {
+    // スキャン相当: フィクスチャを記録
+    final recorder = c.read(ocrFixtureRecorderProvider);
+    final fixturePath = recorder.record(const [
+      OcrBlock(text: '合計 ¥650', rect: OcrRect(0.1, 0.5, 0.8, 0.03), confidence: 0.9),
+    ]);
+
+    // 確認画面で金額を候補切替で修正して保存（人間の確定値=700）
+    ctrl().startReceipt(receiptOf(yen: 650, date: day, store: 'サミット'),
+        fixturePath: fixturePath);
+    ctrl().selectTotalCandidate(const AmountCandidate(
+        yen: 700,
+        confidence: ExtractionConfidence.medium,
+        sourceText: 'クレジット',
+        reason: 'payment-line'));
+    ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+    await ctrl().save();
+
+    final fx = loadFixture(fixturePath);
+    expect(fx.expectedTotalYen, 700); // 確定値がexpectedに
+    expect(fx.expectedDate, day);
   });
 
   test('startReceipt: 店名をメモにプリフィル / 無ければ空のまま', () {

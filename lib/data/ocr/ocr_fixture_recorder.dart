@@ -66,6 +66,24 @@ class OcrFixtureRecorder {
     return file.path;
   }
 
+  /// 保存確定時に「人間が確定した正解」をフィクスチャへ書き戻す。
+  /// 普通に家計簿として使うだけで、OCR生出力と正解のペア（ラベル付き
+  /// データ）が溜まる。loadFixture の expected と同形式。
+  void writeExpected(String jsonPath,
+      {required int totalYen, required String dateIso, String? store}) {
+    try {
+      final f = File(jsonPath);
+      if (!f.existsSync()) return;
+      final root = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+      root['expected'] = {
+        'totalYen': totalYen,
+        'date': dateIso,
+        if (store != null && store.isNotEmpty) 'store': store,
+      };
+      f.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(root));
+    } catch (_) {} // ラベル書き込み失敗は保存を妨げない
+  }
+
   /// 古いものから削除して JSON=maxFiles件・写真=maxPhotos件 に保つ。
   /// ファイル名はISOタイムスタンプ由来なので辞書順=時刻順。
   void _pruneOld() {
