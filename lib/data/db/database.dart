@@ -15,7 +15,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -30,6 +30,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             // v3: 詳細入力（分割）のレシート紐づけ。既存行は null=単独取引。
             await m.addColumn(transactions, transactions.splitGroupId);
+          }
+          if (from < 4) {
+            // v4: 店舗名をmemoから分離。旧memo欄は「メモ・店名」でOCRも店名を
+            // 入れていたため、既存memoは店名として storeName へ移し、memoは空に。
+            await m.addColumn(transactions, transactions.storeName);
+            await customStatement(
+                'UPDATE transactions SET store_name = memo, memo = NULL');
           }
         },
         beforeOpen: (details) async {

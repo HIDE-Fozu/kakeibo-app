@@ -81,6 +81,7 @@ class BackupTxn {
   final CivilDate date;
   final int categoryId;
   final PaymentMethod? paymentMethod;
+  final String? storeName; // v4列。旧バックアップには無い（memoから移行して復元）
   final String? memo;
   final TxnSource source;
   final String? imagePath;
@@ -94,6 +95,7 @@ class BackupTxn {
     required this.date,
     required this.categoryId,
     required this.paymentMethod,
+    this.storeName,
     required this.memo,
     required this.source,
     required this.imagePath,

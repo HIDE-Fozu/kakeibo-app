@@ -31,6 +31,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     required CivilDate date,
     required int categoryId,
     PaymentMethod? paymentMethod,
+    String? storeName,
     String? memo,
   }) async {
     await (update(transactions)..where((t) => t.id.equals(id))).write(
@@ -39,6 +40,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
         date: Value(date),
         categoryId: Value(categoryId),
         paymentMethod: Value(paymentMethod),
+        storeName: Value(storeName),
         memo: Value(memo),
         updatedAt: Value(DateTime.now()),
       ),

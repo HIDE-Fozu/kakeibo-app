@@ -37,6 +37,7 @@ class BackupCodec {
             'date': t.date.toIso(),
             'categoryId': t.categoryId,
             'paymentMethod': t.paymentMethod?.name,
+            'storeName': t.storeName,
             'memo': t.memo,
             'source': t.source.name,
             'imagePath': t.imagePath,
@@ -194,6 +195,12 @@ class BackupCodec {
         throw BackupValidationError('$ctx.date が不正な日付です: "$dateRaw"');
       }
       final pmRaw = opt<String>(raw, 'paymentMethod', ctx);
+      // v4以前のバックアップ（storeNameキー無し）は旧memo=店名。DBのv4マイグレーションと
+      // 同じく店名へ寄せ、memoは空にする（新形式はそのまま両方を復元）。
+      final rawMemo = opt<String>(raw, 'memo', ctx);
+      final hasStoreKey = raw.containsKey('storeName');
+      final storeName = hasStoreKey ? opt<String>(raw, 'storeName', ctx) : rawMemo;
+      final memo = hasStoreKey ? rawMemo : null;
       final t = BackupTxn(
         id: req<int>(raw, 'id', ctx),
         type: enumByName(TxnType.values, req<String>(raw, 'type', ctx),
@@ -204,7 +211,8 @@ class BackupCodec {
         paymentMethod: pmRaw == null
             ? null
             : enumByName(PaymentMethod.values, pmRaw, '$ctx.paymentMethod'),
-        memo: opt<String>(raw, 'memo', ctx),
+        storeName: storeName,
+        memo: memo,
         source: enumByName(TxnSource.values, req<String>(raw, 'source', ctx),
             '$ctx.source'),
         imagePath: opt<String>(raw, 'imagePath', ctx),

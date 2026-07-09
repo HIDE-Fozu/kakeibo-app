@@ -8,7 +8,8 @@ class TransactionEntity {
   final CivilDate date;
   final int categoryId;
   final PaymentMethod? paymentMethod;
-  final String? memo;
+  final String? storeName; // 店舗名。v4でmemoから分離。null=未設定
+  final String? memo; // 自由記述の詳細メモ（店名は含めない）
   final TxnSource source;
   final String? imagePath; // §14-C: 保持設定ON時のみ非null
   final String? splitGroupId; // 同じレシート（詳細入力）由来の取引を束ねる。null=単独
@@ -20,6 +21,7 @@ class TransactionEntity {
     required this.date,
     required this.categoryId,
     this.paymentMethod,
+    this.storeName,
     this.memo,
     required this.source,
     this.imagePath,

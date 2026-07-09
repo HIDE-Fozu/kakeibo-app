@@ -32,8 +32,8 @@ void main() {
     final csv = await service.exportCsv();
     expect(csv.startsWith('\uFEFF'), isTrue); // Excel(日本語)向けBOM
     final lines = csv.substring(1).split('\r\n');
-    expect(lines[0], '日付,種別,金額,カテゴリ,内訳,支払方法,メモ,レシートID');
-    expect(lines[1], '2026-07-03,支出,1200,食費,,電子マネー,コンビニ,');
+    expect(lines[0], '日付,種別,金額,カテゴリ,内訳,支払方法,店舗名,メモ,レシートID');
+    expect(lines[1], '2026-07-03,支出,1200,食費,,電子マネー,,コンビニ,');
   });
 
   test('内訳の取引はカテゴリ列=親名・内訳列=自名になる', () async {
@@ -49,7 +49,7 @@ void main() {
 
     final csv = await service.exportCsv();
     final lines = csv.substring(1).split('\r\n');
-    expect(lines[1], '2026-07-05,支出,980,食費,外食,,,');
+    expect(lines[1], '2026-07-05,支出,980,食費,外食,,,,');
   });
 
   test('fields with comma / quote / newline are RFC-4180 escaped', () async {
@@ -85,6 +85,6 @@ void main() {
 
     final csv = await service.exportCsv();
     final lines = csv.substring(1).split('\r\n');
-    expect(lines[1], '2026-07-25,収入,300000,食費,,,,');
+    expect(lines[1], '2026-07-25,収入,300000,食費,,,,,');
   });
 }

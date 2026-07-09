@@ -63,11 +63,12 @@ CREATE TABLE "transactions" (
     final txs = await db.transactionDao.transactionsInMonth(2026, 7);
     expect(txs.single.amount, 500);
     expect(txs.single.splitGroupId, isNull); // v3列もnull補完
+    expect(txs.single.storeName, isNull); // v4列もnull補完（元memoも無い）
     final v = await db
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 3); // v1からでも現行(v3)まで一気に上がる
+    expect(v, 4); // v1からでも現行(v4)まで一気に上がる
     await db.close();
   });
 
@@ -126,7 +127,68 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 3);
+    expect(v, 4);
+    await db.close();
+  });
+
+  test('schema v3 → v4: storeName列が追加され既存memoが店名として移る', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v4');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v3.db');
+
+    // v3スキーマ（split_group_id あり / store_name なし）
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "categories" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "icon" TEXT NULL,
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  "is_archived" INTEGER NOT NULL DEFAULT 0,
+  "is_system" INTEGER NOT NULL DEFAULT 0,
+  "parent_id" INTEGER NULL REFERENCES "categories" ("id")
+);''');
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "payment_method" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO categories (name, type, sort_order) VALUES ('食費', 'expense', 0)");
+    // 旧「メモ・店名」欄に店名が入っていた既存行
+    raw.execute(
+        "INSERT INTO transactions (type, amount, date, category_id, memo, source, created_at, updated_at) "
+        "VALUES ('expense', 800, '2026-07-02', 1, 'サミット', 'manual', "
+        "'2026-07-02T00:00:00.000Z', '2026-07-02T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 3');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final txs = await db.transactionDao.transactionsInMonth(2026, 7);
+    expect(txs.single.storeName, 'サミット'); // memo→storeName へ移行
+    expect(txs.single.memo, isNull); // 移行後のmemoは空
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 4);
     await db.close();
   });
 

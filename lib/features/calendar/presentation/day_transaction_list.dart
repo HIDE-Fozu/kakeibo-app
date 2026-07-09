@@ -12,6 +12,16 @@ import '../../entry/application/entry_form_controller.dart';
 import '../../entry/presentation/entry_screen.dart';
 import '../application/calendar_providers.dart';
 
+/// 一覧の表示ラベル: 「店舗名 - 詳細メモ」。片方だけならその片方。両方空はnull。
+String? txDisplayLabel(TransactionEntity tx) {
+  final store = tx.storeName?.trim() ?? '';
+  final memo = tx.memo?.trim() ?? '';
+  if (store.isNotEmpty && memo.isNotEmpty) return '$store - $memo';
+  if (store.isNotEmpty) return store;
+  if (memo.isNotEmpty) return memo;
+  return null;
+}
+
 class DayTransactionList extends ConsumerWidget {
   final CivilDate day;
   const DayTransactionList({super.key, required this.day});
@@ -83,7 +93,7 @@ class DayTransactionList extends ConsumerWidget {
       Map<int, CategoryEntity> byId, List<TransactionEntity> group) {
     final scheme = Theme.of(context).colorScheme;
     final sum = group.fold(0, (a, t) => a + t.amountYen);
-    final memo = group.first.memo;
+    final label = txDisplayLabel(group.first);
     return Card(
       key: ValueKey('txg-${group.first.splitGroupId}'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -115,7 +125,7 @@ class DayTransactionList extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      (memo == null || memo.isEmpty) ? 'レシート' : memo,
+                      label ?? 'レシート',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -173,8 +183,8 @@ class DayTransactionList extends ConsumerWidget {
         leading: Text(categoryEmoji(cat?.icon, cat?.name),
             style: TextStyle(fontSize: dense ? 17 : 20)),
         title: Text(name),
-        subtitle: !dense && (tx.memo != null && tx.memo!.isNotEmpty)
-            ? Text(tx.memo!)
+        subtitle: !dense && txDisplayLabel(tx) != null
+            ? Text(txDisplayLabel(tx)!)
             : null,
         trailing: Text(
           signedYen(tx.type, tx.amountYen),

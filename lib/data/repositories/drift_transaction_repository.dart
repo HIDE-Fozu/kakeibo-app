@@ -20,6 +20,7 @@ class DriftTransactionRepository implements TransactionRepository {
       categoryId: tx.categoryId,
       source: tx.source,
       paymentMethod: Value(tx.paymentMethod),
+      storeName: Value(tx.storeName),
       memo: Value(tx.memo),
       imagePath: Value(tx.imagePath),
       splitGroupId: Value(tx.splitGroupId),
@@ -58,6 +59,7 @@ class DriftTransactionRepository implements TransactionRepository {
       date: tx.date,
       categoryId: tx.categoryId,
       paymentMethod: tx.paymentMethod,
+      storeName: tx.storeName,
       memo: tx.memo,
     );
   }
@@ -96,6 +98,7 @@ class DriftTransactionRepository implements TransactionRepository {
         date: r.date,
         categoryId: r.categoryId,
         paymentMethod: r.paymentMethod,
+        storeName: r.storeName,
         memo: r.memo,
         source: r.source,
         imagePath: r.imagePath,

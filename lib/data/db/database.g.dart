@@ -586,6 +586,17 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   ).withConverter<PaymentMethod?>($TransactionsTable.$converterpaymentMethodn);
+  static const VerificationMeta _storeNameMeta = const VerificationMeta(
+    'storeName',
+  );
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+    'store_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _memoMeta = const VerificationMeta('memo');
   @override
   late final GeneratedColumn<String> memo = GeneratedColumn<String>(
@@ -658,6 +669,7 @@ class $TransactionsTable extends Transactions
     date,
     categoryId,
     paymentMethod,
+    storeName,
     memo,
     source,
     imagePath,
@@ -695,6 +707,12 @@ class $TransactionsTable extends Transactions
       );
     } else if (isInserting) {
       context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(
+        _storeNameMeta,
+        storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta),
+      );
     }
     if (data.containsKey('memo')) {
       context.handle(
@@ -768,6 +786,10 @@ class $TransactionsTable extends Transactions
           data['${effectivePrefix}payment_method'],
         ),
       ),
+      storeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}store_name'],
+      ),
       memo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}memo'],
@@ -825,6 +847,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final CivilDate date;
   final int categoryId;
   final PaymentMethod? paymentMethod;
+
+  /// 店舗名。v4でmemoから分離（memoは自由記述の詳細専用に）。null=未設定。
+  final String? storeName;
   final String? memo;
   final TxnSource source;
   final String? imagePath;
@@ -841,6 +866,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     required this.date,
     required this.categoryId,
     this.paymentMethod,
+    this.storeName,
     this.memo,
     required this.source,
     this.imagePath,
@@ -868,6 +894,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       map['payment_method'] = Variable<String>(
         $TransactionsTable.$converterpaymentMethodn.toSql(paymentMethod),
       );
+    }
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
     }
     if (!nullToAbsent || memo != null) {
       map['memo'] = Variable<String>(memo);
@@ -898,6 +927,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       paymentMethod: paymentMethod == null && nullToAbsent
           ? const Value.absent()
           : Value(paymentMethod),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
       memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
       source: Value(source),
       imagePath: imagePath == null && nullToAbsent
@@ -927,6 +959,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       paymentMethod: $TransactionsTable.$converterpaymentMethodn.fromJson(
         serializer.fromJson<String?>(json['paymentMethod']),
       ),
+      storeName: serializer.fromJson<String?>(json['storeName']),
       memo: serializer.fromJson<String?>(json['memo']),
       source: $TransactionsTable.$convertersource.fromJson(
         serializer.fromJson<String>(json['source']),
@@ -951,6 +984,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'paymentMethod': serializer.toJson<String?>(
         $TransactionsTable.$converterpaymentMethodn.toJson(paymentMethod),
       ),
+      'storeName': serializer.toJson<String?>(storeName),
       'memo': serializer.toJson<String?>(memo),
       'source': serializer.toJson<String>(
         $TransactionsTable.$convertersource.toJson(source),
@@ -969,6 +1003,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     CivilDate? date,
     int? categoryId,
     Value<PaymentMethod?> paymentMethod = const Value.absent(),
+    Value<String?> storeName = const Value.absent(),
     Value<String?> memo = const Value.absent(),
     TxnSource? source,
     Value<String?> imagePath = const Value.absent(),
@@ -984,6 +1019,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     paymentMethod: paymentMethod.present
         ? paymentMethod.value
         : this.paymentMethod,
+    storeName: storeName.present ? storeName.value : this.storeName,
     memo: memo.present ? memo.value : this.memo,
     source: source ?? this.source,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
@@ -1003,6 +1039,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       paymentMethod: data.paymentMethod.present
           ? data.paymentMethod.value
           : this.paymentMethod,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
       memo: data.memo.present ? data.memo.value : this.memo,
       source: data.source.present ? data.source.value : this.source,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
@@ -1023,6 +1060,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('date: $date, ')
           ..write('categoryId: $categoryId, ')
           ..write('paymentMethod: $paymentMethod, ')
+          ..write('storeName: $storeName, ')
           ..write('memo: $memo, ')
           ..write('source: $source, ')
           ..write('imagePath: $imagePath, ')
@@ -1041,6 +1079,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     date,
     categoryId,
     paymentMethod,
+    storeName,
     memo,
     source,
     imagePath,
@@ -1058,6 +1097,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.date == this.date &&
           other.categoryId == this.categoryId &&
           other.paymentMethod == this.paymentMethod &&
+          other.storeName == this.storeName &&
           other.memo == this.memo &&
           other.source == this.source &&
           other.imagePath == this.imagePath &&
@@ -1073,6 +1113,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<CivilDate> date;
   final Value<int> categoryId;
   final Value<PaymentMethod?> paymentMethod;
+  final Value<String?> storeName;
   final Value<String?> memo;
   final Value<TxnSource> source;
   final Value<String?> imagePath;
@@ -1086,6 +1127,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.date = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.paymentMethod = const Value.absent(),
+    this.storeName = const Value.absent(),
     this.memo = const Value.absent(),
     this.source = const Value.absent(),
     this.imagePath = const Value.absent(),
@@ -1100,6 +1142,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     required CivilDate date,
     required int categoryId,
     this.paymentMethod = const Value.absent(),
+    this.storeName = const Value.absent(),
     this.memo = const Value.absent(),
     required TxnSource source,
     this.imagePath = const Value.absent(),
@@ -1118,6 +1161,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<String>? date,
     Expression<int>? categoryId,
     Expression<String>? paymentMethod,
+    Expression<String>? storeName,
     Expression<String>? memo,
     Expression<String>? source,
     Expression<String>? imagePath,
@@ -1132,6 +1176,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (date != null) 'date': date,
       if (categoryId != null) 'category_id': categoryId,
       if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (storeName != null) 'store_name': storeName,
       if (memo != null) 'memo': memo,
       if (source != null) 'source': source,
       if (imagePath != null) 'image_path': imagePath,
@@ -1148,6 +1193,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<CivilDate>? date,
     Value<int>? categoryId,
     Value<PaymentMethod?>? paymentMethod,
+    Value<String?>? storeName,
     Value<String?>? memo,
     Value<TxnSource>? source,
     Value<String?>? imagePath,
@@ -1162,6 +1208,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       date: date ?? this.date,
       categoryId: categoryId ?? this.categoryId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      storeName: storeName ?? this.storeName,
       memo: memo ?? this.memo,
       source: source ?? this.source,
       imagePath: imagePath ?? this.imagePath,
@@ -1198,6 +1245,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
         $TransactionsTable.$converterpaymentMethodn.toSql(paymentMethod.value),
       );
     }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
     if (memo.present) {
       map['memo'] = Variable<String>(memo.value);
     }
@@ -1230,6 +1280,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('date: $date, ')
           ..write('categoryId: $categoryId, ')
           ..write('paymentMethod: $paymentMethod, ')
+          ..write('storeName: $storeName, ')
           ..write('memo: $memo, ')
           ..write('source: $source, ')
           ..write('imagePath: $imagePath, ')
@@ -1736,6 +1787,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required CivilDate date,
       required int categoryId,
       Value<PaymentMethod?> paymentMethod,
+      Value<String?> storeName,
       Value<String?> memo,
       required TxnSource source,
       Value<String?> imagePath,
@@ -1751,6 +1803,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<CivilDate> date,
       Value<int> categoryId,
       Value<PaymentMethod?> paymentMethod,
+      Value<String?> storeName,
       Value<String?> memo,
       Value<TxnSource> source,
       Value<String?> imagePath,
@@ -1816,6 +1869,11 @@ class $$TransactionsTableFilterComposer
   get paymentMethod => $composableBuilder(
     column: $table.paymentMethod,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get memo => $composableBuilder(
@@ -1907,6 +1965,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get memo => $composableBuilder(
     column: $table.memo,
     builder: (column) => ColumnOrderings(column),
@@ -1988,6 +2051,9 @@ class $$TransactionsTableAnnotationComposer
         builder: (column) => column,
       );
 
+  GeneratedColumn<String> get storeName =>
+      $composableBuilder(column: $table.storeName, builder: (column) => column);
+
   GeneratedColumn<String> get memo =>
       $composableBuilder(column: $table.memo, builder: (column) => column);
 
@@ -2066,6 +2132,7 @@ class $$TransactionsTableTableManager
                 Value<CivilDate> date = const Value.absent(),
                 Value<int> categoryId = const Value.absent(),
                 Value<PaymentMethod?> paymentMethod = const Value.absent(),
+                Value<String?> storeName = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
                 Value<TxnSource> source = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
@@ -2079,6 +2146,7 @@ class $$TransactionsTableTableManager
                 date: date,
                 categoryId: categoryId,
                 paymentMethod: paymentMethod,
+                storeName: storeName,
                 memo: memo,
                 source: source,
                 imagePath: imagePath,
@@ -2094,6 +2162,7 @@ class $$TransactionsTableTableManager
                 required CivilDate date,
                 required int categoryId,
                 Value<PaymentMethod?> paymentMethod = const Value.absent(),
+                Value<String?> storeName = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
                 required TxnSource source,
                 Value<String?> imagePath = const Value.absent(),
@@ -2107,6 +2176,7 @@ class $$TransactionsTableTableManager
                 date: date,
                 categoryId: categoryId,
                 paymentMethod: paymentMethod,
+                storeName: storeName,
                 memo: memo,
                 source: source,
                 imagePath: imagePath,

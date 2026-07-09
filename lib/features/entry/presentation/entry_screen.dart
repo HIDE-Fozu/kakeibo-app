@@ -255,11 +255,25 @@ class EntryScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
+                      // レシート確認モードでは店舗名は上のレビューパネル（候補チップ＋
+                      // 直接入力）で扱うため、ここでは詳細メモのみ。通常/編集では2欄。
+                      if (state.mode != EntryMode.receiptConfirm) ...[
+                        TextFormField(
+                          key: ValueKey('store-field-${state.formSeq}'),
+                          initialValue: state.storeName,
+                          decoration: const InputDecoration(
+                            labelText: '店舗名',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: ctrl.setStoreName,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       TextFormField(
                         key: ValueKey('memo-field-${state.formSeq}'),
                         initialValue: state.memo,
                         decoration: const InputDecoration(
-                          labelText: 'メモ・店名',
+                          labelText: '詳細メモ',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: ctrl.setMemo,

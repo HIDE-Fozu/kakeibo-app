@@ -250,7 +250,10 @@ class BatchItemizePanel extends ConsumerWidget {
     final diffCat = state.batchDiffCategoryId == null
         ? null
         : categoriesById[state.batchDiffCategoryId];
-    final memo = state.memo.trim();
+    // ヘッダは「店舗名 - 詳細メモ」。どちらも空なら「レシート」。
+    final headerLabel = [state.storeName.trim(), state.memo.trim()]
+        .where((s) => s.isNotEmpty)
+        .join(' - ');
 
     Widget row(String label, String value, {Color? color, Key? key}) =>
         Padding(
@@ -286,7 +289,7 @@ class BatchItemizePanel extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            '🧾 ${memo.isEmpty ? 'レシート' : memo}　${state.date.toIso()}',
+            '🧾 ${headerLabel.isEmpty ? 'レシート' : headerLabel}　${state.date.toIso()}',
             style: TextStyle(fontSize: 11, color: scheme.outline),
             overflow: TextOverflow.ellipsis,
           ),

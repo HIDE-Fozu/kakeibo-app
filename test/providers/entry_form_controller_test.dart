@@ -129,6 +129,18 @@ void main() {
     expect(list.single.memo, isNull);
   });
 
+  test('save: 店舗名と詳細メモが別々に保存される', () async {
+    ctrl().startCreate(day);
+    ctrl().tapDigit(8);
+    ctrl().selectCategory(foodId);
+    ctrl().setStoreName('スーパーA');
+    ctrl().setMemo('ポイント2倍');
+    await ctrl().save();
+    final list = await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+    expect(list.single.storeName, 'スーパーA');
+    expect(list.single.memo, 'ポイント2倍');
+  });
+
   test('canSave=false の save は StateError', () {
     ctrl().startCreate(day);
     expect(() => ctrl().save(), throwsStateError);
@@ -450,14 +462,14 @@ void main() {
     expect(fx.expectedDate, day);
   });
 
-  test('startReceipt: 店名をメモにプリフィル / 無ければ空のまま', () {
+  test('startReceipt: 店名を店舗名にプリフィル・詳細メモは空 / 無ければ空', () {
     ctrl().startReceipt(receiptOf(yen: 500, date: day, store: 'スーパーA'));
-    expect(st().memo, 'スーパーA');
-    expect(st().memoExpanded, isTrue);
+    expect(st().storeName, 'スーパーA');
+    expect(st().memo, ''); // 店名は詳細メモに混ぜない
 
     ctrl().startReceipt(receiptOf(yen: 500, date: day));
+    expect(st().storeName, '');
     expect(st().memo, '');
-    expect(st().memoExpanded, isFalse);
   });
 
   test('レシート保存: 保持OFFで一時画像が消える', () async {

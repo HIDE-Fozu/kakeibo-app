@@ -25,6 +25,9 @@ class Transactions extends Table {
   IntColumn get categoryId =>
       integer().references(Categories, #id, onDelete: KeyAction.restrict)();
   TextColumn get paymentMethod => textEnum<PaymentMethod>().nullable()();
+
+  /// 店舗名。v4でmemoから分離（memoは自由記述の詳細専用に）。null=未設定。
+  TextColumn get storeName => text().nullable()();
   TextColumn get memo => text().nullable()();
   TextColumn get source => textEnum<TxnSource>()();
   TextColumn get imagePath => text().nullable()();

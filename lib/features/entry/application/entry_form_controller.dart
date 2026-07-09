@@ -71,7 +71,8 @@ class EntryFormState {
   final int amountYen;
   final int? categoryId;
   final CivilDate date;
-  final String memo;
+  final String storeName; // 店舗名（memoとは別。空=未設定）
+  final String memo; // 自由記述の詳細メモ
   final TxnSource source;
   final ParsedReceipt? receipt;
   final String? imagePath;
@@ -109,6 +110,7 @@ class EntryFormState {
     required this.amountYen,
     this.categoryId,
     required this.date,
+    this.storeName = '',
     required this.memo,
     required this.source,
     this.receipt,
@@ -234,6 +236,7 @@ class EntryFormState {
     int? amountYen,
     Object? categoryId = _unset,
     CivilDate? date,
+    String? storeName,
     String? memo,
     TxnSource? source,
     Object? receipt = _unset,
@@ -262,6 +265,7 @@ class EntryFormState {
         categoryId:
             identical(categoryId, _unset) ? this.categoryId : categoryId as int?,
         date: date ?? this.date,
+        storeName: storeName ?? this.storeName,
         memo: memo ?? this.memo,
         source: source ?? this.source,
         receipt: identical(receipt, _unset)
@@ -331,6 +335,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       amountYen: tx.amountYen,
       categoryId: tx.categoryId,
       date: tx.date,
+      storeName: tx.storeName ?? '',
       memo: tx.memo ?? '',
       source: tx.source,
       imagePath: tx.imagePath,
@@ -346,13 +351,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
       type: TxnType.expense,
       amountYen: parsed.total?.yen ?? 0,
       date: parsed.date.date,
-      // 店名が読めていればメモにプリフィル（spec: memo=店名・自由記述）
-      memo: parsed.storeName ?? '',
+      // 店名が読めていれば店舗名にプリフィル（候補チップ/直接入力で修正可）。
+      // 詳細メモは空のまま（店名と詳細を混ぜない）。
+      storeName: parsed.storeName ?? '',
+      memo: '',
       source: TxnSource.receiptOcr,
       receipt: parsed,
       imagePath: imagePath,
       fixturePath: fixturePath,
-      memoExpanded: parsed.storeName != null,
     );
   }
 
@@ -562,6 +568,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       type: first.type,
       amountYen: txs.fold(0, (a, t) => a + t.amountYen),
       date: first.date,
+      storeName: first.storeName ?? '',
       memo: first.memo ?? '',
       source: first.source,
       imagePath: first.imagePath,
@@ -697,6 +704,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void setDate(CivilDate date) => state = _s.copyWith(date: date);
 
+  void setStoreName(String storeName) =>
+      state = _s.copyWith(storeName: storeName);
+
   void setMemo(String memo) => state = _s.copyWith(memo: memo);
 
   void toggleMemoExpanded() =>
@@ -734,6 +744,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
     _labelFixture(s, s.amountYen);
     final repo = ref.read(transactionRepositoryProvider);
+    final store = s.storeName.trim();
     final memo = s.memo.trim();
     if (s.mode == EntryMode.edit) {
       await repo.update(TransactionEntity(
@@ -742,6 +753,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
         amountYen: s.amountYen,
         date: s.date,
         categoryId: s.categoryId!,
+        storeName: store.isEmpty ? null : store,
         memo: memo.isEmpty ? null : memo,
         source: s.source,
         imagePath: s.imagePath,
@@ -754,6 +766,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       amountYen: s.amountYen,
       date: s.date,
       categoryId: s.categoryId!,
+      storeName: store.isEmpty ? null : store,
       memo: memo.isEmpty ? null : memo,
       source: s.source,
       imagePath: storedImage,
@@ -768,6 +781,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     assert(lines.isNotEmpty);
     _labelFixture(s, lines.fold(0, (a, l) => a + l.$2));
     final repo = ref.read(transactionRepositoryProvider);
+    final store = s.storeName.trim();
     final memo = s.memo.trim();
     for (final id in s.replacesTxIds ?? const <int>[]) {
       await repo.delete(id);
@@ -781,6 +795,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
         amountYen: amountYen,
         date: s.date,
         categoryId: categoryId,
+        storeName: store.isEmpty ? null : store,
         memo: memo.isEmpty ? null : memo,
         source: s.source,
         imagePath: image,
@@ -799,6 +814,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       type: s.type,
       amountYen: 0,
       date: s.date,
+      storeName: s.storeName,
       memo: s.memo,
       source: TxnSource.manual,
       memoExpanded: s.memoExpanded,
@@ -817,12 +833,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final path = s.fixturePath;
     if (path == null) return;
     try {
-      final memo = s.memo.trim();
+      final store = s.storeName.trim();
       ref.read(ocrFixtureRecorderProvider).writeExpected(
             path,
             totalYen: totalYen,
             dateIso: s.date.toIso(),
-            store: memo.isEmpty ? null : memo,
+            store: store.isEmpty ? null : store,
           );
       // オプトイン時のみ: ラベル込みで再送（失敗しても保存は妨げない）
       if (ref.read(appSettingsProvider).autoUploadTestData) {

@@ -8,7 +8,7 @@ import 'backup_data.dart';
 String buildTransactionsCsv(BackupPayload payload) {
   final byId = {for (final c in payload.categories) c.id: c};
   final sb = StringBuffer('\uFEFF');
-  sb.write('日付,種別,金額,カテゴリ,内訳,支払方法,メモ,レシートID\r\n');
+  sb.write('日付,種別,金額,カテゴリ,内訳,支払方法,店舗名,メモ,レシートID\r\n');
   for (final t in payload.transactions) {
     final cat = byId[t.categoryId];
     final parent = cat?.parentId == null ? null : byId[cat!.parentId];
@@ -20,6 +20,7 @@ String buildTransactionsCsv(BackupPayload payload) {
       parent?.name ?? cat?.name ?? '',
       parent == null ? '' : (cat?.name ?? ''),
       _paymentLabel(t.paymentMethod),
+      t.storeName ?? '',
       t.memo ?? '',
       // 同じレシート（詳細入力）由来の行は同じIDを持つ（Excelでの突合用）
       t.splitGroupId ?? '',

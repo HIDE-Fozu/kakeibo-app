@@ -125,7 +125,45 @@ void main() {
     expect(find.text('¥0'), findsOneWidget);
     expect(find.byKey(const Key('ocr-fallback-note')), findsOneWidget);
     expect(find.text('2026/07/15'), findsOneWidget); // 今日既定（固定時計）
-    expect(find.text('店名不明'), findsOneWidget); // OCR空→店名なし
+    // OCR空でも店舗名ラベルと「直接入力」ボタンは常に出る（手入力できる）
+    expect(find.byKey(const Key('store-name')), findsOneWidget);
+    expect(find.text('直接入力'), findsOneWidget);
+  });
+
+  testWidgets('店舗名の直接入力: ダイアログで手入力するとstoreNameが変わる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h, home: const EntryScreen());
+    final c = containerOf(tester);
+
+    const d = DateCandidate(
+        date: day,
+        confidence: ExtractionConfidence.high,
+        sourceText: '2026/07/15',
+        reason: 'issue');
+    const parsed = ParsedReceipt(
+        total: null,
+        totalCandidates: [],
+        date: d,
+        dateCandidates: [d],
+        storeName: 'スーパーA',
+        storeCandidates: ['スーパーA']);
+    c.read(entryFormControllerProvider.notifier).startReceipt(parsed);
+    await tester.pumpAndSettle();
+    expect(c.read(entryFormControllerProvider)!.storeName, 'スーパーA');
+
+    // 「直接入力」→ ダイアログで手入力 → 決定
+    await tester.ensureVisible(find.byKey(const Key('store-edit')));
+    await tester.tap(find.byKey(const Key('store-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const Key('store-edit-field')), 'ローソン渋谷店');
+    await tester.tap(find.byKey(const Key('store-edit-ok')));
+    await tester.pumpAndSettle();
+
+    expect(c.read(entryFormControllerProvider)!.storeName, 'ローソン渋谷店');
+    expect(find.text('ローソン渋谷店'), findsWidgets); // カスタム値チップに表示
   });
 
   testWidgets('撮影未対応: SnackBarでcreateに留まる', (tester) async {

@@ -100,7 +100,7 @@ void main() {
         isNull);
   });
 
-  testWidgets('メモ欄は常時表示され入力できる', (tester) async {
+  testWidgets('店舗名・詳細メモ欄が常時表示され別々に入力できる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -111,11 +111,14 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // トグルなしで最初から入力欄が出ている
-    final memo = find.byType(TextFormField);
-    expect(memo, findsOneWidget);
-    await tester.enterText(memo, 'スーパーA');
-    expect(containerOf(tester).read(entryFormControllerProvider)!.memo, 'スーパーA');
+    // トグルなしで最初から店舗名・詳細メモの2欄が出ている（順に店舗名→詳細メモ）
+    final fields = find.byType(TextFormField);
+    expect(fields, findsNWidgets(2));
+    await tester.enterText(fields.at(0), 'スーパーA'); // 店舗名
+    await tester.enterText(fields.at(1), 'ポイント2倍'); // 詳細メモ
+    final s = containerOf(tester).read(entryFormControllerProvider)!;
+    expect(s.storeName, 'スーパーA');
+    expect(s.memo, 'ポイント2倍');
   });
 
   testWidgets('保存して続ける: 画面に留まり金額リセット・日付維持', (tester) async {
@@ -174,7 +177,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('編集'), findsOneWidget);
     expect(find.text('¥1,200'), findsOneWidget);
-    expect(find.byType(TextFormField), findsOneWidget); // メモ欄は常時表示
+    expect(find.byType(TextFormField), findsNWidgets(2)); // 店舗名・詳細メモの2欄
     expect(find.byType(SegmentedButton<TxnType>), findsNothing); // 編集では型不変
 
     await tester.tap(find.byKey(const Key('delete-entry')));
@@ -259,15 +262,15 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // チップが出ていない状態のメモ欄・保存ボタン位置
-    final memoBefore = tester.getRect(find.byType(TextFormField));
+    // チップが出ていない状態のメモ欄（詳細メモ=最下段の欄）・保存ボタン位置
+    final memoBefore = tester.getRect(find.byType(TextFormField).last);
     final saveBefore = tester.getRect(find.byKey(const Key('save-btn')));
 
     // 食費タップでチップが固定枠に出る → メモ・保存は1pxも動かない
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('subcategory-chips')), findsOneWidget);
-    expect(tester.getRect(find.byType(TextFormField)), memoBefore);
+    expect(tester.getRect(find.byType(TextFormField).last), memoBefore);
     expect(tester.getRect(find.byKey(const Key('save-btn'))), saveBefore);
   });
 
