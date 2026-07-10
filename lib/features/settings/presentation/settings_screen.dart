@@ -266,10 +266,24 @@ class SettingsScreen extends ConsumerWidget {
       await Share.shareXFiles(
         [XFile(zipPath)],
         subject: '家計簿テストデータ（$count件）',
+        // iPad等では共有シートがポップオーバーで出るため、アンカー矩形(非ゼロ・
+        // source view内)が必須。未指定だと端末により PlatformException
+        // (sharePositionOrigin ...) で落ちる（iPhoneのシート経路では無視される）。
+        sharePositionOrigin: _shareOrigin(context),
       );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('送信に失敗しました: $e')));
     }
+  }
+
+  /// 共有ポップオーバーのアンカー。source view内の非ゼロ矩形（画面中央の小矩形）。
+  Rect _shareOrigin(BuildContext context) {
+    final size = context.size ?? MediaQuery.of(context).size;
+    return Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: 1,
+      height: 1,
+    );
   }
 }
 
