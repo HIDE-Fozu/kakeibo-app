@@ -91,7 +91,7 @@ test/harness/                         … 上記src/の単体テスト＋E2Eス�
 
 ### 4-2. 整合性規則（バリデータが全件アサート、違反1件でも生成CLIはexit 1）
 
-1. `totalYen == Σitems.amountYen − Σdiscounts.amountYen`（内税）／`== 小計＋Σtax`（外税）
+1. 内税: `totalYen == Σitems.amountYen − Σdiscounts.amountYen`／外税: `totalYen == Σitems.amountYen − Σdiscounts.amountYen + Σtax`。税は割引前の税率別品目計に対し切り捨て（内税: `base×r÷(100+r)`、外税: `base×r÷100`）。根拠: 割引は会計時値引き扱いで統一し実装・検証を単純化（印字慣例は店により異なるため一方に固定）
 2. `items[i].amountYen == unitPriceYen × qty`
 3. `changeYen == tenderedYen − totalYen`（両方ある場合）
 4. `discounts合計 < 小計`（負の合計を構造的に排除）
@@ -109,6 +109,7 @@ test/harness/                         … 上記src/の単体テスト＋E2Eス�
 | 日付形式 | 5種: `2026年6月30日(火)`／`2026/06/30`／`26.06.30`／`R8.06.30`／`令和8年6月30日` | 年省略・元号は日付抽出の主戦場 |
 | 日付範囲 | 2025-07-12〜2026-07-11 の一様分布 | 評価時の固定today（§7）から過去1年。年省略形式が今日基準で一意に解決できる範囲 |
 | 日付なし | 各ノイズレベルの5% | 実在するケース。採点から除外し件数報告のみ（§7） |
+| 時刻 | 日付行に常に併記（`HH:MM`、8:00〜22:59） | 実レシートは時刻併記が通例で、パーサも時刻同居を最強の取引手がかりとして使う |
 | 合計キーワード | 5種: 合計／お買上げ計／合　計／総合計／お会計 | 実レシートの表記揺れ |
 | 通貨表記 | 4種: `¥`／`￥`／なし／`円`後置 | 既存摂動`dropCurrencyMarks`の一般化 |
 | 税 | 3種: 内税10%のみ／内税8+10混在（8%品に`※`、スーパー・ドラッグストアのみ）／外税 | 軽減税率とその印字 |
@@ -147,8 +148,8 @@ test/harness/                         … 上記src/の単体テスト＋E2Eス�
 
 - パーサ呼び出し: `ReceiptParser(today: () => CivilDate(2026, 7, 11))` 固定注入（決定性）。
 - 採点（レシートごと）:
-  - total: `parsed.total?.amountYen == truth.totalYen`（best候補のみ。候補リスト内正解は参考値として別集計）
-  - date: `parsed.date == truth.date`（`truth.date == null` のレシートは採点除外・「日付なし処理数」として計上。クラッシュせずtoday返却をアサート）
+  - total: `parsed.total?.yen == truth.totalYen`（`AmountCandidate.yen`。best候補のみ。候補リスト内正解は参考値として別集計）
+  - date: `parsed.date.date == truth.date`（`ParsedReceipt.date`は`DateCandidate`型。`truth.date == null` のレシートは採点除外・「日付なし処理数」として計上。クラッシュせずtoday返却をアサート）
 - レポート: `build/receipt_eval/report.md`（人間用）＋`report.json`（機械用）。内容: ノイズレベル×フィールドの精度表（6セル）／様式別ワースト5／失敗レシートID一覧（先頭20件、`--dump-failures`で全件）。
 - golden set: `test/fixtures/receipts/golden/*.json`（実機ブリッジと同形式）が存在すれば読み込み別表で報告。0枚でも正常動作。
 - 終了コード: 実行成功=0。精度では失敗させない（改善はPhase 5後半の仕事）。`--min-total-acc <pct>` `--min-date-acc <pct>` フラグは実装するがデフォルト無効（将来のCIゲート用）。
