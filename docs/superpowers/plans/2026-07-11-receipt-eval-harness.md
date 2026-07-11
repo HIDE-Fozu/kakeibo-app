@@ -1623,6 +1623,8 @@ git commit -m "feat(harness): corpus generation CLI with wipe-and-regenerate + d
 
 ### Task 9: 語彙生成CLI（Ollama）＋本番vocab.json生成・コミット
 
+> **実行時裁定による置換（裁定3）**: 以下の一発生成コード（160語/リクエスト・タイムアウト120秒）は実行時にチャンク方式へ置換された — 100語/リクエスト×様式ごと130語到達まで最大4回（店名15×最大2回）、タイムアウト300秒。理由: qwen3:14bの歩留まり不足（4回連続検証不合格）と長文生成のタイムアウト死。経緯と最終設計は `docs/superpowers/notes/2026-07-12-receipt-harness-baseline.md` 参照。実装の正は `tool/receipt_vocab/generate_vocab.dart`。
+
 **Files:**
 - Create: `tool/receipt_vocab/generate_vocab.dart`
 - Create: `tool/receipt_gen/data/vocab.json`（CLI実行の成果物）
