@@ -33,6 +33,7 @@ void main() {
     ctrl.tapDoubleZero();
     ctrl.tapDigit(0);
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
 
@@ -52,14 +53,14 @@ void main() {
     ctrl.splitTapDoubleZero();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('split-line-1')), findsOneWidget);
-    expect(find.textContaining('残り ¥600'), findsOneWidget);
+    expect(find.textContaining('¥600'), findsOneWidget); // 残額行=手入力と同形式の¥表示
     expect(find.textContaining('= ¥400'), findsOneWidget);
 
     // 外税8%: +300+100=400 → 432
     await tester.tap(find.byKey(const Key('split-tax8-0')));
     await tester.pumpAndSettle();
     expect(find.textContaining('= ¥432'), findsOneWidget);
-    expect(find.textContaining('残り ¥568'), findsOneWidget);
+    expect(find.textContaining('¥568'), findsOneWidget); // 残額行が自動更新
 
     // やめる → 通常モードへ戻り合計は保持
     await tester.tap(find.byKey(const Key('cancel-split')));

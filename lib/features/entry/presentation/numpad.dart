@@ -9,12 +9,16 @@ class Numpad extends StatelessWidget {
   /// 渡される op は '+', '-', '×', '÷'。
   final void Function(String op)? onOperator;
 
+  /// キーの高さ。既定56。入力画面では下部を詰めるため小さめを渡す。
+  final double cellHeight;
+
   const Numpad({
     super.key,
     required this.onDigit,
     required this.onDoubleZero,
     required this.onBackspace,
     this.onOperator,
+    this.cellHeight = 56,
   });
 
   @override
@@ -23,7 +27,7 @@ class Numpad extends StatelessWidget {
           child: InkWell(
             key: key,
             onTap: onTap,
-            child: SizedBox(height: 56, child: Center(child: child)),
+            child: SizedBox(height: cellHeight, child: Center(child: child)),
           ),
         );
     Widget digit(int d, {Key? key}) => cell(

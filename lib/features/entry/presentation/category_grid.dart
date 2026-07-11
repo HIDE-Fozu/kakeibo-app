@@ -16,7 +16,7 @@ import '../application/entry_category_providers.dart';
 const int kCatCols = 4;
 const int kCatRows = 2;
 const int kCatPerPage = kCatCols * kCatRows; // 8
-const double kCatTileH = 64;
+const double kCatTileH = 56;
 const double kCatGap = 4;
 const double kCatDottedStrip = 16; // ページ境界（点線）に使う横幅
 const double kCatGridHeight = kCatTileH * kCatRows + kCatGap; // 132

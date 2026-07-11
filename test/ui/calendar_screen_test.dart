@@ -99,7 +99,7 @@ void main() {
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('np-00')), findsOneWidget);
-    expect(find.text('2026/07/20'), findsOneWidget);
+    expect(find.text('2026年7月20日'), findsOneWidget);
   });
 
   testWidgets('FAB: 選択日を既定に入力画面へ', (tester) async {
@@ -109,6 +109,6 @@ void main() {
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('np-00')), findsOneWidget);
-    expect(find.text('2026/07/18'), findsOneWidget);
+    expect(find.text('2026年7月18日'), findsOneWidget);
   });
 }

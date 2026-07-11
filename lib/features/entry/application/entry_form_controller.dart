@@ -616,6 +616,19 @@ class EntryFormController extends Notifier<EntryFormState?> {
     );
   }
 
+  /// 行の入力（式）を消してその行をアクティブに。自動で入った残額を上書きして
+  /// ユーザーが自分の金額を入れ直せるようにする（「クリア」ボタン）。
+  void clearSplitLine(int i) {
+    final lines = [..._s.splits!];
+    if (i < 0 || i >= lines.length) return;
+    lines[i] = lines[i].copyWith(expr: '');
+    final adjusted = _autoExtend(lines);
+    state = _s.copyWith(
+      splits: adjusted,
+      activeSplitIndex: i.clamp(0, adjusted.length - 1),
+    );
+  }
+
   void splitTapDigit(int digit) {
     assert(digit >= 0 && digit <= 9);
     _updateActiveSplit(
@@ -663,6 +676,17 @@ class EntryFormController extends Notifier<EntryFormState?> {
       taxPercent: l.taxPercent == percent ? 0 : percent,
       categoryId: l.categoryId,
     );
+    state = _s.copyWith(splits: _autoExtend(lines));
+  }
+
+  /// 税方式を直接セット（0=税込/内税・8/10=外税）。税込/外税8/外税10の3択用。
+  void setSplitTaxPercent(int index, int percent) {
+    assert(percent == 0 || percent == 8 || percent == 10);
+    final lines = [..._s.splits!];
+    if (index < 0 || index >= lines.length) return;
+    final l = lines[index];
+    lines[index] =
+        SplitLine(expr: l.expr, taxPercent: percent, categoryId: l.categoryId);
     state = _s.copyWith(splits: _autoExtend(lines));
   }
 

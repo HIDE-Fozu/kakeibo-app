@@ -60,6 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // OCR明細あり → 詳細入力ボタンで一括内訳が開く
+    await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('batch-mode-toggle')), findsOneWidget);

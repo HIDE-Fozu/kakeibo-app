@@ -53,7 +53,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     expect(find.text('入力'), findsOneWidget);
-    expect(find.text('2026/07/15'), findsOneWidget); // 日付は常に表示
+    expect(find.text('2026年7月15日'), findsOneWidget); // 日付は常に表示（年月日）
 
     // 保存はamount+categoryが揃うまで無効
     expect(
@@ -100,7 +100,8 @@ void main() {
         isNull);
   });
 
-  testWidgets('店舗名・詳細メモ欄が常時表示され別々に入力できる', (tester) async {
+  testWidgets('店舗名は常時・詳細メモは「メモを追加」ボタンから開いて別々に入力できる',
+      (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -111,11 +112,18 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // トグルなしで最初から店舗名・詳細メモの2欄が出ている（順に店舗名→詳細メモ）
+    // 店舗名は常時表示（1欄）、詳細メモは畳まれ「メモを追加」ボタン
+    expect(find.byType(TextFormField), findsOneWidget); // 店舗名のみ
+    await tester.enterText(find.byType(TextFormField), 'スーパーA'); // 店舗名
+
+    // 「メモを追加」→ 詳細メモ欄が出る
+    await tester.ensureVisible(find.byKey(const Key('add-memo')));
+    await tester.tap(find.byKey(const Key('add-memo')));
+    await tester.pumpAndSettle();
     final fields = find.byType(TextFormField);
-    expect(fields, findsNWidgets(2));
-    await tester.enterText(fields.at(0), 'スーパーA'); // 店舗名
+    expect(fields, findsNWidgets(2)); // 店舗名＋詳細メモ
     await tester.enterText(fields.at(1), 'ポイント2倍'); // 詳細メモ
+
     final s = containerOf(tester).read(entryFormControllerProvider)!;
     expect(s.storeName, 'スーパーA');
     expect(s.memo, 'ポイント2倍');
@@ -144,7 +152,7 @@ void main() {
     expect(find.text('入力'), findsOneWidget); // 留まっている
     expect(find.text('保存しました'), findsOneWidget); // SnackBar
     expect(find.text('¥0'), findsOneWidget); // 金額リセット
-    expect(find.text('2026/07/15'), findsOneWidget); // 日付維持
+    expect(find.text('2026年7月15日'), findsOneWidget); // 日付維持
 
     // SnackBarの自動消滅Timer(既定4s)をFakeAsyncで消化（pending timer検出での失敗を回避）
     await tester.pump(const Duration(seconds: 5));

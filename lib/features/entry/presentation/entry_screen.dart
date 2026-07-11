@@ -126,75 +126,79 @@ class EntryScreen extends ConsumerWidget {
                           selected: {state.type},
                           onSelectionChanged: (s) => ctrl.setType(s.single),
                         ),
-                      ListTile(
-                        key: const Key('date-tile'),
-                        dense: true,
-                        leading: const Icon(Icons.event),
-                        title: Text(_dateLabel(state.date)),
-                        tileColor: state.mode == EntryMode.receiptConfirm
-                            ? confidenceTint(
-                                state.matchedDateCandidate?.confidence,
-                              )
-                            : null,
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: dateTimeOfCivil(state.date),
-                            firstDate: DateTime(2000, 1, 1),
-                            lastDate: DateTime(2100, 12, 31),
-                          );
-                          if (picked != null) {
-                            ctrl.setDate(civilOfDateTime(picked));
-                          }
-                        },
-                      ),
                       if (state.mode == EntryMode.receiptConfirm)
                         ReceiptReviewPanel(state: state),
-                      Container(
-                        key: const Key('amount-display'),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 4,
-                          horizontal: 12,
-                        ),
-                        alignment: Alignment.centerRight,
-                        decoration: BoxDecoration(
-                          color: state.mode == EntryMode.receiptConfirm
-                              ? confidenceTint(
-                                  state.matchedTotalCandidate?.confidence,
-                                )
-                              : null,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          state.amountYen == 0
-                              ? '¥0'
-                              : formatYen(state.amountYen),
-                          style: Theme.of(context).textTheme.headlineLarge
-                              ?.copyWith(fontFeatures: kTabularFigures),
+                      // 日付（年月日・タップで変更）と金額を1行に統合。金額は右寄せ大、
+                      // 日付は同じ行の左（重なってOK＝独立の日付行を廃止して縦を詰める）。
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            InkWell(
+                              key: const Key('date-tile'),
+                              onTap: () => _pickDate(context, ref, state.date),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: state.mode == EntryMode.receiptConfirm
+                                      ? confidenceTint(
+                                          state.matchedDateCandidate?.confidence)
+                                      : null,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.event,
+                                        size: 16,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .outline),
+                                    const SizedBox(width: 4),
+                                    Text(_dateLabel(state.date),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // 金額は残り幅いっぱいで右寄せ。大きな額でも溢れないよう縮小。
+                            Expanded(
+                              child: Container(
+                                key: const Key('amount-display'),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: state.mode == EntryMode.receiptConfirm
+                                      ? confidenceTint(state
+                                          .matchedTotalCandidate?.confidence)
+                                      : null,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    state.amountYen == 0
+                                        ? '¥0'
+                                        : formatYen(state.amountYen),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge
+                                        ?.copyWith(
+                                            fontFeatures: kTabularFigures),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      // 詳細入力: OCR明細があれば一括内訳、なければ電卓分割
-                      if (!splitMode &&
-                          !batchMode &&
-                          state.mode != EntryMode.edit &&
-                          state.amountYen > 0)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            key: const Key('start-split'),
-                            onPressed: () {
-                              final hasItems =
-                                  state.receipt?.itemLines.isNotEmpty ?? false;
-                              if (hasItems) {
-                                ctrl.startBatchItemize();
-                              } else {
-                                ctrl.startSplit();
-                              }
-                            },
-                            icon: const Icon(Icons.call_split, size: 18),
-                            label: const Text('詳細入力'),
-                          ),
-                        ),
                       if (batchMode)
                         BatchItemizePanel(
                           state: state,
@@ -207,6 +211,7 @@ class EntryScreen extends ConsumerWidget {
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
                       if (!batchMode)
                         Numpad(
+                          cellHeight: 46,
                           onDigit:
                               splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
                           onDoubleZero: splitMode
@@ -255,8 +260,31 @@ class EntryScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // レシート確認モードでは店舗名は上のレビューパネル（候補チップ＋
-                      // 直接入力）で扱うため、ここでは詳細メモのみ。通常/編集では2欄。
+                      // 詳細入力（分割/一括内訳）ボタンはカテゴリの下に置く。
+                      // 分割/一括/編集中と金額0では出さない。
+                      if (!splitMode &&
+                          !batchMode &&
+                          state.mode != EntryMode.edit &&
+                          state.amountYen > 0)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            key: const Key('start-split'),
+                            onPressed: () {
+                              final hasItems =
+                                  state.receipt?.itemLines.isNotEmpty ?? false;
+                              if (hasItems) {
+                                ctrl.startBatchItemize();
+                              } else {
+                                ctrl.startSplit();
+                              }
+                            },
+                            icon: const Icon(Icons.call_split, size: 18),
+                            label: const Text('詳細入力'),
+                          ),
+                        ),
+                      // レシート確認では店舗名は上のレビューパネル（候補チップ＋直接入力）
+                      // で扱うため、ここでは詳細メモのみ。通常/編集では店舗名欄も出す。
                       if (state.mode != EntryMode.receiptConfirm) ...[
                         TextFormField(
                           key: ValueKey('store-field-${state.formSeq}'),
@@ -269,15 +297,29 @@ class EntryScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                       ],
-                      TextFormField(
-                        key: ValueKey('memo-field-${state.formSeq}'),
-                        initialValue: state.memo,
-                        decoration: const InputDecoration(
-                          labelText: '詳細メモ',
-                          border: OutlineInputBorder(),
+                      // 詳細メモは既定で畳む。「メモを追加」ボタンで展開（旧memoExpanded）。
+                      // 既に中身があれば展開表示（編集で開いた時など）。
+                      if (state.memoExpanded || state.memo.isNotEmpty)
+                        TextFormField(
+                          key: ValueKey('memo-field-${state.formSeq}'),
+                          initialValue: state.memo,
+                          autofocus: state.memoExpanded && state.memo.isEmpty,
+                          decoration: const InputDecoration(
+                            labelText: '詳細メモ',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: ctrl.setMemo,
+                        )
+                      else
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            key: const Key('add-memo'),
+                            onPressed: ctrl.toggleMemoExpanded,
+                            icon: const Icon(Icons.note_add_outlined, size: 18),
+                            label: const Text('メモを追加'),
+                          ),
                         ),
-                        onChanged: ctrl.setMemo,
-                      ),
                       const Spacer(),
                       const SizedBox(height: 10),
                       Row(
@@ -345,7 +387,22 @@ class EntryScreen extends ConsumerWidget {
   }
 
   String _dateLabel(CivilDate date) =>
-      '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+      '${date.year}年${date.month}月${date.day}日';
+
+  Future<void> _pickDate(
+      BuildContext context, WidgetRef ref, CivilDate current) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: dateTimeOfCivil(current),
+      firstDate: DateTime(2000, 1, 1),
+      lastDate: DateTime(2100, 12, 31),
+    );
+    if (picked != null) {
+      ref
+          .read(entryFormControllerProvider.notifier)
+          .setDate(civilOfDateTime(picked));
+    }
+  }
 
   Future<void> _scanReceipt(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);

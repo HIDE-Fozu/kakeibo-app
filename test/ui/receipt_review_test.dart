@@ -53,7 +53,7 @@ void main() {
 
     expect(find.text('レシート確認'), findsOneWidget);
     expect(find.text('¥1,080'), findsWidgets); // 金額表示＋候補chip
-    expect(find.text('2026/07/14'), findsOneWidget); // 日付プリフィル
+    expect(find.text('2026年7月14日'), findsOneWidget); // 日付プリフィル（年月日）
     expect(find.text('スーパーA'), findsWidgets); // 店名表示＋メモプリフィル
   });
 
@@ -124,7 +124,7 @@ void main() {
     expect(find.text('レシート確認'), findsOneWidget);
     expect(find.text('¥0'), findsOneWidget);
     expect(find.byKey(const Key('ocr-fallback-note')), findsOneWidget);
-    expect(find.text('2026/07/15'), findsOneWidget); // 今日既定（固定時計）
+    expect(find.text('2026年7月15日'), findsOneWidget); // 今日既定（固定時計・年月日）
     // OCR空でも店舗名ラベルと「直接入力」ボタンは常に出る（手入力できる）
     expect(find.byKey(const Key('store-name')), findsOneWidget);
     expect(find.text('直接入力'), findsOneWidget);
