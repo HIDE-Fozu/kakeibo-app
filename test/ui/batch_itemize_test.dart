@@ -134,6 +134,6 @@ void main() {
     expect(st.splits, hasLength(2));
     expect(st.amountYen, 700);
     expect(st.replacesTxIds, hasLength(2));
-    expect(find.text('内訳'), findsOneWidget);
+    expect(find.byKey(const Key('split-add')), findsOneWidget);
   });
 }

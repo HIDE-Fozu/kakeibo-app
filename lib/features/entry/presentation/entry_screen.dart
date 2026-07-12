@@ -242,14 +242,37 @@ class EntryScreen extends ConsumerWidget {
                             label: const Text('詳細入力'),
                           ),
                         ),
-                      // カテゴリ見出し
+                      // カテゴリ見出し。詳細入力/一括内訳中は右に詳細メモ欄を置く。
                       Padding(
                         padding: const EdgeInsets.only(left: 2, bottom: 4),
-                        child: Text('カテゴリ',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.outline)),
+                        child: Row(
+                          children: [
+                            Text('カテゴリ',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        Theme.of(context).colorScheme.outline)),
+                            if (splitMode || batchMode) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  key: ValueKey('split-memo-${state.formSeq}'),
+                                  initialValue: state.memo,
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: const InputDecoration(
+                                    hintText: '詳細メモ',
+                                    isDense: true,
+                                    contentPadding:
+                                        EdgeInsets.symmetric(vertical: 4),
+                                    border: UnderlineInputBorder(),
+                                  ),
+                                  onChanged: ctrl.setMemo,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                       // 内訳チップは押したカテゴリの真下（グリッド下段＝日用品の位置）に
                       // 薄緑パネルで重ねる。背景と別色なので気づきやすい。高さは取らない。

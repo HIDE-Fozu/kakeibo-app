@@ -34,17 +34,25 @@ class SplitEntryPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 見出し: 内訳 … やめる
+        // 見出し行: 店名を入力（内訳の位置）… やめる
         Row(
           children: [
             Icon(Icons.call_split, size: 15, color: scheme.outline),
-            const SizedBox(width: 4),
-            Text('内訳',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.outline)),
-            const Spacer(),
+            const SizedBox(width: 6),
+            Expanded(
+              child: TextFormField(
+                key: ValueKey('split-store-${state.formSeq}'),
+                initialValue: state.storeName,
+                style: const TextStyle(fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: '店名',
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 6),
+                  border: UnderlineInputBorder(),
+                ),
+                onChanged: ctrl.setStoreName,
+              ),
+            ),
             TextButton(
               key: const Key('cancel-split'),
               onPressed: ctrl.cancelSplit,
@@ -95,7 +103,7 @@ class SplitEntryPanel extends ConsumerWidget {
         const SizedBox(height: 4),
         // 行はスクロール枠に収める（追加しても電卓・カテゴリは動かない）。
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 176),
+          constraints: const BoxConstraints(maxHeight: 150),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
