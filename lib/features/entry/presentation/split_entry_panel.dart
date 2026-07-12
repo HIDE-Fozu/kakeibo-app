@@ -57,25 +57,42 @@ class SplitEntryPanel extends ConsumerWidget {
             color: scheme.primaryContainer.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(11),
           ),
-          // セグメントは下の行と左端を揃える（先頭にラベルを置かない）。
-          child: Row(
+          // 「一括」は見出しとして上に置き、セグメントは下の行と左端を揃える。
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _seg(scheme, [
-                _SegItem('税込', bulkInc == true,
-                    () => ctrl.setSplitBulkIncluded(true),
-                    key: const Key('split-bulk-incl')),
-                _SegItem('税抜', bulkInc == false,
-                    () => ctrl.setSplitBulkIncluded(false),
-                    key: const Key('split-bulk-excl')),
-              ]),
-              const SizedBox(width: 6),
-              _seg(scheme, [
-                _SegItem('8%', bulkRate == 8, () => ctrl.setSplitBulkRate(8)),
-                _SegItem('10%', bulkRate == 10, () => ctrl.setSplitBulkRate(10)),
-              ]),
-              const Spacer(),
-              Text('全行に一括',
-                  style: TextStyle(fontSize: 11, color: scheme.outline)),
+              Row(
+                children: [
+                  Text('一括',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.outline)),
+                  const Spacer(),
+                  Text('全行にまとめて適用',
+                      style: TextStyle(fontSize: 10, color: scheme.outline)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  _seg(scheme, [
+                    _SegItem('税込', bulkInc == true,
+                        () => ctrl.setSplitBulkIncluded(true),
+                        key: const Key('split-bulk-incl')),
+                    _SegItem('税抜', bulkInc == false,
+                        () => ctrl.setSplitBulkIncluded(false),
+                        key: const Key('split-bulk-excl')),
+                  ]),
+                  const SizedBox(width: 6),
+                  _seg(scheme, [
+                    _SegItem(
+                        '8%', bulkRate == 8, () => ctrl.setSplitBulkRate(8)),
+                    _SegItem('10%', bulkRate == 10,
+                        () => ctrl.setSplitBulkRate(10)),
+                  ]),
+                ],
+              ),
             ],
           ),
         ),
