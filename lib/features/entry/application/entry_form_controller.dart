@@ -158,6 +158,32 @@ class EntryFormState {
           ? _splitsValid
           : amountYen > 0 && categoryId != null;
 
+  /// 保存できない理由（canSave=false時）。null=理由なし。UIのヒント表示に使う。
+  String? get saveHint {
+    if (canSave) return null;
+    if (amountYen <= 0) return '金額を入力してください';
+    if (batchItems != null) {
+      if (batchGroups.isEmpty) return '品目にカテゴリを割り当ててください';
+      if (batchDiff < 0) return '割り当てが合計を超えています';
+      if (batchDiff > 0 && batchDiffCategoryId == null) {
+        return '差額のカテゴリを選んでください';
+      }
+      return null;
+    }
+    if (splits != null) {
+      if (splitRemainder < 0) return '内わけが合計を超えています';
+      for (var i = 0; i < splits!.length; i++) {
+        final a = splitLineAmount(i);
+        if (a != null && a > 0 && splits![i].categoryId == null) {
+          return '詳細入力でカテゴリを設定してください';
+        }
+      }
+      return null;
+    }
+    if (categoryId == null) return 'カテゴリを選んでください';
+    return null;
+  }
+
   // --- 一括内訳の導出 ---
 
   /// 行の実効税率: 上書き > (※マーク かつ ヘッダ外税10% → 8%) > ヘッダ。

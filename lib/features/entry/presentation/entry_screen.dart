@@ -98,18 +98,14 @@ class EntryScreen extends ConsumerWidget {
       // 保存ボタンは最下部固定（収まる時はスクロールなし）。内訳チップはメモに重ねて
       // 出すので高さを取らず、メモ・保存は動かない。キーボード等で収まらない時だけスクロール。
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 24,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                       // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）
                       if (state.mode != EntryMode.edit)
                         SegmentedButton<TxnType>(
@@ -222,6 +218,38 @@ class EntryScreen extends ConsumerWidget {
                           onOperator: splitMode ? ctrl.splitTapOperator : null,
                         ),
                       const SizedBox(height: 8),
+                      // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
+                      // 分割/一括/編集中と金額0では出さない。
+                      if (!splitMode &&
+                          !batchMode &&
+                          state.mode != EntryMode.edit &&
+                          state.amountYen > 0)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            key: const Key('start-split'),
+                            onPressed: () {
+                              final hasItems =
+                                  state.receipt?.itemLines.isNotEmpty ?? false;
+                              if (hasItems) {
+                                ctrl.startBatchItemize();
+                              } else {
+                                ctrl.startSplit();
+                              }
+                            },
+                            icon: const Icon(Icons.call_split, size: 18),
+                            label: const Text('詳細入力'),
+                          ),
+                        ),
+                      // カテゴリ見出し
+                      Padding(
+                        padding: const EdgeInsets.only(left: 2, bottom: 4),
+                        child: Text('カテゴリ',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.outline)),
+                      ),
                       // 内訳チップは押したカテゴリの真下（グリッド下段＝日用品の位置）に
                       // 薄緑パネルで重ねる。背景と別色なので気づきやすい。高さは取らない。
                       Stack(
@@ -260,29 +288,6 @@ class EntryScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // 詳細入力（分割/一括内訳）ボタンはカテゴリの下に置く。
-                      // 分割/一括/編集中と金額0では出さない。
-                      if (!splitMode &&
-                          !batchMode &&
-                          state.mode != EntryMode.edit &&
-                          state.amountYen > 0)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            key: const Key('start-split'),
-                            onPressed: () {
-                              final hasItems =
-                                  state.receipt?.itemLines.isNotEmpty ?? false;
-                              if (hasItems) {
-                                ctrl.startBatchItemize();
-                              } else {
-                                ctrl.startSplit();
-                              }
-                            },
-                            icon: const Icon(Icons.call_split, size: 18),
-                            label: const Text('詳細入力'),
-                          ),
-                        ),
                       // レシート確認では店舗名は上のレビューパネル（候補チップ＋直接入力）
                       // で扱うため、ここでは詳細メモのみ。通常/編集では店舗名欄も出す。
                       if (state.mode != EntryMode.receiptConfirm) ...[
@@ -320,9 +325,30 @@ class EntryScreen extends ConsumerWidget {
                             label: const Text('メモを追加'),
                           ),
                         ),
-                      const Spacer(),
-                      const SizedBox(height: 10),
-                      Row(
+                  ],
+                ),
+              ),
+            ),
+            // 固定フッター: 保存エリアは常に見える（内容が伸びても隠れない）。
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!state.canSave && state.saveHint != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        state.saveHint!,
+                        key: const Key('save-hint'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 13),
+                      ),
+                    ),
+                  Row(
                         children: [
                           Expanded(
                             child: FilledButton(
@@ -375,12 +401,10 @@ class EntryScreen extends ConsumerWidget {
                           ],
                         ],
                       ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

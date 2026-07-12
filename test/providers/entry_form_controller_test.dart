@@ -249,6 +249,26 @@ void main() {
       expect(st().splits![0].rate, 8);
     });
 
+    test('saveHint: 残額行のカテゴリ未設定は「詳細入力でカテゴリを設定してください」', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true);
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero(); // 300 → 残額行700が未カテゴリ
+      ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isFalse);
+      expect(st().saveHint, '詳細入力でカテゴリを設定してください');
+
+      // 残額行にカテゴリ → 保存可・ヒント消える
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isTrue);
+      expect(st().saveHint, isNull);
+    });
+
     test('フロー: 合計→開始→行1入力で残額行が自動生成→保存で2取引', () async {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);
