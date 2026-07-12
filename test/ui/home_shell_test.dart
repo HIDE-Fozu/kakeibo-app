@@ -26,7 +26,7 @@ void main() {
     expect(find.byKey(const Key('backup-now')), findsOneWidget);
   });
 
-  testWidgets('FAB「金額を入力する」で入力→戻る（入力画面でもタブは出る）', (tester) async {
+  testWidgets('FAB「金額を入力する」で入力→戻る（入力中はタブ非表示）', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -37,14 +37,15 @@ void main() {
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
 
-    // 入力画面（テンキー）＋ タブは表示されたまま
+    // 入力画面（テンキー）＋ 下部タブは隠れる（縦スペース確保）
     expect(find.byKey(const Key('np-00')), findsOneWidget);
-    expect(find.text('サマリ'), findsOneWidget);
+    expect(find.text('サマリ'), findsNothing);
 
-    // 左上の戻るでカレンダーへ
+    // 左上の戻るでカレンダーへ（タブが戻る）
     await tester.tap(find.byKey(const Key('entry-back')));
     await tester.pumpAndSettle();
     expect(find.text('2026年7月'), findsOneWidget);
     expect(find.byKey(const Key('np-00')), findsNothing);
+    expect(find.text('サマリ'), findsOneWidget);
   });
 }

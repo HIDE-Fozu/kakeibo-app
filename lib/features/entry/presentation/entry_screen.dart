@@ -106,8 +106,9 @@ class EntryScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                      // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）
-                      if (state.mode != EntryMode.edit)
+                      // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）。
+                      // 詳細入力/一括内訳中は場所を空けるため隠す（型は開始前に確定済み）。
+                      if (state.mode != EntryMode.edit && !splitMode && !batchMode)
                         SegmentedButton<TxnType>(
                           segments: const [
                             ButtonSegment(
@@ -287,31 +288,33 @@ class EntryScreen extends ConsumerWidget {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      // レシート確認では店舗名は上のレビューパネル（候補チップ＋直接入力）
-                      // で扱うため、ここでは詳細メモのみ。通常/編集では店舗名欄も出す。
-                      if (state.mode != EntryMode.receiptConfirm) ...[
+                      // 詳細入力/一括内訳中は店舗名/詳細メモを隠して場所を空ける
+                      // （取引全体の項目。保存前に通常画面で入力できる）。
+                      if (!splitMode && !batchMode) ...[
+                        const SizedBox(height: 8),
+                        // レシート確認では店舗名は上のレビューパネルで扱うため詳細メモのみ。
+                        if (state.mode != EntryMode.receiptConfirm) ...[
+                          TextFormField(
+                            key: ValueKey('store-field-${state.formSeq}'),
+                            initialValue: state.storeName,
+                            decoration: const InputDecoration(
+                              labelText: '店舗名',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: ctrl.setStoreName,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                         TextFormField(
-                          key: ValueKey('store-field-${state.formSeq}'),
-                          initialValue: state.storeName,
+                          key: ValueKey('memo-field-${state.formSeq}'),
+                          initialValue: state.memo,
                           decoration: const InputDecoration(
-                            labelText: '店舗名',
+                            labelText: '詳細メモ',
                             border: OutlineInputBorder(),
                           ),
-                          onChanged: ctrl.setStoreName,
+                          onChanged: ctrl.setMemo,
                         ),
-                        const SizedBox(height: 8),
                       ],
-                      // 詳細メモは初期から表示（店舗名の下に常時）。
-                      TextFormField(
-                        key: ValueKey('memo-field-${state.formSeq}'),
-                        initialValue: state.memo,
-                        decoration: const InputDecoration(
-                          labelText: '詳細メモ',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: ctrl.setMemo,
-                      ),
                   ],
                 ),
               ),

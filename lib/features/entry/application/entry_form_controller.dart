@@ -171,7 +171,7 @@ class EntryFormState {
       return null;
     }
     if (splits != null) {
-      if (splitRemainder < 0) return '内わけが合計を超えています';
+      if (splitRemainder < 0) return '内訳が合計を超えています';
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {

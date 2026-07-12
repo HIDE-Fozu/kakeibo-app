@@ -37,7 +37,7 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
-    expect(find.text('詳細入力（合計 ¥1,000）'), findsOneWidget);
+    expect(find.text('内訳'), findsOneWidget);
     expect(find.byKey(const Key('np-op-+')), findsOneWidget);
 
     // 1行目は自動額なし

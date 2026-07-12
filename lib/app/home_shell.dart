@@ -87,16 +87,20 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               label: const Text('金額を入力する'),
             )
           : null,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navSelected < 0 ? 0 : navSelected,
-        onDestinationSelected: _onSelect,
-        destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.calendar_month), label: 'カレンダー'),
-          NavigationDestination(icon: Icon(Icons.bar_chart), label: 'サマリ'),
-          NavigationDestination(icon: Icon(Icons.settings), label: '設定'),
-        ],
-      ),
+      // 入力画面表示中は下部タブを隠して縦スペースを空ける（戻るは入力画面の「←」）。
+      bottomNavigationBar: index == kInputTabIndex
+          ? null
+          : NavigationBar(
+              selectedIndex: navSelected < 0 ? 0 : navSelected,
+              onDestinationSelected: _onSelect,
+              destinations: const [
+                NavigationDestination(
+                    icon: Icon(Icons.calendar_month), label: 'カレンダー'),
+                NavigationDestination(
+                    icon: Icon(Icons.bar_chart), label: 'サマリ'),
+                NavigationDestination(icon: Icon(Icons.settings), label: '設定'),
+              ],
+            ),
     );
   }
 }
