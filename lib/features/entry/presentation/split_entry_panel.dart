@@ -97,6 +97,15 @@ class SplitEntryPanel extends ConsumerWidget {
           ),
         ),
         for (var i = 0; i < lines.length; i++) _line(context, ref, i),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const Key('split-add'),
+            onPressed: ctrl.addSplitLine,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('行を追加'),
+          ),
+        ),
         _recon(context),
       ],
     );

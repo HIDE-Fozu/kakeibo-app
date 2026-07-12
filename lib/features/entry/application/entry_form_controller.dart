@@ -178,7 +178,9 @@ class EntryFormState {
           return 'カテゴリを選んでください';
         }
       }
-      // まだ金額が1件も入っていない（詳細入力を開いた直後など）
+      if (splitFixedSum <= 0) return '金額とカテゴリを入力してください';
+      // 金額はあるが合計に届かない（残りの行を追加/入力）
+      if (splitRemainder > 0) return '残りの金額も入力してください';
       return '金額とカテゴリを入力してください';
     }
     if (categoryId == null) return 'カテゴリを選んでください';
@@ -253,12 +255,15 @@ class EntryFormState {
     final lines = splits;
     if (lines == null || amountYen <= 0) return false;
     var sum = 0;
+    var count = 0;
     for (var i = 0; i < lines.length; i++) {
       final a = splitLineAmount(i);
-      if (a == null || a <= 0 || lines[i].categoryId == null) return false;
+      if (a == null) continue; // 空の行は無視（2行開始や「追加」の空枠）
+      if (a <= 0 || lines[i].categoryId == null) return false; // 金額ありでカテゴリ無し
       sum += a;
+      count++;
     }
-    return sum == amountYen;
+    return count > 0 && sum == amountYen;
   }
 
   AmountCandidate? get matchedTotalCandidate {
@@ -646,11 +651,24 @@ class EntryFormController extends Notifier<EntryFormState?> {
       return;
     }
     state = _s.copyWith(
-      splits: const [SplitLine()],
+      // 2行で開始。以降は自動では増やさず「追加」ボタンで足す。
+      splits: const [SplitLine(), SplitLine()],
       activeSplitIndex: 0,
       batchItems: null,
       expandedParentId: null,
     );
+  }
+
+  /// 「追加」: 空の行を末尾に足してアクティブにする（自動増加はしない）。
+  void addSplitLine() {
+    final lines = _s.splits;
+    if (lines == null) return;
+    final last = lines.last;
+    final next = [
+      ...lines,
+      SplitLine(taxIncluded: last.taxIncluded, rate: last.rate),
+    ];
+    state = _s.copyWith(splits: next, activeSplitIndex: next.length - 1);
   }
 
   void cancelSplit() =>
@@ -679,10 +697,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final lines = [..._s.splits!];
     if (i < 0 || i >= lines.length) return;
     lines[i] = lines[i].copyWith(expr: '');
-    final adjusted = _autoExtend(lines);
     state = _s.copyWith(
-      splits: adjusted,
-      activeSplitIndex: i.clamp(0, adjusted.length - 1),
+      splits: lines,
+      activeSplitIndex: i.clamp(0, lines.length - 1),
     );
   }
 
@@ -736,15 +753,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final lines = [..._s.splits!];
     if (index < 0 || index >= lines.length) return;
     lines[index] = f(lines[index]);
-    state = _s.copyWith(splits: _autoExtend(lines));
+    state = _s.copyWith(splits: lines);
   }
 
   /// 一括: 全行の「税込/税抜」を揃える（詳細入力の横の一括選択）。
   void setSplitBulkIncluded(bool included) {
     if (_s.splits == null) return;
     state = _s.copyWith(
-        splits: _autoExtend(
-            [for (final l in _s.splits!) l.copyWith(taxIncluded: included)]));
+        splits: [for (final l in _s.splits!) l.copyWith(taxIncluded: included)]);
   }
 
   /// 一括: 全行の税率(8/10)を揃える。
@@ -752,8 +768,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     assert(rate == 8 || rate == 10);
     if (_s.splits == null) return;
     state = _s.copyWith(
-        splits:
-            _autoExtend([for (final l in _s.splits!) l.copyWith(rate: rate)]));
+        splits: [for (final l in _s.splits!) l.copyWith(rate: rate)]);
   }
 
   /// カテゴリに対応する軽減税率の自動値（食費=8 / 外食=10 / 他=null）。
@@ -791,36 +806,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final lines = [..._s.splits!];
     final i = _s.activeSplitIndex;
     lines[i] = f(lines[i]);
-    final adjusted = _autoExtend(lines);
-    // 末尾の空行が畳まれた場合に active が範囲外にならないように
-    final active = _s.activeSplitIndex.clamp(0, adjusted.length - 1);
+    // 行の増減はしない（開始2行＋「追加」ボタンで手動管理）。
     state = expandedParentId is _Keep
-        ? _s.copyWith(splits: adjusted, activeSplitIndex: active)
+        ? _s.copyWith(splits: lines)
         : _s.copyWith(
-            splits: adjusted,
-            activeSplitIndex: active,
+            splits: lines,
             expandedParentId: expandedParentId as int?);
-  }
-
-  /// 末尾行が入力済みで残額が残るなら、残額を担う空行を自動生成
-  /// （ユーザー仕様:「内訳1を入れると内訳2に合計−内訳1が出る」）。
-  /// 逆に残額が消えたら、役割を失った末尾の空行を畳む（編集し直しで発生）。
-  List<SplitLine> _autoExtend(List<SplitLine> lines) {
-    final fixed = lines.fold(0, (a, l) => a + (l.amountYen ?? 0));
-    final remainder = _s.amountYen - fixed;
-    final last = lines.last;
-    if (last.expr.isNotEmpty && last.amountYen != null && remainder > 0) {
-      // 新しい残額行は直前の行の税設定を引き継ぐ（同じ税で続けて入れやすい）。
-      return [...lines, SplitLine(taxIncluded: last.taxIncluded, rate: last.rate)];
-    }
-    if (remainder <= 0 && lines.length > 1 && last.expr.isEmpty) {
-      final out = [...lines];
-      while (out.length > 1 && out.last.expr.isEmpty) {
-        out.removeLast();
-      }
-      return out;
-    }
-    return lines;
   }
 
   void setDate(CivilDate date) => state = _s.copyWith(date: date);
@@ -855,8 +846,10 @@ class EntryFormController extends Notifier<EntryFormState?> {
     if (s.splits != null) {
       final splitLines = s.splits!;
       return _saveGroupLines(s, [
+        // 空の行（金額なし）は保存しない。金額ありの行だけ束ねる。
         for (var i = 0; i < splitLines.length; i++)
-          (splitLines[i].categoryId!, s.splitLineAmount(i)!),
+          if (s.splitLineAmount(i) != null && splitLines[i].categoryId != null)
+            (splitLines[i].categoryId!, s.splitLineAmount(i)!),
       ]);
     }
     // 開き直しから通常保存に落ちたケースも置換を保証する

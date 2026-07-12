@@ -273,7 +273,30 @@ void main() {
       expect(st().saveHint, isNull);
     });
 
-    test('フロー: 合計→開始→行1入力で残額行が自動生成→保存で2取引', () async {
+    test('行は自動で増えない・「追加」で増える', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      expect(st().splits, hasLength(2)); // 2行で開始
+
+      // 数字を入れても行は増えない
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero(); // 行0=300
+      expect(st().splits, hasLength(2));
+      ctrl().setActiveSplit(1);
+      ctrl().splitTapDigit(2);
+      ctrl().splitTapDoubleZero(); // 行1=200
+      expect(st().splits, hasLength(2));
+
+      // 「追加」で3行目・アクティブに
+      ctrl().addSplitLine();
+      expect(st().splits, hasLength(3));
+      expect(st().activeSplitIndex, 2);
+    });
+
+    test('フロー: 2行で開始→行1入力で2行目に残額→保存で2取引', () async {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);
       ctrl().tapDoubleZero();
@@ -282,18 +305,19 @@ void main() {
 
       ctrl().startSplit();
       ctrl().setSplitBulkIncluded(true); // 税込で入力＝入力額そのまま（残額の検証を単純化）
-      expect(st().splits, hasLength(1));
+      expect(st().splits, hasLength(2)); // 2行で開始（自動では増やさない）
       expect(st().canSave, isFalse);
-      // 1行目は自動で残額を入れない（空のまま。手入力してから2行目に残額が出る）
+      // 何も入れていないうちは残額を出さない
       expect(st().splitLineAmount(0), isNull);
+      expect(st().splitLineAmount(1), isNull);
 
       // 行1: 300円（税込）＋食費
       ctrl().splitTapDigit(3);
       ctrl().splitTapDoubleZero();
-      // 残額700が残る → 空の残額行が自動生成されている（2行目に残額）
+      // 行が増えず2行のまま。2行目（末尾の空行）に残額700が出る
       expect(st().splits, hasLength(2));
       expect(st().splitLineAmount(0), 300); // 手入力した1行目
-      expect(st().splitLineAmount(1), 700); // 2行目=自動の残額
+      expect(st().splitLineAmount(1), 700); // 2行目=残額
       ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
       expect(st().splits![0].categoryId, foodId);
 
