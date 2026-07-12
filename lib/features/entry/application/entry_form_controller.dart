@@ -22,12 +22,14 @@ class SplitLine {
   final int rate; // 8 / 10（税抜時に適用。税込時は記録のみ）
   final bool taxTouched; // 手で税を変えたか（カテゴリ自動で上書きしないため）
   final int? categoryId;
+  final String memo; // 行ごとの詳細メモ（各取引に保存）
   const SplitLine({
     this.expr = '',
     this.taxIncluded = false,
     this.rate = 10,
     this.taxTouched = false,
     this.categoryId,
+    this.memo = '',
   });
 
   SplitLine copyWith({
@@ -36,6 +38,7 @@ class SplitLine {
     int? rate,
     bool? taxTouched,
     int? categoryId,
+    String? memo,
   }) =>
       SplitLine(
         expr: expr ?? this.expr,
@@ -43,6 +46,7 @@ class SplitLine {
         rate: rate ?? this.rate,
         taxTouched: taxTouched ?? this.taxTouched,
         categoryId: categoryId ?? this.categoryId,
+        memo: memo ?? this.memo,
       );
 
   /// 入力額（生の値・税抜/税込どちらでも）。式が空/不正なら null。
@@ -637,7 +641,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
               expr: '${t.amountYen}',
               taxIncluded: true,
               taxTouched: true,
-              categoryId: t.categoryId)
+              categoryId: t.categoryId,
+              memo: t.memo ?? '')
       ],
       replacesTxIds: [for (final t in txs) t.id!],
       reuseSplitGroupId: first.splitGroupId,
@@ -701,6 +706,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
       splits: lines,
       activeSplitIndex: i.clamp(0, lines.length - 1),
     );
+  }
+
+  /// 行ごとの詳細メモ（各取引に保存）。
+  void setSplitMemo(int index, String memo) {
+    final lines = [..._s.splits!];
+    if (index < 0 || index >= lines.length) return;
+    lines[index] = lines[index].copyWith(memo: memo);
+    state = _s.copyWith(splits: lines);
   }
 
   void splitTapDigit(int digit) {
@@ -841,20 +854,21 @@ class EntryFormController extends Notifier<EntryFormState?> {
         groups[cat] = (groups[cat] ?? 0) + diff;
       }
       return _saveGroupLines(
-          s, [for (final e in groups.entries) (e.key, e.value)]);
+          s, [for (final e in groups.entries) (e.key, e.value, null)]);
     }
     if (s.splits != null) {
       final splitLines = s.splits!;
       return _saveGroupLines(s, [
-        // 空の行（金額なし）は保存しない。金額ありの行だけ束ねる。
+        // 空の行（金額なし）は保存しない。金額ありの行だけ束ねる（行メモも付与）。
         for (var i = 0; i < splitLines.length; i++)
           if (s.splitLineAmount(i) != null && splitLines[i].categoryId != null)
-            (splitLines[i].categoryId!, s.splitLineAmount(i)!),
+            (splitLines[i].categoryId!, s.splitLineAmount(i)!,
+                splitLines[i].memo),
       ]);
     }
     // 開き直しから通常保存に落ちたケースも置換を保証する
     if (s.replacesTxIds != null) {
-      return _saveGroupLines(s, [(s.categoryId!, s.amountYen)]);
+      return _saveGroupLines(s, [(s.categoryId!, s.amountYen, null)]);
     }
     _labelFixture(s, s.amountYen);
     final repo = ref.read(transactionRepositoryProvider);
@@ -890,27 +904,30 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// 分割/一括内訳の保存: 各行を別々の取引として追加し、同じ splitGroupId で
   /// 束ねる（=「1枚のレシート」）。開き直しなら旧取引を置換しIDを引き継ぐ。
   /// 画像は先頭の取引にのみ紐づける（重複参照による削除時の破綻を回避）。
-  Future<void> _saveGroupLines(
-      EntryFormState s, List<(int categoryId, int amountYen)> lines) async {
+  Future<void> _saveGroupLines(EntryFormState s,
+      List<(int categoryId, int amountYen, String? memo)> lines) async {
     assert(lines.isNotEmpty);
     _labelFixture(s, lines.fold(0, (a, l) => a + l.$2));
     final repo = ref.read(transactionRepositoryProvider);
     final store = s.storeName.trim();
-    final memo = s.memo.trim();
+    final groupMemo = s.memo.trim(); // 行メモが無い場合のフォールバック
     for (final id in s.replacesTxIds ?? const <int>[]) {
       await repo.delete(id);
     }
     final groupId = s.reuseSplitGroupId ??
         '${ref.read(utcNowProvider)().microsecondsSinceEpoch}-${++_seq}';
     var image = _finalizeReceiptImage(s);
-    for (final (categoryId, amountYen) in lines) {
+    for (final (categoryId, amountYen, lineMemo) in lines) {
+      final m = (lineMemo != null && lineMemo.trim().isNotEmpty)
+          ? lineMemo.trim()
+          : (groupMemo.isEmpty ? null : groupMemo);
       await repo.add(TransactionEntity(
         type: s.type,
         amountYen: amountYen,
         date: s.date,
         categoryId: categoryId,
         storeName: store.isEmpty ? null : store,
-        memo: memo.isEmpty ? null : memo,
+        memo: m,
         source: s.source,
         imagePath: image,
         splitGroupId: groupId,

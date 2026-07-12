@@ -249,6 +249,34 @@ void main() {
       expect(st().splits![0].rate, 8);
     });
 
+    test('行ごとの詳細メモが各取引に保存される', () async {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true); // 税込で単純化
+
+      // 行0: 300 ＋ 日用品 ＋ メモ「洗剤」
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero();
+      ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      ctrl().setSplitMemo(0, '洗剤');
+      // 行1（残額700） ＋ 食費 ＋ メモ「牛乳」
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      ctrl().setSplitMemo(1, '牛乳');
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(2));
+      final byMemo = {for (final t in txs) t.memo: t.amountYen};
+      expect(byMemo['洗剤'], 300);
+      expect(byMemo['牛乳'], 700);
+    });
+
     test('saveHint: 詳細入力は開始直後も未カテゴリも理由が出る・完了で消える', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);

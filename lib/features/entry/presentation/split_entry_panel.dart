@@ -77,8 +77,11 @@ class SplitEntryPanel extends ConsumerWidget {
               _rateSeg(scheme, ctrl, bulkRate, muted: false, bulk: true),
               const Spacer(),
               Text('一括',
-                  style: TextStyle(fontSize: 10.5, color: scheme.outline)),
-              const SizedBox(width: 6),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.primary)),
+              const SizedBox(width: 8),
               InkWell(
                 key: const Key('split-add'),
                 onTap: ctrl.addSplitLine,
@@ -190,11 +193,7 @@ class SplitEntryPanel extends ConsumerWidget {
     final catName =
         line.categoryId == null ? null : categoryNames[line.categoryId];
     final net = state.splitLineAmount(i); // 税込値（末尾空行=残額）
-    final entered = line.enteredYen;
     final isRemainder = line.expr.isEmpty;
-
-    // l2の金額: 手入力は入力額、末尾空行は残額。入力/自動の語は付けず、自動は太字。
-    final shown = isRemainder ? net : entered;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4, left: 2, right: 2),
@@ -248,14 +247,25 @@ class SplitEntryPanel extends ConsumerWidget {
                       color: catName == null ? scheme.error : scheme.onSurface,
                     ),
                   ),
-                  const Spacer(),
-                  Text(shown == null ? '' : formatYen(shown),
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              isRemainder ? FontWeight.w700 : FontWeight.normal,
-                          color: scheme.outline,
-                          fontFeatures: kTabularFigures)),
+                  // カテゴリを選んだら、その右に行ごとの詳細メモ欄を出す。
+                  if (line.categoryId != null) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        key: ValueKey('split-linememo-$i-${state.formSeq}'),
+                        initialValue: line.memo,
+                        style: const TextStyle(fontSize: 12),
+                        decoration: const InputDecoration(
+                          hintText: 'メモ',
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 2),
+                          border: UnderlineInputBorder(),
+                        ),
+                        onChanged: (v) => ctrl.setSplitMemo(i, v),
+                      ),
+                    ),
+                  ] else
+                    const Spacer(),
                   const SizedBox(width: 6),
                   InkWell(
                     key: Key('split-clear-$i'),
