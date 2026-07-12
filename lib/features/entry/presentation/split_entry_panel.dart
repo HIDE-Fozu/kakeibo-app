@@ -6,8 +6,8 @@ import '../../../core/format.dart';
 import '../application/entry_form_controller.dart';
 
 /// 詳細入力（分割）パネル。
-/// 行をタップでアクティブ化→テンキー（＋−×÷付き）とカテゴリグリッドが
-/// その行に入る。末尾の空行は自動的に「残り」を担う。
+/// 行をタップでアクティブ化→テンキー（＋−×÷付き）とカテゴリグリッドがその行に入る。
+/// 税は行ごとに「税込/税抜」と「8%/10%」の2軸。上部に一括選択。末尾の空行は残額を担う。
 class SplitEntryPanel extends ConsumerWidget {
   final EntryFormState state;
 
@@ -26,6 +26,12 @@ class SplitEntryPanel extends ConsumerWidget {
     final lines = state.splits!;
     final scheme = Theme.of(context).colorScheme;
 
+    // 一括の選択表示: 全行が同じなら点灯、まちまちなら無点灯。
+    final incVals = {for (final l in lines) l.taxIncluded};
+    final bulkInc = incVals.length == 1 ? incVals.first : null;
+    final rateVals = {for (final l in lines) l.rate};
+    final bulkRate = rateVals.length == 1 ? rateVals.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -43,17 +49,84 @@ class SplitEntryPanel extends ConsumerWidget {
             ),
           ],
         ),
-        for (var i = 0; i < lines.length; i++) _line(context, ref, i),
-        if (state.splitRemainder < 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              '合計を ${formatYen(-state.splitRemainder)} 超えています',
-              key: const Key('split-over'),
-              style: TextStyle(color: scheme.error),
-            ),
+        // 一括: 全行の税をまとめて設定
+        Container(
+          margin: const EdgeInsets.only(top: 2, bottom: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: scheme.primaryContainer.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(11),
           ),
+          child: Row(
+            children: [
+              Text('一括',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.outline)),
+              const SizedBox(width: 8),
+              _seg(scheme, [
+                _SegItem('税込', bulkInc == true,
+                    () => ctrl.setSplitBulkIncluded(true),
+                    key: const Key('split-bulk-incl')),
+                _SegItem('税抜', bulkInc == false,
+                    () => ctrl.setSplitBulkIncluded(false),
+                    key: const Key('split-bulk-excl')),
+              ]),
+              const SizedBox(width: 6),
+              _seg(scheme, [
+                _SegItem('8%', bulkRate == 8, () => ctrl.setSplitBulkRate(8)),
+                _SegItem('10%', bulkRate == 10, () => ctrl.setSplitBulkRate(10)),
+              ]),
+              const Spacer(),
+              Text('全行に適用',
+                  style: TextStyle(fontSize: 11, color: scheme.outline)),
+            ],
+          ),
+        ),
+        for (var i = 0; i < lines.length; i++) _line(context, ref, i),
+        _recon(context),
       ],
+    );
+  }
+
+  // --- 税セグメント（共通） ---
+  Widget _seg(ColorScheme scheme, List<_SegItem> items, {bool muted = false}) {
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        border: Border.all(color: scheme.outlineVariant),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final it in items)
+            InkWell(
+              key: it.key,
+              onTap: it.onTap,
+              borderRadius: BorderRadius.circular(7),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: it.selected
+                      ? (muted ? scheme.outlineVariant : scheme.primary)
+                      : null,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Text(it.label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight:
+                            it.selected ? FontWeight.w600 : FontWeight.normal,
+                        color: it.selected
+                            ? (muted ? scheme.onSurface : scheme.onPrimary)
+                            : scheme.onSurfaceVariant)),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -65,47 +138,18 @@ class SplitEntryPanel extends ConsumerWidget {
     final active = i == state.activeSplitIndex;
     final catName =
         line.categoryId == null ? null : categoryNames[line.categoryId];
-    final amount = state.splitLineAmount(i);
+    final net = state.splitLineAmount(i); // 税込値（末尾空行=残額）
+    final entered = line.enteredYen;
+    final isRemainder = line.expr.isEmpty;
 
-    // 金額表示: 手入力でも自動（残額）でも同じ「¥金額」。入力中の行だけ式を見せる
-    // （電卓フィードバック）。灰色や「残り」は使わない＝自動でも当たり前に見せる。
-    final String amountLabel;
-    if (active && line.expr.isNotEmpty) {
-      final hasOp = RegExp(r'[+\-×÷]').hasMatch(line.expr);
-      amountLabel = (hasOp || line.taxPercent != 0)
-          ? '${line.expr}${amount == null ? ' = ?' : ' = ${formatYen(amount)}'}'
-          : formatYen(amount ?? 0);
+    // 入力額の表示（手入力/自動で同形式の¥金額。入力中で式のときだけ式を見せる）
+    final String mainLabel;
+    if (isRemainder) {
+      mainLabel = net == null ? '' : '自動 ${formatYen(net)}';
+    } else if (active && RegExp(r'[+\-×÷]').hasMatch(line.expr)) {
+      mainLabel = line.expr;
     } else {
-      amountLabel = amount == null ? '¥ —' : formatYen(amount);
-    }
-
-    // 税方式チップ（税込/外税8%/外税10%）。選択は塗り、非選択も読める色に。
-    Widget taxChip(String label, int percent) {
-      final selected = line.taxPercent == percent;
-      return Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: InkWell(
-          key: Key('split-tax$percent-$i'),
-          onTap: () => ctrl.setSplitTaxPercent(i, percent),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color:
-                  selected ? scheme.primary : scheme.surfaceContainerHighest,
-              border: Border.all(
-                  color: selected ? scheme.primary : scheme.outline),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.normal,
-                    color: selected ? scheme.onPrimary : scheme.onSurface)),
-          ),
-        ),
-      );
+      mainLabel = entered == null ? '¥ —' : '入力 ${formatYen(entered)}';
     }
 
     return Padding(
@@ -127,56 +171,81 @@ class SplitEntryPanel extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1段目: カテゴリ名 ／ クリア ／ 削除
+              // 1段目: 税(税込/税抜)・税率(8/10) ／ 右に税込換算
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      catName ?? 'カテゴリ未選択',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: catName == null ? scheme.error : scheme.outline,
-                      ),
+                  _seg(scheme, [
+                    _SegItem('税込', line.taxIncluded,
+                        () => ctrl.setSplitIncluded(i, true),
+                        key: Key('split-incl-$i')),
+                    _SegItem('税抜', !line.taxIncluded,
+                        () => ctrl.setSplitIncluded(i, false),
+                        key: Key('split-excl-$i')),
+                  ]),
+                  const SizedBox(width: 6),
+                  _seg(scheme, muted: line.taxIncluded, [
+                    _SegItem('8%', line.rate == 8, () => ctrl.setSplitRate(i, 8),
+                        key: Key('split-rate8-$i')),
+                    _SegItem('10%', line.rate == 10,
+                        () => ctrl.setSplitRate(i, 10),
+                        key: Key('split-rate10-$i')),
+                  ]),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(isRemainder ? '残り（税込）' : '税込',
+                          style:
+                              TextStyle(fontSize: 10, color: scheme.outline)),
+                      Text(net == null ? '¥ —' : formatYen(net),
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              fontFeatures: kTabularFigures)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              // 2段目: カテゴリ ／ 入力額 ／ クリア・削除
+              Row(
+                children: [
+                  Text(
+                    catName ?? 'カテゴリ未選択',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: catName == null ? scheme.error : scheme.onSurface,
                     ),
                   ),
+                  const Spacer(),
+                  Text(mainLabel,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: scheme.outline,
+                          fontFeatures: kTabularFigures)),
                   InkWell(
                     key: Key('split-clear-$i'),
                     onTap: () => ctrl.clearSplitLine(i),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       child: Text('クリア',
                           style:
                               TextStyle(fontSize: 12, color: scheme.primary)),
                     ),
                   ),
                   if (lines.length > 1)
-                    IconButton(
+                    InkWell(
                       key: Key('split-remove-$i'),
-                      visualDensity: VisualDensity.compact,
-                      iconSize: 18,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: const Icon(Icons.close),
-                      onPressed: () => ctrl.removeSplitLine(i),
+                      onTap: () => ctrl.removeSplitLine(i),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: Icon(Icons.close, size: 18, color: scheme.outline),
+                      ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              // 2段目: 金額（手入力/自動で同形式） ／ 税方式(税込・外税8・外税10)
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      amountLabel,
-                      style: const TextStyle(
-                          fontSize: 16, fontFeatures: kTabularFigures),
-                    ),
-                  ),
-                  taxChip('税込', 0),
-                  taxChip('外税8%', 8),
-                  taxChip('外税10%', 10),
                 ],
               ),
             ],
@@ -185,4 +254,55 @@ class SplitEntryPanel extends ConsumerWidget {
       ),
     );
   }
+
+  // --- 合計との一致確認 ---
+  Widget _recon(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final over = state.splitRemainder < 0;
+    return Container(
+      margin: const EdgeInsets.only(top: 10, bottom: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      decoration: BoxDecoration(
+        color: over
+            ? scheme.errorContainer.withValues(alpha: 0.5)
+            : scheme.primaryContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: over
+          ? Text(
+              '合計を ${formatYen(-state.splitRemainder)} 超えています',
+              key: const Key('split-over'),
+              style: TextStyle(color: scheme.error, fontWeight: FontWeight.w600),
+            )
+          : Row(
+              children: [
+                Text('内わけ合計',
+                    style: TextStyle(fontSize: 13, color: scheme.outline)),
+                const SizedBox(width: 8),
+                Text(formatYen(state.amountYen),
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: kTabularFigures)),
+                const Spacer(),
+                Icon(Icons.check_circle, size: 15, color: scheme.primary),
+                const SizedBox(width: 4),
+                Text('合計と一致',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary)),
+              ],
+            ),
+    );
+  }
+}
+
+/// セグメント1項目の指定。
+class _SegItem {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Key? key;
+  const _SegItem(this.label, this.selected, this.onTap, {this.key});
 }

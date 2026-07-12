@@ -14,23 +14,45 @@ import 'split_calc.dart';
 enum EntryMode { create, receiptConfirm, edit }
 
 /// 詳細入力（分割）の1行。合計をカテゴリ別に分けて複数取引として保存する。
+/// 税は2軸: taxIncluded(税込/税抜) と rate(8/10)。税抜なら rate を乗せ、
+/// 税込ならそのまま（rateは記録のみ）。
 class SplitLine {
   final String expr; // 電卓式（evalCalcExpr が評価。空=残額行/未入力）
-  final int taxPercent; // 0=内税(そのまま) / 8 / 10（外税・切り捨て）
+  final bool taxIncluded; // true=税込(そのまま) / false=税抜(rateを乗せる・切り捨て)
+  final int rate; // 8 / 10（税抜時に適用。税込時は記録のみ）
+  final bool taxTouched; // 手で税を変えたか（カテゴリ自動で上書きしないため）
   final int? categoryId;
-  const SplitLine({this.expr = '', this.taxPercent = 0, this.categoryId});
+  const SplitLine({
+    this.expr = '',
+    this.taxIncluded = false,
+    this.rate = 10,
+    this.taxTouched = false,
+    this.categoryId,
+  });
 
-  SplitLine copyWith({String? expr, int? taxPercent, int? categoryId}) =>
+  SplitLine copyWith({
+    String? expr,
+    bool? taxIncluded,
+    int? rate,
+    bool? taxTouched,
+    int? categoryId,
+  }) =>
       SplitLine(
         expr: expr ?? this.expr,
-        taxPercent: taxPercent ?? this.taxPercent,
+        taxIncluded: taxIncluded ?? this.taxIncluded,
+        rate: rate ?? this.rate,
+        taxTouched: taxTouched ?? this.taxTouched,
         categoryId: categoryId ?? this.categoryId,
       );
 
-  /// 式の評価結果に外税を適用した金額。式が空/不正なら null。
+  /// 入力額（生の値・税抜/税込どちらでも）。式が空/不正なら null。
+  int? get enteredYen => evalCalcExpr(expr);
+
+  /// 合計に効く税込値。税込ならそのまま、税抜なら rate を乗せる（切り捨て）。
   int? get amountYen {
     final v = evalCalcExpr(expr);
-    return v == null ? null : applyTax(v, taxPercent);
+    if (v == null) return null;
+    return taxIncluded ? v : applyTax(v, rate);
   }
 }
 
@@ -184,13 +206,16 @@ class EntryFormState {
   /// 残額（合計 − 式あり行合計）。末尾の空行がこれを担う。マイナス=入れ過ぎ。
   int get splitRemainder => amountYen - splitFixedSum;
 
-  /// 行の実効金額。空の式は「末尾の行だけ」残額を自動で担う。
-  /// それ以外の空/不正行は null（保存不可）。
+  /// 行の実効金額。空の式は「末尾の行だけ」残額を自動で担う。ただし1件も
+  /// 手入力が無いうち（＝先頭行だけの初期状態）は自動額を入れない。残額は
+  /// 「ユーザーが1行目を入れて初めて2行目以降に現れる」。他の空/不正行は null。
   int? splitLineAmount(int i) {
     final lines = splits!;
     final l = lines[i];
     if (l.expr.isEmpty) {
-      return (i == lines.length - 1 && splitRemainder > 0)
+      final hasFilled = lines.any((x) =>
+          x.expr.isNotEmpty && (x.amountYen ?? 0) > 0);
+      return (i == lines.length - 1 && hasFilled && splitRemainder > 0)
           ? splitRemainder
           : null;
     }
@@ -412,9 +437,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
           expandedParentId: hasSubs ? categoryId : null);
       return;
     }
-    // 分割モード中はアクティブ行のカテゴリに書く
+    // 分割モード中はアクティブ行のカテゴリに書く（食費=8%等を自動適用）
     if (_s.splits != null) {
-      _updateActiveSplit((l) => l.copyWith(categoryId: categoryId),
+      _updateActiveSplit((l) => _withSplitCategory(l, categoryId),
           expandedParentId: hasSubs ? categoryId : null);
       return;
     }
@@ -449,7 +474,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
     if (_s.splits != null) {
       _updateActiveSplit(
-          (l) => l.copyWith(categoryId: l.categoryId == subId ? parent : subId),
+          (l) => _withSplitCategory(l, l.categoryId == subId ? parent : subId),
           expandedParentId: null);
       return;
     }
@@ -574,8 +599,13 @@ class EntryFormController extends Notifier<EntryFormState?> {
       imagePath: first.imagePath,
       memoExpanded: (first.memo ?? '').isNotEmpty,
       splits: [
+        // 保存済み額は確定済み（税込）。そのまま扱う＝税込・手動扱いで自動税率を効かせない。
         for (final t in txs)
-          SplitLine(expr: '${t.amountYen}', categoryId: t.categoryId)
+          SplitLine(
+              expr: '${t.amountYen}',
+              taxIncluded: true,
+              taxTouched: true,
+              categoryId: t.categoryId)
       ],
       replacesTxIds: [for (final t in txs) t.id!],
       reuseSplitGroupId: first.splitGroupId,
@@ -665,29 +695,68 @@ class EntryFormController extends Notifier<EntryFormState?> {
         : l.copyWith(expr: l.expr.substring(0, l.expr.length - 1)));
   }
 
-  /// 税トグル: 同じ%を再タップで内税(0)に戻す。
-  void setSplitTax(int index, int percent) {
-    assert(percent == 8 || percent == 10);
+  /// 行の「税込/税抜」を設定（手動＝以後カテゴリ自動で上書きしない）。
+  void setSplitIncluded(int index, bool included) => _setLineTax(
+      index, (l) => l.copyWith(taxIncluded: included, taxTouched: true));
+
+  /// 行の税率(8/10)を設定（手動＝以後カテゴリ自動で上書きしない）。
+  void setSplitRate(int index, int rate) {
+    assert(rate == 8 || rate == 10);
+    _setLineTax(index, (l) => l.copyWith(rate: rate, taxTouched: true));
+  }
+
+  void _setLineTax(int index, SplitLine Function(SplitLine) f) {
     final lines = [..._s.splits!];
     if (index < 0 || index >= lines.length) return;
-    final l = lines[index];
-    lines[index] = SplitLine(
-      expr: l.expr,
-      taxPercent: l.taxPercent == percent ? 0 : percent,
-      categoryId: l.categoryId,
-    );
+    lines[index] = f(lines[index]);
     state = _s.copyWith(splits: _autoExtend(lines));
   }
 
-  /// 税方式を直接セット（0=税込/内税・8/10=外税）。税込/外税8/外税10の3択用。
-  void setSplitTaxPercent(int index, int percent) {
-    assert(percent == 0 || percent == 8 || percent == 10);
-    final lines = [..._s.splits!];
-    if (index < 0 || index >= lines.length) return;
-    final l = lines[index];
-    lines[index] =
-        SplitLine(expr: l.expr, taxPercent: percent, categoryId: l.categoryId);
-    state = _s.copyWith(splits: _autoExtend(lines));
+  /// 一括: 全行の「税込/税抜」を揃える（詳細入力の横の一括選択）。
+  void setSplitBulkIncluded(bool included) {
+    if (_s.splits == null) return;
+    state = _s.copyWith(
+        splits: _autoExtend(
+            [for (final l in _s.splits!) l.copyWith(taxIncluded: included)]));
+  }
+
+  /// 一括: 全行の税率(8/10)を揃える。
+  void setSplitBulkRate(int rate) {
+    assert(rate == 8 || rate == 10);
+    if (_s.splits == null) return;
+    state = _s.copyWith(
+        splits:
+            _autoExtend([for (final l in _s.splits!) l.copyWith(rate: rate)]));
+  }
+
+  /// カテゴリに対応する軽減税率の自動値（食費=8 / 外食=10 / 他=null）。
+  /// 食費は軽減税率8%、外食(店内)は標準10%。手で税を変えた行には効かせない。
+  int? _autoRateForCategory(int categoryId) {
+    final cats = ref.read(allCategoriesProvider).valueOrNull ??
+        const <CategoryEntity>[];
+    CategoryEntity? cat;
+    CategoryEntity? foodParent;
+    for (final c in cats) {
+      if (c.id == categoryId) cat = c;
+      if (c.name == '食費' && c.parentId == null) foodParent = c;
+    }
+    if (cat == null) return null;
+    if (cat.name == '外食') return 10;
+    if (foodParent != null &&
+        (cat.id == foodParent.id || cat.parentId == foodParent.id)) {
+      return 8;
+    }
+    return null;
+  }
+
+  /// 分割行にカテゴリを割り当て、税未操作なら軽減税率を自動適用したSplitLineを返す。
+  SplitLine _withSplitCategory(SplitLine l, int categoryId) {
+    var line = l.copyWith(categoryId: categoryId);
+    if (!line.taxTouched) {
+      final r = _autoRateForCategory(categoryId);
+      if (r != null) line = line.copyWith(rate: r);
+    }
+    return line;
   }
 
   void _updateActiveSplit(SplitLine Function(SplitLine) f,
@@ -714,7 +783,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final remainder = _s.amountYen - fixed;
     final last = lines.last;
     if (last.expr.isNotEmpty && last.amountYen != null && remainder > 0) {
-      return [...lines, const SplitLine()];
+      // 新しい残額行は直前の行の税設定を引き継ぐ（同じ税で続けて入れやすい）。
+      return [...lines, SplitLine(taxIncluded: last.taxIncluded, rate: last.rate)];
     }
     if (remainder <= 0 && lines.length > 1 && last.expr.isEmpty) {
       final out = [...lines];

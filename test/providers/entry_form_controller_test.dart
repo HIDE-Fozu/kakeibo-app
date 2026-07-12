@@ -216,9 +216,37 @@ void main() {
 
   group('詳細入力（分割）', () {
     late int dailyId;
+    late int eatOutId;
     setUp(() async {
       final cats = await waitForData(c, allCategoriesProvider);
       dailyId = cats.firstWhere((x) => x.name == '日用品').id;
+      eatOutId = cats.firstWhere((x) => x.name == '外食').id;
+    });
+
+    test('カテゴリ自動税率: 食費→8%・外食→10%・手動は上書きしない', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      // 既定=税抜10%
+      expect(st().splits![0].taxIncluded, isFalse);
+      expect(st().splits![0].rate, 10);
+
+      // 食費を割り当て → 軽減税率8%が自動
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splits![0].rate, 8);
+
+      // 外食に変えると10%（店内は標準税率）
+      ctrl().tapCategory(
+          categoryId: eatOutId, hasSubs: false, isSameGroup: false);
+      expect(st().splits![0].rate, 10);
+
+      // 手で8%にした後は、カテゴリ変更で上書きされない
+      ctrl().setSplitRate(0, 8);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().splits![0].rate, 8);
     });
 
     test('フロー: 合計→開始→行1入力で残額行が自動生成→保存で2取引', () async {
@@ -229,15 +257,19 @@ void main() {
       expect(st().amountYen, 1000);
 
       ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true); // 税込で入力＝入力額そのまま（残額の検証を単純化）
       expect(st().splits, hasLength(1));
       expect(st().canSave, isFalse);
+      // 1行目は自動で残額を入れない（空のまま。手入力してから2行目に残額が出る）
+      expect(st().splitLineAmount(0), isNull);
 
-      // 行1: 300円（外税なし）＋食費
+      // 行1: 300円（税込）＋食費
       ctrl().splitTapDigit(3);
       ctrl().splitTapDoubleZero();
-      // 残額700が残る → 空の残額行が自動生成されている
+      // 残額700が残る → 空の残額行が自動生成されている（2行目に残額）
       expect(st().splits, hasLength(2));
-      expect(st().splitLineAmount(1), 700); // 末尾空行=残額
+      expect(st().splitLineAmount(0), 300); // 手入力した1行目
+      expect(st().splitLineAmount(1), 700); // 2行目=自動の残額
       ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
       expect(st().splits![0].categoryId, foodId);
 
@@ -255,7 +287,7 @@ void main() {
       expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
     });
 
-    test('式と外税: 100+100 に 8% → 216。合計一致まで保存不可', () {
+    test('税抜/税率: 100+100 は既定税抜10%で220・8%で216・税込でそのまま200', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(5);
       ctrl().tapDoubleZero(); // 500
@@ -265,21 +297,21 @@ void main() {
       ctrl().splitTapDoubleZero();
       ctrl().splitTapOperator('+');
       ctrl().splitTapDigit(1);
-      ctrl().splitTapDoubleZero(); // "100+100"
-      expect(st().splits![0].amountYen, 200);
-      ctrl().setSplitTax(0, 8);
-      expect(st().splits![0].amountYen, 216);
-      // 再タップで内税に戻る
-      ctrl().setSplitTax(0, 8);
-      expect(st().splits![0].amountYen, 200);
+      ctrl().splitTapDoubleZero(); // "100+100" = 200
+      expect(st().splits![0].enteredYen, 200);
+      expect(st().splits![0].amountYen, 220); // 既定=税抜10%
+      ctrl().setSplitRate(0, 8);
+      expect(st().splits![0].amountYen, 216); // 税抜8%
+      ctrl().setSplitIncluded(0, true);
+      expect(st().splits![0].amountYen, 200); // 税込=そのまま
 
-      // 行1にカテゴリ、残額行(300)にもカテゴリ→保存可
-      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      // 行1にカテゴリ（税は手動済みなので自動上書きされない）、残額行にもカテゴリ→保存可
+      ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
       expect(st().canSave, isFalse); // 残額行が未カテゴリ
       ctrl().setActiveSplit(1);
       ctrl().tapCategory(
-          categoryId: dailyId, hasSubs: false, isSameGroup: false);
-      expect(st().splitLineAmount(1), 300);
+          categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splitLineAmount(1), 300); // line0=税込200 → 残り300
       expect(st().canSave, isTrue);
     });
 
