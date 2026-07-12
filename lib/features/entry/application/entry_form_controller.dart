@@ -175,10 +175,11 @@ class EntryFormState {
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {
-          return '詳細入力でカテゴリを設定してください';
+          return 'カテゴリを選んでください';
         }
       }
-      return null;
+      // まだ金額が1件も入っていない（詳細入力を開いた直後など）
+      return '金額とカテゴリを入力してください';
     }
     if (categoryId == null) return 'カテゴリを選んでください';
     return null;
