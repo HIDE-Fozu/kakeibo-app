@@ -100,8 +100,7 @@ void main() {
         isNull);
   });
 
-  testWidgets('店舗名は常時・詳細メモは「メモを追加」ボタンから開いて別々に入力できる',
-      (tester) async {
+  testWidgets('店舗名・詳細メモ欄が初期表示され別々に入力できる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -112,16 +111,10 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // 店舗名は常時表示（1欄）、詳細メモは畳まれ「メモを追加」ボタン
-    expect(find.byType(TextFormField), findsOneWidget); // 店舗名のみ
-    await tester.enterText(find.byType(TextFormField), 'スーパーA'); // 店舗名
-
-    // 「メモを追加」→ 詳細メモ欄が出る
-    await tester.ensureVisible(find.byKey(const Key('add-memo')));
-    await tester.tap(find.byKey(const Key('add-memo')));
-    await tester.pumpAndSettle();
+    // 店舗名・詳細メモとも最初から表示（順に店舗名→詳細メモ）
     final fields = find.byType(TextFormField);
-    expect(fields, findsNWidgets(2)); // 店舗名＋詳細メモ
+    expect(fields, findsNWidgets(2));
+    await tester.enterText(fields.at(0), 'スーパーA'); // 店舗名
     await tester.enterText(fields.at(1), 'ポイント2倍'); // 詳細メモ
 
     final s = containerOf(tester).read(entryFormControllerProvider)!;

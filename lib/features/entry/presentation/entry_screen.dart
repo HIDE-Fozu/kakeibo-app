@@ -302,29 +302,16 @@ class EntryScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                       ],
-                      // 詳細メモは既定で畳む。「メモを追加」ボタンで展開（旧memoExpanded）。
-                      // 既に中身があれば展開表示（編集で開いた時など）。
-                      if (state.memoExpanded || state.memo.isNotEmpty)
-                        TextFormField(
-                          key: ValueKey('memo-field-${state.formSeq}'),
-                          initialValue: state.memo,
-                          autofocus: state.memoExpanded && state.memo.isEmpty,
-                          decoration: const InputDecoration(
-                            labelText: '詳細メモ',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: ctrl.setMemo,
-                        )
-                      else
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            key: const Key('add-memo'),
-                            onPressed: ctrl.toggleMemoExpanded,
-                            icon: const Icon(Icons.note_add_outlined, size: 18),
-                            label: const Text('メモを追加'),
-                          ),
+                      // 詳細メモは初期から表示（店舗名の下に常時）。
+                      TextFormField(
+                        key: ValueKey('memo-field-${state.formSeq}'),
+                        initialValue: state.memo,
+                        decoration: const InputDecoration(
+                          labelText: '詳細メモ',
+                          border: OutlineInputBorder(),
                         ),
+                        onChanged: ctrl.setMemo,
+                      ),
                   ],
                 ),
               ),

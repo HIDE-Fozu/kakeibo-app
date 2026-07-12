@@ -57,14 +57,9 @@ class SplitEntryPanel extends ConsumerWidget {
             color: scheme.primaryContainer.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(11),
           ),
+          // セグメントは下の行と左端を揃える（先頭にラベルを置かない）。
           child: Row(
             children: [
-              Text('一括',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: scheme.outline)),
-              const SizedBox(width: 8),
               _seg(scheme, [
                 _SegItem('税込', bulkInc == true,
                     () => ctrl.setSplitBulkIncluded(true),
@@ -79,7 +74,7 @@ class SplitEntryPanel extends ConsumerWidget {
                 _SegItem('10%', bulkRate == 10, () => ctrl.setSplitBulkRate(10)),
               ]),
               const Spacer(),
-              Text('全行に適用',
+              Text('全行に一括',
                   style: TextStyle(fontSize: 11, color: scheme.outline)),
             ],
           ),
