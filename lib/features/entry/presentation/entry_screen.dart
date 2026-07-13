@@ -239,7 +239,7 @@ class EntryScreen extends ConsumerWidget {
                               }
                             },
                             icon: const Icon(Icons.call_split, size: 18),
-                            label: const Text('内訳'),
+                            label: const Text('内訳入力'),
                           ),
                         ),
                       // カテゴリ見出し。詳細入力/一括内訳中は右に詳細メモ欄を置く。

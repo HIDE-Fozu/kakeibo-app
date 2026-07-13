@@ -193,7 +193,23 @@ class SplitEntryPanel extends ConsumerWidget {
     final catName =
         line.categoryId == null ? null : categoryNames[line.categoryId];
     final net = state.splitLineAmount(i); // 税込値（末尾空行=残額）
+    final entered = line.enteredYen; // 入力した生の値（税抜/税込どちらでも）
     final isRemainder = line.expr.isEmpty;
+    final hasOp = RegExp(r'[+\-×÷]').hasMatch(line.expr);
+
+    // 主表示は「入力した値」（勝手に税込へ化けない）。末尾空行は残額。
+    final String mainLabel;
+    if (isRemainder) {
+      mainLabel = net == null ? '残り ¥ —' : '残り ${formatYen(net)}';
+    } else if (active && hasOp) {
+      mainLabel = line.expr; // 入力中の式（電卓）
+    } else {
+      mainLabel = entered == null ? '¥ —' : formatYen(entered);
+    }
+    // 税抜のときだけ、空いた場所に税込換算を小さく併記。
+    final String? subLabel = (!isRemainder && !line.taxIncluded && net != null)
+        ? '税込 ${formatYen(net)}'
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4, left: 2, right: 2),
@@ -224,14 +240,17 @@ class SplitEntryPanel extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(isRemainder ? '残り(税込)' : '税込',
-                          style:
-                              TextStyle(fontSize: 9.5, color: scheme.outline)),
-                      Text(net == null ? '¥ —' : formatYen(net),
+                      Text(mainLabel,
                           style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                               fontFeatures: kTabularFigures)),
+                      if (subLabel != null)
+                        Text(subLabel,
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: scheme.outline,
+                                fontFeatures: kTabularFigures)),
                     ],
                   ),
                 ],
