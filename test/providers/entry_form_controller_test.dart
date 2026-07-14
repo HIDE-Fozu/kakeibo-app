@@ -363,6 +363,63 @@ void main() {
       expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
     });
 
+    test('自動追加: 末尾行に金額＋カテゴリで残額があれば残額行が増える（＋追加不要）', () async {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true); // 税込＝入力額そのまま
+      expect(st().splits, hasLength(2));
+
+      // 行0: 300＋食費（末尾ではないので増えない）
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero();
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splits, hasLength(2));
+
+      // 行1(末尾)に400を明示入力＋日用品 → 残額300が残るので残額行を自動追加
+      ctrl().setActiveSplit(1);
+      ctrl().splitTapDigit(4);
+      ctrl().splitTapDoubleZero(); // 400
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().splits, hasLength(3)); // ＋追加を押さず3行目
+      expect(st().activeSplitIndex, 2); // 新しい残額行がアクティブ
+      expect(st().splitLineAmount(2), 300); // 残額300
+
+      // 行2(残額300・expr空)＋外食 → 残額0なので増えない・保存可
+      ctrl().tapCategory(
+          categoryId: eatOutId, hasSubs: false, isSameGroup: false);
+      expect(st().splits, hasLength(3));
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(3));
+      expect(txs.map((t) => t.amountYen).toList()..sort(), [300, 300, 400]);
+    });
+
+    test('自動追加しない: 末尾の空行がそのまま残額を担う2分割では増えない', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0); // 1000
+      ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true);
+
+      // 行0: 300＋食費、行1(末尾・空)はカテゴリだけ＝残額700を担う → 増えない
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero();
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      ctrl().setActiveSplit(1);
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().splits, hasLength(2)); // 末尾は空(expr無し)なので自動追加しない
+      expect(st().canSave, isTrue);
+    });
+
     test('税抜/税率: 100+100 は既定税抜10%で220・8%で216・税込でそのまま200', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(5);

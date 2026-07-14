@@ -134,6 +134,7 @@ void main() {
     expect(st.splits, hasLength(2));
     expect(st.amountYen, 700);
     expect(st.replacesTxIds, hasLength(2));
-    expect(find.byKey(const Key('split-add')), findsOneWidget);
+    // 分割UIが出ている（＋追加は撤去、行の「カテゴリを選択」ボタンで確認）。
+    expect(find.byKey(const Key('split-pickcat-0')), findsOneWidget);
   });
 }

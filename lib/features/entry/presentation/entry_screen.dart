@@ -208,7 +208,9 @@ class EntryScreen extends ConsumerWidget {
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
                       if (!batchMode)
                         Numpad(
-                          cellHeight: 46,
+                          // 分割中はカテゴリグリッドを出さない（シートで選ぶ）ぶん
+                          // 空いた縦を電卓に回して大きく。通常モードは従来の詰め高さ。
+                          cellHeight: splitMode ? 60 : 46,
                           onDigit:
                               splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
                           onDoubleZero: splitMode
@@ -242,7 +244,11 @@ class EntryScreen extends ConsumerWidget {
                             label: const Text('内訳入力'),
                           ),
                         ),
-                      // カテゴリ見出し。詳細入力/一括内訳中は右に詳細メモ欄を置く。
+                      // カテゴリ: 分割中は常設グリッドを出さず、行の「カテゴリを選択」を
+                      // 押した時だけ電卓に被せてシートで選ぶ（split_category_sheet）。
+                      // 通常/一括内訳では見出し＋グリッドを従来どおり表示。
+                      if (!splitMode) ...[
+                      // カテゴリ見出し。一括内訳中は右に詳細メモ欄を置く。
                       Padding(
                         padding: const EdgeInsets.only(left: 2, bottom: 4),
                         child: Row(
@@ -312,6 +318,7 @@ class EntryScreen extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      ],
                       // 詳細入力/一括内訳中は店舗名/詳細メモを隠して場所を空ける
                       // （取引全体の項目。保存前に通常画面で入力できる）。
                       if (!splitMode && !batchMode) ...[

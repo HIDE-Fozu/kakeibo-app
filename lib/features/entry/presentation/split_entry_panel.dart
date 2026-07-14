@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
 import '../application/entry_form_controller.dart';
+import 'split_category_sheet.dart';
 
 /// 詳細入力（内訳）パネル。行はスクロール枠に収め、電卓・カテゴリは下に固定される。
-/// 税は行ごとに「税込/税抜」と「8%/10%」の2軸。上部に一括選択と「＋追加」。
-class SplitEntryPanel extends ConsumerWidget {
+/// 税は行ごとに「税込/税抜」と「8%/10%」の2軸。上部に一括選択。カテゴリは行の
+/// 「カテゴリを選択」を押した時だけ電卓に被せてシートで選ぶ（常設グリッドは出さない）。
+class SplitEntryPanel extends ConsumerStatefulWidget {
   final EntryFormState state;
 
   /// id→カテゴリ名（親・内訳とも）。行のカテゴリ表示に使う。
@@ -20,10 +22,45 @@ class SplitEntryPanel extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplitEntryPanel> createState() => _SplitEntryPanelState();
+}
+
+class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
+  final _scroll = ScrollController();
+  int _lastActive = -1;
+  int _lastLen = -1;
+
+  EntryFormState get state => widget.state;
+  Map<int, String> get categoryNames => widget.categoryNames;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
     final scheme = Theme.of(context).colorScheme;
+
+    // アクティブ行が変わったら（自動追加で末尾が増えた時など）、その行が電卓に
+    // 隠れないよう枠を最下部までスクロールして見せる。
+    final active = state.activeSplitIndex;
+    if (active != _lastActive || lines.length != _lastLen) {
+      _lastActive = active;
+      _lastLen = lines.length;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients && active >= lines.length - 1) {
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
 
     // 一括の選択表示: 全行が同じなら点灯、まちまちなら無点灯。
     final incVals = {for (final l in lines) l.taxIncluded};
@@ -63,12 +100,15 @@ class SplitEntryPanel extends ConsumerWidget {
             ),
           ],
         ),
-        // 一括（1行）＋「＋追加」。セグメントは行と左端を揃える。
+        const SizedBox(height: 6),
+        // 税率選択（固定・行全体を色付け）。既定は一括のみ＝ここで全行まとめて設定し、
+        // 各行に税ボタンは出さない。「個別に税率を設定」ONで各行に税率選択ボタンが出る
+        // （商品ごとに税率が違うのはレアなので既定OFF）。
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
-            color: scheme.primaryContainer.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(9),
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             children: [
@@ -76,25 +116,25 @@ class SplitEntryPanel extends ConsumerWidget {
               const SizedBox(width: 6),
               _rateSeg(scheme, ctrl, bulkRate, muted: false, bulk: true),
               const Spacer(),
-              Text('一括',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.primary)),
-              const SizedBox(width: 8),
               InkWell(
-                key: const Key('split-add'),
-                onTap: ctrl.addSplitLine,
+                key: const Key('split-perline-toggle'),
+                onTap: () => ctrl.setSplitPerLineTax(!state.splitPerLineTax),
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.add, size: 15, color: scheme.primary),
-                    const SizedBox(width: 2),
-                    Text('追加',
+                    Icon(
+                      state.splitPerLineTax
+                          ? Icons.check_box
+                          : Icons.check_box_outline_blank,
+                      size: 16,
+                      color: scheme.primary,
+                    ),
+                    const SizedBox(width: 3),
+                    Text('個別に税率を設定',
                         style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: scheme.primary)),
                   ]),
@@ -103,11 +143,13 @@ class SplitEntryPanel extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 4),
-        // 行はスクロール枠に収める（追加しても電卓・カテゴリは動かない）。
+        const SizedBox(height: 6),
+        // 行の表示は2行までに抑える（電卓を大きく取るため）。3行目以降は
+        // アクティブ行まで自動スクロール（カテゴリ選択が電卓に隠れない）。
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 150),
+          constraints: const BoxConstraints(maxHeight: 180),
           child: SingleChildScrollView(
+            controller: _scroll,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -164,8 +206,12 @@ class SplitEntryPanel extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
+                  // 選択中はパステル＝主色の淡いティント塗り＋濃い主色の文字。
+                  // 従来の「濃緑塗り＋白文字」より柔らかい（custom accentでも自動でパステル化）。
                   color: it.selected
-                      ? (muted ? scheme.outlineVariant : scheme.primary)
+                      ? (muted
+                          ? scheme.outlineVariant
+                          : scheme.primary.withValues(alpha: 0.22))
                       : null,
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -173,9 +219,9 @@ class SplitEntryPanel extends ConsumerWidget {
                     style: TextStyle(
                         fontSize: 11.5,
                         fontWeight:
-                            it.selected ? FontWeight.w600 : FontWeight.normal,
+                            it.selected ? FontWeight.w700 : FontWeight.normal,
                         color: it.selected
-                            ? (muted ? scheme.onSurface : scheme.onPrimary)
+                            ? (muted ? scheme.onSurface : scheme.primary)
                             : scheme.onSurfaceVariant)),
               ),
             ),
@@ -232,10 +278,14 @@ class SplitEntryPanel extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  _incSeg(scheme, ctrl, line.taxIncluded, lineIndex: i),
-                  const SizedBox(width: 6),
-                  _rateSeg(scheme, ctrl, line.rate,
-                      lineIndex: i, muted: line.taxIncluded),
+                  // 税率選択ボタンは「個別に税率を設定」ON時のみ各行に出す。
+                  // 既定（一括のみ）は上の税率選択に従うので行には出さない。
+                  if (state.splitPerLineTax) ...[
+                    _incSeg(scheme, ctrl, line.taxIncluded, lineIndex: i),
+                    const SizedBox(width: 6),
+                    _rateSeg(scheme, ctrl, line.rate,
+                        lineIndex: i, muted: line.taxIncluded),
+                  ],
                   const Spacer(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -248,8 +298,8 @@ class SplitEntryPanel extends ConsumerWidget {
                       if (subLabel != null)
                         Text(subLabel,
                             style: TextStyle(
-                                fontSize: 10,
-                                color: scheme.outline,
+                                fontSize: 10.5,
+                                color: scheme.onSurfaceVariant,
                                 fontFeatures: kTabularFigures)),
                     ],
                   ),
@@ -258,12 +308,44 @@ class SplitEntryPanel extends ConsumerWidget {
               const SizedBox(height: 5),
               Row(
                 children: [
-                  Text(
-                    catName ?? 'カテゴリ未選択',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: catName == null ? scheme.error : scheme.onSurface,
+                  // カテゴリは常設グリッドを出さず、押した時だけ電卓に被せてシートで選ぶ。
+                  // 未選択は主色の呼びかけボタン、選択済みはその名前（タップで選び直し）。
+                  InkWell(
+                    key: Key('split-pickcat-$i'),
+                    onTap: () => openSplitCategorySheet(context, ref, i),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: catName == null
+                            ? scheme.primary
+                            : scheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            catName == null ? Icons.add : Icons.category,
+                            size: 14,
+                            color: catName == null
+                                ? scheme.onPrimary
+                                : scheme.primary,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            catName ?? 'カテゴリを選択',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: catName == null
+                                  ? scheme.onPrimary
+                                  : scheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   // カテゴリを選んだら、その右に行ごとの詳細メモ欄を出す。

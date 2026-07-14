@@ -37,8 +37,15 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-add')), findsOneWidget);
+    // 「＋追加」は撤去（残額のカテゴリ確定で自動追加）。分割モードの確認は演算子キーで。
+    expect(find.byKey(const Key('split-add')), findsNothing);
     expect(find.byKey(const Key('np-op-+')), findsOneWidget);
+
+    // 既定は一括のみ＝各行に税率選択ボタンは出ない。「個別に税率を設定」で出す。
+    expect(find.byKey(const Key('split-incl-0')), findsNothing);
+    await tester.tap(find.byKey(const Key('split-perline-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-incl-0')), findsOneWidget);
 
     // 1行目は自動額なし
     expect(st().splitLineAmount(0), isNull);
@@ -72,5 +79,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('start-split')), findsOneWidget);
     expect(st().amountYen, 1000);
+  });
+
+  testWidgets('内訳: カテゴリは常設せず「カテゴリを選択」→シートで選ぶと割当＋閉じる',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h, home: const EntryScreen());
+    final c = containerOf(tester);
+    final ctrl = c.read(entryFormControllerProvider.notifier);
+    EntryFormState st() => c.read(entryFormControllerProvider)!;
+    ctrl.startCreate(day);
+    await tester.pumpAndSettle();
+
+    // 合計1000 → 内訳入力開始
+    ctrl.tapDigit(1);
+    ctrl.tapDoubleZero();
+    ctrl.tapDigit(0);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('start-split')));
+    await tester.tap(find.byKey(const Key('start-split')));
+    await tester.pumpAndSettle();
+
+    // 分割中は本体にカテゴリ見出しも常設グリッドも出ない
+    expect(find.text('カテゴリ'), findsNothing);
+    expect(find.text('日用品'), findsNothing);
+
+    // 行0に300（税込）
+    await tester.tap(find.byKey(const Key('split-bulk-incl')));
+    await tester.pumpAndSettle();
+    ctrl.splitTapDigit(3);
+    ctrl.splitTapDoubleZero();
+    await tester.pumpAndSettle();
+
+    // 「カテゴリを選択」→ シートが開き、グリッドが出る
+    expect(find.byKey(const Key('split-pickcat-0')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('split-pickcat-0')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-cat-sheet-close')), findsOneWidget);
+    expect(find.text('日用品'), findsOneWidget); // シート内のタイル
+
+    // 日用品を選ぶ → 行0へ割当・シートが閉じる
+    await tester.tap(find.text('日用品'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-cat-sheet-close')), findsNothing);
+    expect(st().splits![0].categoryId, isNotNull);
+    // 割当後は行のボタンがカテゴリ名を表示（本体で日用品が見える）
+    expect(find.text('日用品'), findsOneWidget);
   });
 }

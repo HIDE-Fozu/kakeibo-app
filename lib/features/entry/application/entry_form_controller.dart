@@ -111,6 +111,11 @@ class EntryFormState {
   final List<SplitLine>? splits;
   final int activeSplitIndex;
 
+  /// 分割の税率を行ごとに個別設定するか。false=一括のみ（各行に税ボタンを出さず、
+  /// 上の「税率選択」で全行まとめて設定）。true=各行に税率選択ボタンを表示。
+  /// 商品ごとに税率が違うのはレアなので既定は一括のみ。
+  final bool splitPerLineTax;
+
   /// 一括内訳モード（OCR明細ベース）。null=非表示。amountYen が対象の合計。
   final List<BatchItem>? batchItems;
   final int batchHeaderTax; // レシート単位の税方式: 0=内税 / 8 / 10
@@ -145,6 +150,7 @@ class EntryFormState {
     this.expandedParentId,
     this.splits,
     this.activeSplitIndex = 0,
+    this.splitPerLineTax = false,
     this.batchItems,
     this.batchHeaderTax = 0,
     this.batchPaintMode = false,
@@ -306,6 +312,7 @@ class EntryFormState {
     Object? expandedParentId = _unset,
     Object? splits = _unset,
     int? activeSplitIndex,
+    bool? splitPerLineTax,
     Object? batchItems = _unset,
     int? batchHeaderTax,
     bool? batchPaintMode,
@@ -342,6 +349,7 @@ class EntryFormState {
             ? this.splits
             : splits as List<SplitLine>?,
         activeSplitIndex: activeSplitIndex ?? this.activeSplitIndex,
+        splitPerLineTax: splitPerLineTax ?? this.splitPerLineTax,
         batchItems: identical(batchItems, _unset)
             ? this.batchItems
             : batchItems as List<BatchItem>?,
@@ -477,6 +485,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
     if (_s.splits != null) {
       _updateActiveSplit((l) => _withSplitCategory(l, categoryId),
           expandedParentId: hasSubs ? categoryId : null);
+      // 内訳あり親はチップ選択待ち＝まだ確定でないので増やさない。
+      // leafカテゴリ確定時のみ、末尾行に残額があれば残額行を自動追加。
+      if (!hasSubs) _maybeAppendRemainderRow();
       return;
     }
     state = _s.copyWith(
@@ -512,6 +523,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
       _updateActiveSplit(
           (l) => _withSplitCategory(l, l.categoryId == subId ? parent : subId),
           expandedParentId: null);
+      // 内訳チップ確定＝カテゴリ確定なので、末尾に残額があれば残額行を自動追加。
+      _maybeAppendRemainderRow();
       return;
     }
     state = _s.copyWith(
@@ -656,15 +669,20 @@ class EntryFormController extends Notifier<EntryFormState?> {
       return;
     }
     state = _s.copyWith(
-      // 2行で開始。以降は自動では増やさず「追加」ボタンで足す。
+      // 2行で開始。残額のカテゴリ確定で自動追加。
       splits: const [SplitLine(), SplitLine()],
       activeSplitIndex: 0,
+      splitPerLineTax: false, // 既定は一括のみ（各行の税ボタンは出さない）
       batchItems: null,
       expandedParentId: null,
     );
   }
 
-  /// 「追加」: 空の行を末尾に足してアクティブにする（自動増加はしない）。
+  /// 税率を行ごとに個別設定するモードの切替。ONで各行に税率選択ボタンを出す。
+  void setSplitPerLineTax(bool value) =>
+      state = _s.copyWith(splitPerLineTax: value);
+
+  /// 「追加」: 空の行を末尾に足してアクティブにする（手動）。
   void addSplitLine() {
     final lines = _s.splits;
     if (lines == null) return;
@@ -674,6 +692,27 @@ class EntryFormController extends Notifier<EntryFormState?> {
       SplitLine(taxIncluded: last.taxIncluded, rate: last.rate),
     ];
     state = _s.copyWith(splits: next, activeSplitIndex: next.length - 1);
+  }
+
+  /// 末尾行に「明示金額(expr)＋カテゴリ」が入り、まだ残額が残っていれば空の残額行を
+  /// 自動追加してアクティブにする。「＋追加」を押さずに次の内訳へ進めるための処置。
+  /// 打鍵ごとには増やさず、カテゴリ確定という区切りでのみ増やす（以前 _autoExtend が
+  /// 「打った瞬間に増える」で嫌われたため。leaf/内訳チップ確定時だけ呼ぶ）。
+  /// 末尾行が空(expr無し)＝残額をそのまま担う行のときは増やさない（2分割で誤増殖しない）。
+  void _maybeAppendRemainderRow() {
+    final lines = _s.splits;
+    if (lines == null) return;
+    if (_s.activeSplitIndex != lines.length - 1) return; // 末尾行の確定時のみ
+    final last = lines.last;
+    if (last.categoryId == null || last.expr.isEmpty) return;
+    if (_s.splitRemainder <= 0) return; // 残っている時だけ
+    state = _s.copyWith(
+      splits: [
+        ...lines,
+        SplitLine(taxIncluded: last.taxIncluded, rate: last.rate),
+      ],
+      activeSplitIndex: lines.length, // 新しい末尾（残額）行
+    );
   }
 
   void cancelSplit() =>
