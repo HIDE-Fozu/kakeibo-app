@@ -229,8 +229,8 @@ void main() {
       ctrl().tapDoubleZero();
       ctrl().tapDigit(0); // 1000
       ctrl().startSplit();
-      // 既定=税抜10%
-      expect(st().splits![0].taxIncluded, isFalse);
+      // 既定=内税（入力額そのまま）。自動税率は rate に記録され、外税にした時に効く
+      expect(st().splits![0].taxIncluded, isTrue);
       expect(st().splits![0].rate, 10);
 
       // 食費を割り当て → 軽減税率8%が自動
@@ -301,27 +301,33 @@ void main() {
       expect(st().saveHint, isNull);
     });
 
-    test('行は自動で増えない・「追加」で増える', () {
+    test('＋品目は残額行の直前に挿入・残額行への打鍵は新しい行で受ける', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);
       ctrl().tapDoubleZero();
       ctrl().tapDigit(0); // 1000
       ctrl().startSplit();
-      expect(st().splits, hasLength(2)); // 2行で開始
+      expect(st().splits, hasLength(2)); // 入力1行＋残額行(末尾)で開始
 
-      // 数字を入れても行は増えない
+      // 入力行への打鍵では行は増えない
       ctrl().splitTapDigit(3);
       ctrl().splitTapDoubleZero(); // 行0=300
       expect(st().splits, hasLength(2));
+
+      // 残額行(末尾)への打鍵→直前に入力行が挿入されそちらで受ける
       ctrl().setActiveSplit(1);
       ctrl().splitTapDigit(2);
-      ctrl().splitTapDoubleZero(); // 行1=200
-      expect(st().splits, hasLength(2));
-
-      // 「追加」で3行目・アクティブに
-      ctrl().addSplitLine();
+      ctrl().splitTapDoubleZero(); // 200
       expect(st().splits, hasLength(3));
+      expect(st().activeSplitIndex, 1);
+      expect(st().splits![1].expr, '200');
+      expect(st().splits![2].expr, ''); // 残額行は空のまま末尾に固定
+
+      // 「＋品目」も残額行の直前に挿入・アクティブに
+      ctrl().addSplitLine();
+      expect(st().splits, hasLength(4));
       expect(st().activeSplitIndex, 2);
+      expect(st().splits![3].expr, ''); // 残額行は常に末尾
     });
 
     test('フロー: 2行で開始→行1入力で2行目に残額→保存で2取引', () async {
@@ -363,32 +369,33 @@ void main() {
       expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
     });
 
-    test('自動追加: 末尾行に金額＋カテゴリで残額があれば残額行が増える（＋追加不要）', () async {
+    test('3分割: 残額行への打鍵で行が挿入され、残額カテゴリ確定で3取引', () async {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);
       ctrl().tapDoubleZero();
       ctrl().tapDigit(0); // 1000
-      ctrl().startSplit();
-      ctrl().setSplitBulkIncluded(true); // 税込＝入力額そのまま
+      ctrl().startSplit(); // 既定=内税（入力額そのまま）
       expect(st().splits, hasLength(2));
 
-      // 行0: 300＋食費（末尾ではないので増えない）
+      // 行0: 300＋食費（カテゴリ確定で行は増えない）
       ctrl().splitTapDigit(3);
       ctrl().splitTapDoubleZero();
       ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
       expect(st().splits, hasLength(2));
 
-      // 行1(末尾)に400を明示入力＋日用品 → 残額300が残るので残額行を自動追加
+      // 残額行(末尾)へ400を打鍵→直前に入力行が挿入され、日用品を割当
       ctrl().setActiveSplit(1);
       ctrl().splitTapDigit(4);
       ctrl().splitTapDoubleZero(); // 400
+      expect(st().splits, hasLength(3));
+      expect(st().activeSplitIndex, 1);
       ctrl().tapCategory(
           categoryId: dailyId, hasSubs: false, isSameGroup: false);
-      expect(st().splits, hasLength(3)); // ＋追加を押さず3行目
-      expect(st().activeSplitIndex, 2); // 新しい残額行がアクティブ
-      expect(st().splitLineAmount(2), 300); // 残額300
+      expect(st().splits, hasLength(3)); // カテゴリ確定でも増えない
+      expect(st().splitLineAmount(2), 300); // 末尾の残額行が差分300を担う
 
-      // 行2(残額300・expr空)＋外食 → 残額0なので増えない・保存可
+      // 残額行＋外食 → 保存可
+      ctrl().setActiveSplit(2);
       ctrl().tapCategory(
           categoryId: eatOutId, hasSubs: false, isSameGroup: false);
       expect(st().splits, hasLength(3));
@@ -420,7 +427,7 @@ void main() {
       expect(st().canSave, isTrue);
     });
 
-    test('税抜/税率: 100+100 は既定税抜10%で220・8%で216・税込でそのまま200', () {
+    test('税: 100+100 は既定内税でそのまま200・外税10%で220・8%で216', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(5);
       ctrl().tapDoubleZero(); // 500
@@ -432,11 +439,13 @@ void main() {
       ctrl().splitTapDigit(1);
       ctrl().splitTapDoubleZero(); // "100+100" = 200
       expect(st().splits![0].enteredYen, 200);
-      expect(st().splits![0].amountYen, 220); // 既定=税抜10%
+      expect(st().splits![0].amountYen, 200); // 既定=内税（そのまま）
+      ctrl().setSplitIncluded(0, false);
+      expect(st().splits![0].amountYen, 220); // 外税10%
       ctrl().setSplitRate(0, 8);
-      expect(st().splits![0].amountYen, 216); // 税抜8%
+      expect(st().splits![0].amountYen, 216); // 外税8%
       ctrl().setSplitIncluded(0, true);
-      expect(st().splits![0].amountYen, 200); // 税込=そのまま
+      expect(st().splits![0].amountYen, 200); // 内税=そのまま
 
       // 行1にカテゴリ（税は手動済みなので自動上書きされない）、残額行にもカテゴリ→保存可
       ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
@@ -579,7 +588,7 @@ void main() {
       // 開き直し → 行1を350に修正して保存
       ctrl().startEditSplitGroup(txs);
       expect(st().amountYen, 1000);
-      expect(st().splits, hasLength(2));
+      expect(st().splits, hasLength(3)); // 保存済み2行＋末尾の空残額行
       ctrl().setActiveSplit(0);
       ctrl().splitBackspace();
       ctrl().splitBackspace();

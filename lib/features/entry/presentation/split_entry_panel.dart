@@ -4,15 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
 import '../application/entry_form_controller.dart';
-import 'split_category_sheet.dart';
+import 'split_tax_dialog.dart';
 
-/// 詳細入力（内訳）パネル。行はスクロール枠に収め、電卓・カテゴリは下に固定される。
-/// 税は行ごとに「税込/税抜」と「8%/10%」の2軸。上部に一括選択。カテゴリは行の
-/// 「カテゴリを選択」を押した時だけ電卓に被せてシートで選ぶ（常設グリッドは出さない）。
+/// 内訳入力パネル（確定モックv4）。
+/// 構成: 店名行 → タイトル行（内訳・[内税|8%|10%]・個別・＋品目）→
+///       入力行（2行分の高さでスクロール）→ 残額行（最下段固定・差分表示）。
+/// 税は全行トグルが基本（既定=内税）。「個別」は品目ごとのダイアログ。
+/// カテゴリは行のチップ／「カテゴリを追加」から電卓上の帯（split_category_strip）。
 class SplitEntryPanel extends ConsumerStatefulWidget {
   final EntryFormState state;
 
-  /// id→カテゴリ名（親・内訳とも）。行のカテゴリ表示に使う。
+  /// id→表示ラベル（絵文字＋名前）。行・ダイアログのカテゴリ表示に使う。
   final Map<int, String> categoryNames;
 
   const SplitEntryPanel({
@@ -44,15 +46,15 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
     final scheme = Theme.of(context).colorScheme;
+    final inputCount = lines.length - 1; // 末尾は残額行（窓の外に固定描画）
 
-    // アクティブ行が変わったら（自動追加で末尾が増えた時など）、その行が電卓に
-    // 隠れないよう枠を最下部までスクロールして見せる。
+    // 挿入で末尾側の入力行がアクティブになったら、その行が見えるようスクロール。
     final active = state.activeSplitIndex;
     if (active != _lastActive || lines.length != _lastLen) {
       _lastActive = active;
       _lastLen = lines.length;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scroll.hasClients && active >= lines.length - 1) {
+        if (_scroll.hasClients && active >= inputCount - 1) {
           _scroll.animateTo(
             _scroll.position.maxScrollExtent,
             duration: const Duration(milliseconds: 200),
@@ -62,16 +64,16 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
       });
     }
 
-    // 一括の選択表示: 全行が同じなら点灯、まちまちなら無点灯。
-    final incVals = {for (final l in lines) l.taxIncluded};
-    final bulkInc = incVals.length == 1 ? incVals.first : null;
+    // 全行トグルの点灯状態: 全行内税→「内税」/ 全行外税→レート点灯。まちまちは無点灯。
+    final incAll = lines.every((l) => l.taxIncluded);
+    final excAll = lines.every((l) => !l.taxIncluded);
     final rateVals = {for (final l in lines) l.rate};
     final bulkRate = rateVals.length == 1 ? rateVals.first : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 見出し行: 店名を入力（内訳の位置）… やめる
+        // 店名行
         Row(
           children: [
             Icon(Icons.call_split, size: 15, color: scheme.outline),
@@ -100,94 +102,92 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        // 税率選択（固定・行全体を色付け）。既定は一括のみ＝ここで全行まとめて設定し、
-        // 各行に税ボタンは出さない。「個別に税率を設定」ONで各行に税率選択ボタンが出る
-        // （商品ごとに税率が違うのはレアなので既定OFF）。
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: scheme.primaryContainer,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              _incSeg(scheme, ctrl, bulkInc, bulk: true),
-              const SizedBox(width: 6),
-              _rateSeg(scheme, ctrl, bulkRate, muted: false, bulk: true),
-              const Spacer(),
-              InkWell(
-                key: const Key('split-perline-toggle'),
-                onTap: () => ctrl.setSplitPerLineTax(!state.splitPerLineTax),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(
-                      state.splitPerLineTax
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
-                      size: 16,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(width: 3),
-                    Text('個別に税率を設定',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.primary)),
-                  ]),
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 4),
+        // タイトル行: 内訳＋税トグル（内税⇄外税・8/10%）＋個別＋＋品目。
+        // 「品目を追加」「カテゴリを選択」の独立行は置かない（行数を3行に保つ）。
+        Row(
+          children: [
+            Text('内訳',
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: scheme.primary)),
+            const Spacer(),
+            _seg(scheme, [
+              // 内税を外すと表記が「外税」に変わる（タップでトグル・全行に即適用）
+              _SegItem(incAll ? '内税' : '外税', incAll,
+                  () => ctrl.setSplitBulkIncluded(!incAll),
+                  key: const Key('split-tax-mode')),
+              _SegItem('8%', excAll && bulkRate == 8, () {
+                ctrl.setSplitBulkIncluded(false);
+                ctrl.setSplitBulkRate(8);
+              }, key: const Key('split-tax-8')),
+              _SegItem('10%', excAll && bulkRate == 10, () {
+                ctrl.setSplitBulkIncluded(false);
+                ctrl.setSplitBulkRate(10);
+              }, key: const Key('split-tax-10')),
+            ]),
+            const SizedBox(width: 6),
+            _chipButton(scheme, '個別', key: const Key('split-tax-per'),
+                onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (_) => SplitTaxDialog(categoryLabels: categoryNames),
+              );
+            }),
+            const SizedBox(width: 6),
+            _chipButton(scheme, '＋ 品目',
+                key: const Key('split-add'),
+                solid: true,
+                onTap: ctrl.addSplitLine),
+          ],
         ),
         const SizedBox(height: 6),
-        // 行の表示は2行までに抑える（電卓を大きく取るため）。3行目以降は
-        // アクティブ行まで自動スクロール（カテゴリ選択が電卓に隠れない）。
+        // 入力行は2行分の高さに収め、3品目〜はスクロール（アクティブ行へ自動）。
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 180),
+          constraints: const BoxConstraints(maxHeight: 104),
           child: SingleChildScrollView(
             controller: _scroll,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (var i = 0; i < lines.length; i++) _line(context, ref, i),
+                for (var i = 0; i < inputCount; i++) _line(context, i),
               ],
             ),
           ),
         ),
+        const SizedBox(height: 4),
+        _remainderRow(context),
       ],
     );
   }
 
-  // --- 税セグメント ---
-  Widget _incSeg(ColorScheme scheme, EntryFormController ctrl, bool? included,
-      {int? lineIndex, bool bulk = false}) {
-    return _seg(scheme, [
-      _SegItem('税込', included == true, () {
-        bulk ? ctrl.setSplitBulkIncluded(true) : ctrl.setSplitIncluded(lineIndex!, true);
-      }, key: Key(bulk ? 'split-bulk-incl' : 'split-incl-$lineIndex')),
-      _SegItem('税抜', included == false, () {
-        bulk ? ctrl.setSplitBulkIncluded(false) : ctrl.setSplitIncluded(lineIndex!, false);
-      }, key: Key(bulk ? 'split-bulk-excl' : 'split-excl-$lineIndex')),
-    ]);
+  /// タイトル行の小ボタン（個別/＋品目）。
+  Widget _chipButton(ColorScheme scheme, String label,
+      {required Key key, bool solid = false, required VoidCallback onTap}) {
+    return InkWell(
+      key: key,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(13),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(
+          color: solid ? scheme.primary : scheme.primaryContainer,
+          border: Border.all(
+              color: solid ? scheme.primary : scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: solid ? scheme.onPrimary : scheme.primary)),
+      ),
+    );
   }
 
-  Widget _rateSeg(ColorScheme scheme, EntryFormController ctrl, int? rate,
-      {int? lineIndex, bool muted = false, bool bulk = false}) {
-    return _seg(scheme, muted: muted, [
-      _SegItem('8%', rate == 8, () {
-        bulk ? ctrl.setSplitBulkRate(8) : ctrl.setSplitRate(lineIndex!, 8);
-      }, key: bulk ? null : Key('split-rate8-$lineIndex')),
-      _SegItem('10%', rate == 10, () {
-        bulk ? ctrl.setSplitBulkRate(10) : ctrl.setSplitRate(lineIndex!, 10);
-      }, key: bulk ? null : Key('split-rate10-$lineIndex')),
-    ]);
-  }
-
-  Widget _seg(ColorScheme scheme, List<_SegItem> items, {bool muted = false}) {
+  // --- 税セグメント（パステル点灯） ---
+  Widget _seg(ColorScheme scheme, List<_SegItem> items) {
     return Container(
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
@@ -206,12 +206,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  // 選択中はパステル＝主色の淡いティント塗り＋濃い主色の文字。
-                  // 従来の「濃緑塗り＋白文字」より柔らかい（custom accentでも自動でパステル化）。
                   color: it.selected
-                      ? (muted
-                          ? scheme.outlineVariant
-                          : scheme.primary.withValues(alpha: 0.22))
+                      ? scheme.primary.withValues(alpha: 0.22)
                       : null,
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -221,7 +217,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                         fontWeight:
                             it.selected ? FontWeight.w700 : FontWeight.normal,
                         color: it.selected
-                            ? (muted ? scheme.onSurface : scheme.primary)
+                            ? scheme.primary
                             : scheme.onSurfaceVariant)),
               ),
             ),
@@ -230,30 +226,27 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     );
   }
 
-  Widget _line(BuildContext context, WidgetRef ref, int i) {
+  /// 入力行（1行構成: カテゴリチップ｜メモ｜金額）。
+  Widget _line(BuildContext context, int i) {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
     final active = i == state.activeSplitIndex;
-    final catName =
+    final catLabel =
         line.categoryId == null ? null : categoryNames[line.categoryId];
-    final net = state.splitLineAmount(i); // 税込値（末尾空行=残額）
-    final entered = line.enteredYen; // 入力した生の値（税抜/税込どちらでも）
-    final isRemainder = line.expr.isEmpty;
+    final net = state.splitLineAmount(i);
+    final entered = line.enteredYen;
     final hasOp = RegExp(r'[+\-×÷]').hasMatch(line.expr);
 
-    // 主表示は「入力した値」（勝手に税込へ化けない）。末尾空行は残額。
+    // 主表示は「入力した値」。入力中は式。外税のときだけ税込換算を下に併記。
     final String mainLabel;
-    if (isRemainder) {
-      mainLabel = net == null ? '残り ¥ —' : '残り ${formatYen(net)}';
-    } else if (active && hasOp) {
-      mainLabel = line.expr; // 入力中の式（電卓）
+    if (active && hasOp) {
+      mainLabel = line.expr;
     } else {
       mainLabel = entered == null ? '¥ —' : formatYen(entered);
     }
-    // 税抜のときだけ、空いた場所に税込換算を小さく併記。
-    final String? subLabel = (!isRemainder && !line.taxIncluded && net != null)
+    final String? subLabel = (!line.taxIncluded && net != null)
         ? '税込 ${formatYen(net)}'
         : null;
 
@@ -273,126 +266,162 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 width: active ? 1.4 : 1),
             borderRadius: BorderRadius.circular(9),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
+              // カテゴリ: 未選択は呼びかけボタン、選択済みはチップ。
+              // どちらもタップで電卓上のカテゴリ帯を開く（選び直し可）。
+              InkWell(
+                key: Key('split-pickcat-$i'),
+                onTap: () => ctrl.openSplitCatPicker(i),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: catLabel == null
+                        ? scheme.primary
+                        : scheme.primaryContainer.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    catLabel ?? '＋ カテゴリ',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: catLabel == null
+                          ? scheme.onPrimary
+                          : scheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 7),
+              if (line.categoryId != null)
+                Expanded(
+                  child: TextFormField(
+                    key: ValueKey('split-linememo-$i-${state.formSeq}'),
+                    initialValue: line.memo,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      hintText: 'メモ',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 2),
+                      border: UnderlineInputBorder(),
+                    ),
+                    onChanged: (v) => ctrl.setSplitMemo(i, v),
+                  ),
+                )
+              else
+                const Spacer(),
+              const SizedBox(width: 7),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // 税率選択ボタンは「個別に税率を設定」ON時のみ各行に出す。
-                  // 既定（一括のみ）は上の税率選択に従うので行には出さない。
-                  if (state.splitPerLineTax) ...[
-                    _incSeg(scheme, ctrl, line.taxIncluded, lineIndex: i),
-                    const SizedBox(width: 6),
-                    _rateSeg(scheme, ctrl, line.rate,
-                        lineIndex: i, muted: line.taxIncluded),
+                  Text(mainLabel,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: kTabularFigures)),
+                  if (subLabel != null)
+                    Text(subLabel,
+                        style: TextStyle(
+                            fontSize: 10.5,
+                            color: scheme.onSurfaceVariant,
+                            fontFeatures: kTabularFigures)),
+                ],
+              ),
+              if (lines.length > 2) ...[
+                const SizedBox(width: 4),
+                InkWell(
+                  key: Key('split-remove-$i'),
+                  onTap: () => ctrl.removeSplitLine(i),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(Icons.close, size: 16, color: scheme.outline),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 残額行（最下段固定・差分表示）。カテゴリを付けるだけで最後の1品になる。
+  Widget _remainderRow(BuildContext context) {
+    final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final lines = state.splits!;
+    final i = lines.length - 1;
+    final line = lines[i];
+    final scheme = Theme.of(context).colorScheme;
+    final active = i == state.activeSplitIndex;
+    final rem = state.splitRemainder;
+    final over = rem < 0;
+    final catLabel =
+        line.categoryId == null ? null : categoryNames[line.categoryId];
+    final fg = over ? scheme.error : scheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 2, right: 2),
+      child: InkWell(
+        key: const Key('split-remainder'),
+        onTap: () => ctrl.openSplitCatPicker(i),
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+          decoration: BoxDecoration(
+            color: over
+                ? scheme.errorContainer
+                : scheme.primaryContainer.withValues(alpha: 0.45),
+            border: Border.all(
+                color: active ? scheme.primary : scheme.outlineVariant,
+                width: active ? 1.4 : 1),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            children: [
+              Text(over ? '超過' : '残り',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: fg)),
+              const SizedBox(width: 6),
+              Text(formatYen(over ? -rem : rem),
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: fg,
+                      fontFeatures: kTabularFigures)),
+              const Spacer(),
+              if (catLabel == null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 15, color: scheme.primary),
+                    Text('カテゴリを追加',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: scheme.primary)),
+                    Icon(Icons.chevron_right, size: 15, color: scheme.primary),
                   ],
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(mainLabel,
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              fontFeatures: kTabularFigures)),
-                      if (subLabel != null)
-                        Text(subLabel,
-                            style: TextStyle(
-                                fontSize: 10.5,
-                                color: scheme.onSurfaceVariant,
-                                fontFeatures: kTabularFigures)),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  // カテゴリは常設グリッドを出さず、押した時だけ電卓に被せてシートで選ぶ。
-                  // 未選択は主色の呼びかけボタン、選択済みはその名前（タップで選び直し）。
-                  InkWell(
-                    key: Key('split-pickcat-$i'),
-                    onTap: () => openSplitCategorySheet(context, ref, i),
+                )
+              else
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: catName == null
-                            ? scheme.primary
-                            : scheme.primaryContainer.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            catName == null ? Icons.add : Icons.category,
-                            size: 14,
-                            color: catName == null
-                                ? scheme.onPrimary
-                                : scheme.primary,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            catName ?? 'カテゴリを選択',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: catName == null
-                                  ? scheme.onPrimary
-                                  : scheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
-                  // カテゴリを選んだら、その右に行ごとの詳細メモ欄を出す。
-                  if (line.categoryId != null) ...[
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        key: ValueKey('split-linememo-$i-${state.formSeq}'),
-                        initialValue: line.memo,
-                        style: const TextStyle(fontSize: 12),
-                        decoration: const InputDecoration(
-                          hintText: 'メモ',
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 2),
-                          border: UnderlineInputBorder(),
-                        ),
-                        onChanged: (v) => ctrl.setSplitMemo(i, v),
-                      ),
-                    ),
-                  ] else
-                    const Spacer(),
-                  const SizedBox(width: 6),
-                  InkWell(
-                    key: Key('split-clear-$i'),
-                    onTap: () => ctrl.clearSplitLine(i),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      child: Text('クリア',
-                          style:
-                              TextStyle(fontSize: 12, color: scheme.primary)),
-                    ),
-                  ),
-                  if (lines.length > 1)
-                    InkWell(
-                      key: Key('split-remove-$i'),
-                      onTap: () => ctrl.removeSplitLine(i),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2),
-                        child:
-                            Icon(Icons.close, size: 17, color: scheme.outline),
-                      ),
-                    ),
-                ],
-              ),
+                  child: Text(catLabel,
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.primary)),
+                ),
             ],
           ),
         ),

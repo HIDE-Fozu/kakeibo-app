@@ -14,7 +14,7 @@ ProviderContainer containerOf(WidgetTester tester) => ProviderScope.containerOf(
     listen: false);
 
 void main() {
-  testWidgets('詳細入力: 税込/税抜・8%/10%で税込換算、残額は2行目・やめるで合計保持',
+  testWidgets('内訳: 税は内税⇄外税トグルで全行即適用・「個別」ダイアログで行単位',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -26,7 +26,7 @@ void main() {
     ctrl.startCreate(day);
     await tester.pumpAndSettle();
 
-    // 金額0では詳細入力ボタンは出ない
+    // 金額0では内訳入力ボタンは出ない
     expect(find.byKey(const Key('start-split')), findsNothing);
 
     // 合計 1000 → 開始
@@ -37,40 +37,50 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
-    // 「＋追加」は撤去（残額のカテゴリ確定で自動追加）。分割モードの確認は演算子キーで。
-    expect(find.byKey(const Key('split-add')), findsNothing);
-    expect(find.byKey(const Key('np-op-+')), findsOneWidget);
 
-    // 既定は一括のみ＝各行に税率選択ボタンは出ない。「個別に税率を設定」で出す。
+    // タイトル行に「＋品目」と税トグル。行内に税UIは無い（個別はダイアログ）。
+    expect(find.byKey(const Key('split-add')), findsOneWidget);
+    expect(find.byKey(const Key('split-tax-mode')), findsOneWidget);
+    expect(find.byKey(const Key('np-op-+')), findsOneWidget);
     expect(find.byKey(const Key('split-incl-0')), findsNothing);
-    await tester.tap(find.byKey(const Key('split-perline-toggle')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-incl-0')), findsOneWidget);
+    // 残額行は最下段に固定表示
+    expect(find.byKey(const Key('split-remainder')), findsOneWidget);
 
     // 1行目は自動額なし
     expect(st().splitLineAmount(0), isNull);
 
-    // 行1に500入力 → 既定=税抜10% → 税込550。残額行(2行目)が自動生成
+    // 行0に500 → 既定=内税でそのまま500
     ctrl.splitTapDigit(5);
     ctrl.splitTapDoubleZero();
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-line-1')), findsOneWidget);
-    expect(st().splits![0].amountYen, 550); // 税抜10%の税込換算
-
-    // 税込に切替 → そのまま500
-    await tester.tap(find.byKey(const Key('split-incl-0')));
     await tester.pumpAndSettle();
     expect(st().splits![0].taxIncluded, isTrue);
     expect(st().splits![0].amountYen, 500);
 
-    // 税抜へ戻して8% → 540
-    await tester.tap(find.byKey(const Key('split-excl-0')));
-    await tester.tap(find.byKey(const Key('split-rate8-0')));
+    // 内税を外す（外税トグル）→ 全行外税10% → 550
+    await tester.tap(find.byKey(const Key('split-tax-mode')));
+    await tester.pumpAndSettle();
+    expect(st().splits![0].taxIncluded, isFalse);
+    expect(st().splits![0].amountYen, 550);
+
+    // 8%トグル → 540
+    await tester.tap(find.byKey(const Key('split-tax-8')));
     await tester.pumpAndSettle();
     expect(st().splits![0].amountYen, 540);
 
-    // 一括で全行を税込に
-    await tester.tap(find.byKey(const Key('split-bulk-incl')));
+    // 「個別」ダイアログ: 行0だけ内税へ戻す
+    await tester.tap(find.byKey(const Key('split-tax-per')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-tax-done')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('split-incl-0')));
+    await tester.pumpAndSettle();
+    expect(st().splits![0].taxIncluded, isTrue);
+    expect(st().splits![0].amountYen, 500);
+    await tester.tap(find.byKey(const Key('split-tax-done')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-tax-done')), findsNothing);
+
+    // まちまち状態からトグルで全行内税へ
+    await tester.tap(find.byKey(const Key('split-tax-mode')));
     await tester.pumpAndSettle();
     expect(st().splits!.every((l) => l.taxIncluded), isTrue);
 
@@ -81,7 +91,7 @@ void main() {
     expect(st().amountYen, 1000);
   });
 
-  testWidgets('内訳: カテゴリは常設せず「カテゴリを選択」→シートで選ぶと割当＋閉じる',
+  testWidgets('内訳: カテゴリは帯で選ぶ（カテゴリを追加→チップ割当＋閉じる・親は内訳展開）',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -102,30 +112,44 @@ void main() {
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
 
-    // 分割中は本体にカテゴリ見出しも常設グリッドも出ない
+    // 分割中は本体にカテゴリ見出し・常設グリッド・帯のどれも出ない
     expect(find.text('カテゴリ'), findsNothing);
-    expect(find.text('日用品'), findsNothing);
+    expect(find.textContaining('日用品'), findsNothing);
+    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
 
-    // 行0に300（税込）
-    await tester.tap(find.byKey(const Key('split-bulk-incl')));
-    await tester.pumpAndSettle();
+    // 行0に300（既定=内税）
     ctrl.splitTapDigit(3);
     ctrl.splitTapDoubleZero();
     await tester.pumpAndSettle();
 
-    // 「カテゴリを選択」→ シートが開き、グリッドが出る
-    expect(find.byKey(const Key('split-pickcat-0')), findsOneWidget);
+    // 行0の「＋ カテゴリ」→ 帯が電卓の上に開く
     await tester.tap(find.byKey(const Key('split-pickcat-0')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-sheet-close')), findsOneWidget);
-    expect(find.text('日用品'), findsOneWidget); // シート内のタイル
+    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
+    expect(find.textContaining('日用品'), findsOneWidget); // 帯内チップ（絵文字付き）
 
-    // 日用品を選ぶ → 行0へ割当・シートが閉じる
-    await tester.tap(find.text('日用品'));
+    // 日用品チップ → 行0へ割当・帯が閉じる
+    await tester.tap(find.textContaining('日用品'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-sheet-close')), findsNothing);
+    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
     expect(st().splits![0].categoryId, isNotNull);
-    // 割当後は行のボタンがカテゴリ名を表示（本体で日用品が見える）
-    expect(find.text('日用品'), findsOneWidget);
+    expect(find.textContaining('日用品'), findsOneWidget); // 行のチップ表示
+
+    // 残額行タップでも同じ帯が開く
+    await tester.tap(find.byKey(const Key('split-remainder')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
+
+    // 食費（内訳あり親）→ 親を割当しつつ帯は内訳チップ表示に切替
+    await tester.tap(find.textContaining('食費'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('strip-back')), findsOneWidget);
+    expect(find.textContaining('外食'), findsOneWidget);
+
+    // 外食チップ → 残額行が外食に確定・帯が閉じる → 保存可
+    await tester.tap(find.textContaining('外食'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
+    expect(st().canSave, isTrue);
   });
 }

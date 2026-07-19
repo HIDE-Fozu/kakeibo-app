@@ -127,14 +127,15 @@ void main() {
     expect(find.text('-¥700'), findsOneWidget); // グループ合計
     expect(find.text('-¥210'), findsOneWidget); // 単独行はそのまま
 
-    // ヘッダタップ → 詳細入力で開き直し（分割行2つ・合計700）
+    // ヘッダタップ → 内訳入力で開き直し（保存済み2行＋末尾の空残額行・合計700）
     await tester.tap(find.byKey(const ValueKey('txg-head-g1')));
     await tester.pumpAndSettle();
     final st = c.read(entryFormControllerProvider)!;
-    expect(st.splits, hasLength(2));
+    expect(st.splits, hasLength(3));
     expect(st.amountYen, 700);
     expect(st.replacesTxIds, hasLength(2));
-    // 分割UIが出ている（＋追加は撤去、行の「カテゴリを選択」ボタンで確認）。
+    // 分割UIが出ている（行のカテゴリチップと残額行で確認）。
     expect(find.byKey(const Key('split-pickcat-0')), findsOneWidget);
+    expect(find.byKey(const Key('split-remainder')), findsOneWidget);
   });
 }

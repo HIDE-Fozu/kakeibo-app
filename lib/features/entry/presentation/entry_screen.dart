@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
+import '../../../core/category_emoji.dart';
 import '../../../core/dates.dart';
 import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
@@ -17,6 +18,7 @@ import 'batch_itemize_panel.dart';
 import 'category_grid.dart';
 import 'numpad.dart';
 import 'receipt_review_panel.dart';
+import 'split_category_strip.dart';
 import 'split_entry_panel.dart';
 import 'subcategory_chips.dart';
 
@@ -59,7 +61,11 @@ class EntryScreen extends ConsumerWidget {
     final allCats = ref.watch(allCategoriesProvider).valueOrNull ??
         const <CategoryEntity>[];
     final categoriesById = {for (final c in allCats) c.id: c};
-    final categoryNames = {for (final c in allCats) c.id: c.name};
+    // 分割の行・税ダイアログに出すカテゴリ表示ラベル（絵文字＋名前）。
+    final categoryNames = {
+      for (final c in allCats)
+        c.id: '${categoryEmoji(c.icon, c.name)} ${c.name}'
+    };
     // グリッドの選択表示: batch=塗るカテゴリ / split=アクティブ行 / 通常=state
     final gridSelectedId = batchMode
         ? (state.batchPaintMode ? state.batchPaintCategoryId : null)
@@ -205,10 +211,12 @@ class EntryScreen extends ConsumerWidget {
                       if (splitMode)
                         SplitEntryPanel(
                             state: state, categoryNames: categoryNames),
+                      // 分割中: カテゴリ帯（開いている時だけ・電卓の真上に1行）
+                      if (splitMode) const SplitCategoryStrip(),
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
                       if (!batchMode)
                         Numpad(
-                          // 分割中はカテゴリグリッドを出さない（シートで選ぶ）ぶん
+                          // 分割中はカテゴリグリッドを出さない（帯で選ぶ）ぶん
                           // 空いた縦を電卓に回して大きく。通常モードは従来の詰め高さ。
                           cellHeight: splitMode ? 60 : 46,
                           onDigit:
@@ -244,8 +252,8 @@ class EntryScreen extends ConsumerWidget {
                             label: const Text('内訳入力'),
                           ),
                         ),
-                      // カテゴリ: 分割中は常設グリッドを出さず、行の「カテゴリを選択」を
-                      // 押した時だけ電卓に被せてシートで選ぶ（split_category_sheet）。
+                      // カテゴリ: 分割中は常設グリッドを出さず、行の「カテゴリを追加」/
+                      // チップを押した時だけ電卓上の帯で選ぶ（split_category_strip）。
                       // 通常/一括内訳では見出し＋グリッドを従来どおり表示。
                       if (!splitMode) ...[
                       // カテゴリ見出し。一括内訳中は右に詳細メモ欄を置く。

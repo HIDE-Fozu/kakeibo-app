@@ -111,10 +111,9 @@ class EntryFormState {
   final List<SplitLine>? splits;
   final int activeSplitIndex;
 
-  /// 分割の税率を行ごとに個別設定するか。false=一括のみ（各行に税ボタンを出さず、
-  /// 上の「税率選択」で全行まとめて設定）。true=各行に税率選択ボタンを表示。
-  /// 商品ごとに税率が違うのはレアなので既定は一括のみ。
-  final bool splitPerLineTax;
+  /// 分割中、カテゴリ帯（電卓の上の横スクロールチップ）を開いているか。
+  /// 行の「カテゴリを追加」／選択済みチップのタップで開き、leaf確定で閉じる。
+  final bool splitCatPickerOpen;
 
   /// 一括内訳モード（OCR明細ベース）。null=非表示。amountYen が対象の合計。
   final List<BatchItem>? batchItems;
@@ -150,7 +149,7 @@ class EntryFormState {
     this.expandedParentId,
     this.splits,
     this.activeSplitIndex = 0,
-    this.splitPerLineTax = false,
+    this.splitCatPickerOpen = false,
     this.batchItems,
     this.batchHeaderTax = 0,
     this.batchPaintMode = false,
@@ -312,7 +311,7 @@ class EntryFormState {
     Object? expandedParentId = _unset,
     Object? splits = _unset,
     int? activeSplitIndex,
-    bool? splitPerLineTax,
+    bool? splitCatPickerOpen,
     Object? batchItems = _unset,
     int? batchHeaderTax,
     bool? batchPaintMode,
@@ -349,7 +348,7 @@ class EntryFormState {
             ? this.splits
             : splits as List<SplitLine>?,
         activeSplitIndex: activeSplitIndex ?? this.activeSplitIndex,
-        splitPerLineTax: splitPerLineTax ?? this.splitPerLineTax,
+        splitCatPickerOpen: splitCatPickerOpen ?? this.splitCatPickerOpen,
         batchItems: identical(batchItems, _unset)
             ? this.batchItems
             : batchItems as List<BatchItem>?,
@@ -485,9 +484,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
     if (_s.splits != null) {
       _updateActiveSplit((l) => _withSplitCategory(l, categoryId),
           expandedParentId: hasSubs ? categoryId : null);
-      // 内訳あり親はチップ選択待ち＝まだ確定でないので増やさない。
-      // leafカテゴリ確定時のみ、末尾行に残額があれば残額行を自動追加。
-      if (!hasSubs) _maybeAppendRemainderRow();
+      // leaf確定＝割当完了なのでカテゴリ帯を閉じる（内訳あり親はチップ選択待ち）。
+      if (!hasSubs) state = _s.copyWith(splitCatPickerOpen: false);
       return;
     }
     state = _s.copyWith(
@@ -523,8 +521,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
       _updateActiveSplit(
           (l) => _withSplitCategory(l, l.categoryId == subId ? parent : subId),
           expandedParentId: null);
-      // 内訳チップ確定＝カテゴリ確定なので、末尾に残額があれば残額行を自動追加。
-      _maybeAppendRemainderRow();
+      // 内訳チップ確定＝割当完了なのでカテゴリ帯を閉じる。
+      state = _s.copyWith(splitCatPickerOpen: false);
       return;
     }
     state = _s.copyWith(
@@ -655,7 +653,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
               taxIncluded: true,
               taxTouched: true,
               categoryId: t.categoryId,
-              memo: t.memo ?? '')
+              memo: t.memo ?? ''),
+        // 末尾に空の残額行（差分表示・最下段固定）。全額割当済なら「残り ¥0」。
+        const SplitLine(taxIncluded: true),
       ],
       replacesTxIds: [for (final t in txs) t.id!],
       reuseSplitGroupId: first.splitGroupId,
@@ -669,50 +669,59 @@ class EntryFormController extends Notifier<EntryFormState?> {
       return;
     }
     state = _s.copyWith(
-      // 2行で開始。残額のカテゴリ確定で自動追加。
-      splits: const [SplitLine(), SplitLine()],
+      // 入力行1＋残額行(末尾・差分表示)で開始。既定は内税（入力額そのまま）。
+      splits: const [
+        SplitLine(taxIncluded: true),
+        SplitLine(taxIncluded: true),
+      ],
       activeSplitIndex: 0,
-      splitPerLineTax: false, // 既定は一括のみ（各行の税ボタンは出さない）
+      splitCatPickerOpen: false,
       batchItems: null,
       expandedParentId: null,
     );
   }
 
-  /// 税率を行ごとに個別設定するモードの切替。ONで各行に税率選択ボタンを出す。
-  void setSplitPerLineTax(bool value) =>
-      state = _s.copyWith(splitPerLineTax: value);
+  /// カテゴリ帯の開閉。行の「カテゴリを追加」/選択済みチップから開く。
+  /// 同じ行でもう一度呼ぶとトグルで閉じる。
+  void openSplitCatPicker(int i) {
+    final lines = _s.splits;
+    if (lines == null || i < 0 || i >= lines.length) return;
+    final toggleOff = _s.splitCatPickerOpen && _s.activeSplitIndex == i;
+    state = _s.copyWith(
+      activeSplitIndex: i,
+      splitCatPickerOpen: !toggleOff,
+      expandedParentId: null,
+    );
+  }
 
-  /// 「追加」: 空の行を末尾に足してアクティブにする（手動）。
+  void closeSplitCatPicker() =>
+      state = _s.copyWith(splitCatPickerOpen: false, expandedParentId: null);
+
+  /// 帯の内訳チップ表示から親一覧へ戻る（帯は開いたまま）。
+  void collapseSplitSubcategories() =>
+      state = _s.copyWith(expandedParentId: null);
+
+  /// 「＋品目」: 残額行(末尾・差分)の直前に空の入力行を挿してアクティブにする。
+  /// 残額行は常に最下段のまま動かない。
   void addSplitLine() {
     final lines = _s.splits;
     if (lines == null) return;
     final last = lines.last;
-    final next = [
-      ...lines,
-      SplitLine(taxIncluded: last.taxIncluded, rate: last.rate),
-    ];
-    state = _s.copyWith(splits: next, activeSplitIndex: next.length - 1);
+    final i = lines.length - 1; // 残額行の位置＝挿入先
+    final next = [...lines]
+      ..insert(i, SplitLine(taxIncluded: last.taxIncluded, rate: last.rate));
+    state = _s.copyWith(splits: next, activeSplitIndex: i);
   }
 
-  /// 末尾行に「明示金額(expr)＋カテゴリ」が入り、まだ残額が残っていれば空の残額行を
-  /// 自動追加してアクティブにする。「＋追加」を押さずに次の内訳へ進めるための処置。
-  /// 打鍵ごとには増やさず、カテゴリ確定という区切りでのみ増やす（以前 _autoExtend が
-  /// 「打った瞬間に増える」で嫌われたため。leaf/内訳チップ確定時だけ呼ぶ）。
-  /// 末尾行が空(expr無し)＝残額をそのまま担う行のときは増やさない（2分割で誤増殖しない）。
-  void _maybeAppendRemainderRow() {
+  /// 残額行(末尾・expr空)がアクティブなまま打鍵したら、直前に入力行を挿して
+  /// そちらで受ける。残額行は常に「差分」を保つ（打鍵で普通の行に化けない）。
+  /// 末尾に明示金額が入っている場合（旧データ等）はその行を直接編集する。
+  void _retargetIfRemainder() {
     final lines = _s.splits;
     if (lines == null) return;
-    if (_s.activeSplitIndex != lines.length - 1) return; // 末尾行の確定時のみ
-    final last = lines.last;
-    if (last.categoryId == null || last.expr.isEmpty) return;
-    if (_s.splitRemainder <= 0) return; // 残っている時だけ
-    state = _s.copyWith(
-      splits: [
-        ...lines,
-        SplitLine(taxIncluded: last.taxIncluded, rate: last.rate),
-      ],
-      activeSplitIndex: lines.length, // 新しい末尾（残額）行
-    );
+    if (_s.activeSplitIndex == lines.length - 1 && lines.last.expr.isEmpty) {
+      addSplitLine();
+    }
   }
 
   void cancelSplit() =>
@@ -757,6 +766,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void splitTapDigit(int digit) {
     assert(digit >= 0 && digit <= 9);
+    _retargetIfRemainder();
     _updateActiveSplit(
         (l) => l.expr.length >= 30 ? l : l.copyWith(expr: '${l.expr}$digit'));
   }
@@ -772,6 +782,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// 演算子キー。空の式には +/− のみ置ける（+100形式）。
   /// 末尾が演算子なら置き換え（連続演算子を作らない＝電卓の標準挙動）。
   void splitTapOperator(String op) {
+    _retargetIfRemainder();
     assert(const ['+', '-', '×', '÷'].contains(op));
     _updateActiveSplit((l) {
       final e = l.expr;
