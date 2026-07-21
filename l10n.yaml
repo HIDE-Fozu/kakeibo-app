@@ -1,0 +1,9 @@
+# gen-l10n 設定。ARB（lib/l10n/app_*.arb）から AppLocalizations を生成。
+# 生成物: lib/l10n/app_localizations.dart（import: package:kakeibo_app/l10n/app_localizations.dart）
+# テンプレは英語（app_en.arb）。日本語（app_ja.arb）が正典訳。
+# Flutter 3.44 は非synthetic既定なので output は arb-dir 直下の実ファイル。
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

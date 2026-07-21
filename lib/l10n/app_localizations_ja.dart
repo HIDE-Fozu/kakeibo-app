@@ -1,0 +1,637 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Japanese (`ja`).
+class AppLocalizationsJa extends AppLocalizations {
+  AppLocalizationsJa([String locale = 'ja']) : super(locale);
+
+  @override
+  String get appTitle => '家計簿';
+
+  @override
+  String get commonCancel => 'キャンセル';
+
+  @override
+  String get commonClose => '閉じる';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get settingsLanguage => '言語';
+
+  @override
+  String get settingsCurrency => '通貨';
+
+  @override
+  String get languageSystemDefault => '端末の言語に合わせる';
+
+  @override
+  String get currencyLockedSubtitle => '取引があるため変更できません';
+
+  @override
+  String get currencyLockedTitle => '通貨は変更できません';
+
+  @override
+  String get currencyLockedBody => '過去の金額を正しく保つため、取引を記録した後は通貨を変更できません。';
+
+  @override
+  String settingsAutoBackupSubtitle(int generations) {
+    return '自動バックアップ $generations世代（端末内）';
+  }
+
+  @override
+  String get settingsBackupNowTitle => '今すぐバックアップ';
+
+  @override
+  String get settingsExportJsonTitle => 'JSONエクスポート';
+
+  @override
+  String get settingsExportJsonSubtitle => '任意でパスフレーズ暗号化（復元に使えます）';
+
+  @override
+  String get settingsExportCsvTitle => 'CSVエクスポート';
+
+  @override
+  String get settingsExportCsvSubtitle => '閲覧用（復元には使えません）';
+
+  @override
+  String get settingsRestoreTitle => '復元';
+
+  @override
+  String get settingsRestoreSubtitle => '全データを置き換えます';
+
+  @override
+  String get settingsTestUploadTitle => 'テスト協力（自動送信）';
+
+  @override
+  String get settingsTestUploadSubtitle =>
+      'レシート読み取りの改善のため、スキャンの記録と写真を開発者へ自動送信します（テスト期間限定）。家計簿の入力内容そのものは送信しません';
+
+  @override
+  String get settingsShareTestDataTitle => 'テストデータを送る';
+
+  @override
+  String get settingsShareTestDataSubtitle => '手動でまとめて共有（LINE/AirDrop）';
+
+  @override
+  String get settingsFetchCollectedTitle => '収集データを取り込む（開発者用）';
+
+  @override
+  String get settingsFetchCollectedSubtitle =>
+      '全端末分をこの端末の exports/ocr-collected へ';
+
+  @override
+  String get settingsRetainImagesTitle => 'レシート画像をローカル保持';
+
+  @override
+  String get settingsRetainImagesSubtitle => '既定では保存後に破棄します';
+
+  @override
+  String get settingsCategoryManageTitle => 'カテゴリ管理';
+
+  @override
+  String get settingsCategoryOrderTitle => 'カテゴリを自分の順で並べる';
+
+  @override
+  String get settingsCategoryOrderSubtitle =>
+      'オフ=最近使った順 / オン=固定順（入力画面でタイル長押し→並べ替え）';
+
+  @override
+  String get settingsPageColorTitle => 'ページの色（背景）';
+
+  @override
+  String get settingsAccentColorTitle => 'アクセント色';
+
+  @override
+  String get settingsAccentColorSubtitle => 'ボタンや選択の色';
+
+  @override
+  String get settingsDataPolicyTitle => 'データの取り扱いについて';
+
+  @override
+  String get settingsDataPolicyBody =>
+      '・記録は端末の中だけに保存されます。自動で外部に送信されることはありません。\n・端末内で自動バックアップを取りますが、機種変更や端末の故障に備えて、設定からエクスポートを保存してください。';
+
+  @override
+  String get settingsPassphraseFieldLabel => 'パスフレーズ（暗号化する場合）';
+
+  @override
+  String get settingsSaveAsIs => 'そのまま保存';
+
+  @override
+  String get settingsSaveEncrypted => '暗号化して保存';
+
+  @override
+  String get settingsBackupSuccessSnackbar => 'バックアップを作成しました';
+
+  @override
+  String settingsBackupFailedSnackbar(String error) {
+    return 'バックアップに失敗しました: $error';
+  }
+
+  @override
+  String settingsExportSavedSnackbar(String fileName) {
+    return '保存しました: $fileName';
+  }
+
+  @override
+  String settingsExportFailedSnackbar(String error) {
+    return 'エクスポートに失敗しました: $error';
+  }
+
+  @override
+  String settingsFetchCollectedSuccessSnackbar(int count) {
+    return '$count 件を取り込みました（exports/ocr-collected）';
+  }
+
+  @override
+  String settingsFetchCollectedFailedSnackbar(String error) {
+    return '取り込みに失敗しました: $error';
+  }
+
+  @override
+  String get settingsNoScanRecordsSnackbar => 'まだスキャンの記録がありません';
+
+  @override
+  String settingsShareTestDataSubject(int count) {
+    return '家計簿テストデータ（$count件）';
+  }
+
+  @override
+  String settingsShareTestDataFailedSnackbar(String error) {
+    return '送信に失敗しました: $error';
+  }
+
+  @override
+  String get entryTitleCreate => '入力';
+
+  @override
+  String get entryTitleReceiptConfirm => 'レシート確認';
+
+  @override
+  String get commonEdit => '編集';
+
+  @override
+  String get entryTypeExpense => '支出';
+
+  @override
+  String get entryTypeIncome => '収入';
+
+  @override
+  String entryDateLabel(int year, int month, int day) {
+    return '$year年$month月$day日';
+  }
+
+  @override
+  String get entryStartSplitButton => '内訳入力';
+
+  @override
+  String get entryCategoryHeading => 'カテゴリ';
+
+  @override
+  String get entryDetailMemoLabel => '詳細メモ';
+
+  @override
+  String get entryStoreNameLabel => '店舗名';
+
+  @override
+  String get entrySaveContinueButton => '保存して続ける';
+
+  @override
+  String get entrySavedSnackbar => '保存しました';
+
+  @override
+  String get entryReceiptCaptureUnavailableSnackbar => 'この端末ではレシート撮影を利用できません';
+
+  @override
+  String entryOcrFailedSnackbar(String error) {
+    return '読み取りに失敗しました: $error';
+  }
+
+  @override
+  String get entryReceiptSourceCamera => 'カメラで撮影';
+
+  @override
+  String get entryReceiptSourceLibrary => '写真から選ぶ';
+
+  @override
+  String get entryDeleteConfirmTitle => '削除しますか？';
+
+  @override
+  String get entryDeleteConfirmContent => 'この取引を削除します。';
+
+  @override
+  String get commonDelete => '削除';
+
+  @override
+  String get batchPanelTitle => '一括内訳';
+
+  @override
+  String get batchModeSelectAssign => '選んで割当';
+
+  @override
+  String get batchModePaint => '塗り分け';
+
+  @override
+  String get batchCancelButton => 'やめる';
+
+  @override
+  String get batchThisReceiptLabel => 'このレシート:';
+
+  @override
+  String get batchTaxIncluded => '内税';
+
+  @override
+  String get batchTaxExclusive8 => '外税8%';
+
+  @override
+  String get batchTaxExclusive10 => '外税10%';
+
+  @override
+  String get batchPaintHintNoCategory => '下のカテゴリを選んでから、行をタップして塗り分け';
+
+  @override
+  String batchPaintHintActive(String name) {
+    return '「$name」を塗り中 — 行をタップ（もう一度で解除）';
+  }
+
+  @override
+  String get batchSelectHint => '行を選択 → 下のカテゴリをタップして割当';
+
+  @override
+  String batchSelectionSummary(int count, String amount) {
+    return '選択中 $count件 $amount → 下のカテゴリをタップ';
+  }
+
+  @override
+  String get batchNoAssignmentsYet => '（まだ割当がありません）';
+
+  @override
+  String get batchCategoryUnknown => '不明';
+
+  @override
+  String get batchDiffPickCategory => '残り（差額）— タップしてカテゴリを選ぶ';
+
+  @override
+  String batchDiffCategorySuffix(String category) {
+    return '$category（差額）';
+  }
+
+  @override
+  String get batchReceiptFallbackLabel => 'レシート';
+
+  @override
+  String get batchTotalLabel => '合計';
+
+  @override
+  String batchExcessAmount(String amount, String excess) {
+    return '$amount ✗ $excess 超過';
+  }
+
+  @override
+  String get restorePageTitle => '復元';
+
+  @override
+  String get restoreEmptyMessage => '復元できるバックアップがありません';
+
+  @override
+  String get restoreConfirmTitle => '復元しますか？';
+
+  @override
+  String get restoreConfirmMessage =>
+      '現在のデータはすべて置き換えられます。直前の状態は自動退避され、あとで取り出せます。';
+
+  @override
+  String get restoreButton => '復元';
+
+  @override
+  String get restoreEmptyBackupTitle => '取引が0件のバックアップです';
+
+  @override
+  String get restoreEmptyBackupMessage => '復元するとすべての取引が消えます。それでも復元しますか？';
+
+  @override
+  String get restoreEmptyBackupConfirmButton => '復元する';
+
+  @override
+  String restoreFailedMessage(String error) {
+    return '復元に失敗しました: $error';
+  }
+
+  @override
+  String get restoreSuccessMessage => '復元しました';
+
+  @override
+  String get restorePassphraseTitle => 'パスフレーズを入力';
+
+  @override
+  String get commonAdd => '追加';
+
+  @override
+  String get categoryRenameAction => '名前を変更';
+
+  @override
+  String get categorySubcategoryRenameTitle => '内訳を改名';
+
+  @override
+  String get categoryNameFieldLabel => '名前';
+
+  @override
+  String get categorySubcategoryAddTitle => '内訳を追加';
+
+  @override
+  String get categoryIconFieldLabel => 'アイコン（絵文字・任意）';
+
+  @override
+  String get categoryEditExistingTitle => '既存の内容を編集';
+
+  @override
+  String get categoryIconOrderTitle => 'アイコンの表示順設定';
+
+  @override
+  String get categoryIconOrderHint => 'ドラッグで並べ替え（自分の順で表示されます）';
+
+  @override
+  String get categoryManageTitle => 'カテゴリ管理';
+
+  @override
+  String get categoryTabExpense => '支出';
+
+  @override
+  String get categoryTabIncome => '収入';
+
+  @override
+  String get categorySubAddTitle => '内訳を追加';
+
+  @override
+  String get categoryAddTitle => 'カテゴリを追加';
+
+  @override
+  String get categorySubRenameTitle => '内訳を改名';
+
+  @override
+  String get categoryRenameTitle => 'カテゴリを改名';
+
+  @override
+  String get categorySubAddTooltip => '内訳を追加';
+
+  @override
+  String get categoryArchiveBlockedSnackbar => '内訳を先にアーカイブしてください';
+
+  @override
+  String get categoryArchivedSectionTitle => 'アーカイブ済み';
+
+  @override
+  String categoryArchivedItemLabel(String name) {
+    return '$name（アーカイブ）';
+  }
+
+  @override
+  String get splitStoreNameHint => '店名';
+
+  @override
+  String get splitCancel => 'やめる';
+
+  @override
+  String get splitBreakdownLabel => '内訳';
+
+  @override
+  String get splitTaxLabel => '消費税';
+
+  @override
+  String get splitTaxIncludedToggle => '内税';
+
+  @override
+  String get splitTaxExcludedToggle => '外税';
+
+  @override
+  String get splitTaxIndividual => '個別';
+
+  @override
+  String get splitMemoHint => 'メモ';
+
+  @override
+  String get splitAddCategoryChip => '＋ カテゴリ';
+
+  @override
+  String splitTaxIncludedAmount(String amount) {
+    return '税込 $amount';
+  }
+
+  @override
+  String get splitAddCategoryLabel => 'カテゴリを追加';
+
+  @override
+  String get splitOverLabel => '超過';
+
+  @override
+  String get splitRemainingLabel => '残り';
+
+  @override
+  String summaryMonthHeader(int year, int month) {
+    return '$year年$month月';
+  }
+
+  @override
+  String get summaryEmptyTitle => 'この月のデータはまだありません';
+
+  @override
+  String get summaryEmptyHint => 'カレンダーの＋から入力できます';
+
+  @override
+  String get summaryIncomeLabel => '収入';
+
+  @override
+  String get summaryExpenseLabel => '支出';
+
+  @override
+  String get summaryNetLabel => '差引';
+
+  @override
+  String get summaryCategoryBreakdownTitle => 'カテゴリ別支出';
+
+  @override
+  String summaryArchivedSuffix(String name) {
+    return '$name（アーカイブ）';
+  }
+
+  @override
+  String get summaryBreakdownCollapse => '▲ 内訳';
+
+  @override
+  String get summaryBreakdownExpand => '▼ 内訳';
+
+  @override
+  String get summaryNoBreakdownLabel => '（内訳なし）';
+
+  @override
+  String get entryNoImage => '画像なし';
+
+  @override
+  String get entryAmountReadFailed => '金額を読み取れませんでした。手入力してください';
+
+  @override
+  String get entryStoreDirectInput => '直接入力';
+
+  @override
+  String get entryStoreNameDialogTitle => '店舗名を入力';
+
+  @override
+  String get commonOk => '決定';
+
+  @override
+  String get calendarWeekdaySun => '日';
+
+  @override
+  String get calendarWeekdayMon => '月';
+
+  @override
+  String get calendarWeekdayTue => '火';
+
+  @override
+  String get calendarWeekdayWed => '水';
+
+  @override
+  String get calendarWeekdayThu => '木';
+
+  @override
+  String get calendarWeekdayFri => '金';
+
+  @override
+  String get calendarWeekdaySat => '土';
+
+  @override
+  String calendarMonthYearHeader(int year, int month) {
+    return '$year年$month月';
+  }
+
+  @override
+  String calendarMonthSummary(String expense, String income, String net) {
+    return '支出 $expense　収入 $income　差引 $net';
+  }
+
+  @override
+  String calendarDayEmptyTitle(int month, int day) {
+    return '$month月$day日の記録はありません';
+  }
+
+  @override
+  String get calendarDayEmptyHintFirst => '右下の「金額を入力する」から最初の記録を追加できます';
+
+  @override
+  String get calendarDayEmptyHint => '右下の「金額を入力する」から追加できます';
+
+  @override
+  String get calendarReceiptFallbackLabel => 'レシート';
+
+  @override
+  String get calendarCategoryUnknown => '不明';
+
+  @override
+  String calendarCategoryArchivedLabel(String name) {
+    return '$name（アーカイブ）';
+  }
+
+  @override
+  String get calendarDeleteSnackbar => '削除しました';
+
+  @override
+  String get calendarUndoAction => '元に戻す';
+
+  @override
+  String get splitTaxDialogTitle => '品目ごとの税率';
+
+  @override
+  String get commonDone => '完了';
+
+  @override
+  String get splitRemainderLabel => '残り';
+
+  @override
+  String splitItemNumberLabel(int index) {
+    return '品目$index';
+  }
+
+  @override
+  String get splitTaxIncludedLabel => '内税';
+
+  @override
+  String splitRemainderAutoAmount(String amount) {
+    return '$amount（自動）';
+  }
+
+  @override
+  String splitAmountWithTax(String entered, String net) {
+    return '$entered → 税込 $net';
+  }
+
+  @override
+  String get onboardingTitle => 'データの取り扱いについて';
+
+  @override
+  String get onboardingBody =>
+      '・記録は端末の中だけに保存されます。自動で外部に送信されることはありません。\n・端末内で自動バックアップを取りますが、機種変更や端末の故障に備えて、設定からエクスポートを保存してください。';
+
+  @override
+  String get onboardingStartButton => 'はじめる';
+
+  @override
+  String get homeFabEntryLabel => '金額を入力する';
+
+  @override
+  String get homeNavCalendar => 'カレンダー';
+
+  @override
+  String get homeNavSummary => 'サマリ';
+
+  @override
+  String get homeNavSettings => '設定';
+
+  @override
+  String get settingsColorPickerResetDefault => '既定に戻す';
+
+  @override
+  String get settingsColorPickerConfirm => '決定';
+
+  @override
+  String get categoryManualOrderSnackbar => '自分で並べた順にしました（設定で戻せます）';
+
+  @override
+  String get entryHintEnterAmount => '金額を入力してください';
+
+  @override
+  String get entryHintAssignItemCategory => '品目にカテゴリを割り当ててください';
+
+  @override
+  String get entryHintAssignExceedsTotal => '割り当てが合計を超えています';
+
+  @override
+  String get entryHintPickDiffCategory => '差額のカテゴリを選んでください';
+
+  @override
+  String get entryHintSplitExceedsTotal => '内訳が合計を超えています';
+
+  @override
+  String get entryHintPickCategory => 'カテゴリを選んでください';
+
+  @override
+  String get entryHintEnterAmountAndCategory => '金額とカテゴリを入力してください';
+
+  @override
+  String get entryHintEnterRemainingAmount => '残りの金額も入力してください';
+
+  @override
+  String get settingsBackupNever => 'バックアップ未作成';
+
+  @override
+  String get settingsBackupToday => '前回バックアップ: 今日';
+
+  @override
+  String settingsBackupDaysAgo(int days) {
+    return '前回バックアップ: $days日前';
+  }
+}

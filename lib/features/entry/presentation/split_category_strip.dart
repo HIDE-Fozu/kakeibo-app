@@ -60,7 +60,7 @@ class SplitCategoryStrip extends ConsumerWidget {
         chip('‹', false, ctrl.collapseSplitSubcategories,
             key: const Key('strip-back')),
         for (final s in subs)
-          chip('${categoryEmoji(s.icon, s.name)} ${s.name}',
+          chip('${categoryEmoji(s.icon, s.slug)} ${s.name}',
               line.categoryId == s.id, () => ctrl.toggleSubcategory(s.id),
               key: Key('strip-cat-${s.id}')),
       ];
@@ -70,7 +70,7 @@ class SplitCategoryStrip extends ConsumerWidget {
       chips = [
         for (final c in cats)
           chip(
-            '${categoryEmoji(c.icon, c.name)} ${c.name}',
+            '${categoryEmoji(c.icon, c.slug)} ${c.name}',
             line.categoryId == c.id,
             () {
               final subs = ref

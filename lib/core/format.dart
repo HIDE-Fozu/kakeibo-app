@@ -1,4 +1,5 @@
 import '../data/db/enums.dart';
+import '../l10n/app_localizations.dart';
 
 String formatYen(int yen) {
   final digits = yen.abs().toString();
@@ -27,9 +28,9 @@ String manYen(int yen) {
   return '${(yen / 10000).round()}万';
 }
 
-String backupAgeLabel(DateTime? lastUtc, DateTime nowUtc) {
-  if (lastUtc == null) return 'バックアップ未作成';
+String backupAgeLabel(AppLocalizations l, DateTime? lastUtc, DateTime nowUtc) {
+  if (lastUtc == null) return l.settingsBackupNever;
   final days = nowUtc.difference(lastUtc).inDays;
-  if (days <= 0) return '前回バックアップ: 今日';
-  return '前回バックアップ: $days日前';
+  if (days <= 0) return l.settingsBackupToday;
+  return l.settingsBackupDaysAgo(days);
 }

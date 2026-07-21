@@ -9,6 +9,7 @@ import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../settings/application/settings_controller.dart';
 import '../application/entry_category_providers.dart';
+import '../../../l10n/app_localizations.dart';
 
 // --- レイアウト定数 ---
 // 4列×2段を1ページ（＝8カテゴリ）とし、行優先で詰める（index0の下はindex4）。
@@ -209,8 +210,9 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
           .read(appSettingsProvider.notifier)
           .setCategoryOrder(CategoryOrderMode.manual);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('自分で並べた順にしました（設定で戻せます）')));
+        final l = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.categoryManualOrderSnackbar)));
       }
     }
     // _workingOrder は provider が追いついた時点で build 内でクリアする。
@@ -421,7 +423,7 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            categoryEmoji(c.icon, c.name),
+            categoryEmoji(c.icon, c.slug),
             style: const TextStyle(fontSize: 18),
           ),
           Text(

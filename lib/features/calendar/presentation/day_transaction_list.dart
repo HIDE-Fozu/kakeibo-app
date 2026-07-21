@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/category_emoji.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
-import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
@@ -28,6 +29,7 @@ class DayTransactionList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final txs = ref.watch(dayTransactionsProvider(day)).valueOrNull ?? const [];
     final cats =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
@@ -44,12 +46,12 @@ class DayTransactionList extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${day.month}月${day.day}日の記録はありません'),
+            Text(l.calendarDayEmptyTitle(day.month, day.day)),
             const SizedBox(height: 4),
             Text(
               monthEmpty
-                  ? '右下の「金額を入力する」から最初の記録を追加できます'
-                  : '右下の「金額を入力する」から追加できます',
+                  ? l.calendarDayEmptyHintFirst
+                  : l.calendarDayEmptyHint,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -91,6 +93,8 @@ class DayTransactionList extends ConsumerWidget {
   /// ヘッダタップ→詳細入力で開き直し（置換保存）。行は従来どおり個別編集/削除。
   Widget _groupCard(BuildContext context, WidgetRef ref,
       Map<int, CategoryEntity> byId, List<TransactionEntity> group) {
+    final l = AppLocalizations.of(context);
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final sum = group.fold(0, (a, t) => a + t.amountYen);
     final label = txDisplayLabel(group.first);
@@ -125,13 +129,13 @@ class DayTransactionList extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      label ?? 'レシート',
+                      label ?? l.calendarReceiptFallbackLabel,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Text(
-                    signedYen(group.first.type, sum),
+                    mf.signed(group.first.type, sum),
                     style: TextStyle(
                       color: group.first.type == TxnType.expense
                           ? context.kakeiboColors.expense
@@ -160,12 +164,14 @@ class DayTransactionList extends ConsumerWidget {
   Widget _txTile(BuildContext context, WidgetRef ref,
       Map<int, CategoryEntity> byId, TransactionEntity tx,
       {bool dense = false}) {
+    final l = AppLocalizations.of(context);
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final cat = byId[tx.categoryId];
     final name = cat == null
-        ? '不明'
+        ? l.calendarCategoryUnknown
         : cat.isArchived
-            ? '${cat.name}（アーカイブ）'
+            ? l.calendarCategoryArchivedLabel(cat.name)
             : cat.name;
     return Dismissible(
       key: ValueKey('tx-${tx.id}'),
@@ -180,14 +186,14 @@ class DayTransactionList extends ConsumerWidget {
       child: ListTile(
         dense: dense,
         visualDensity: dense ? VisualDensity.compact : null,
-        leading: Text(categoryEmoji(cat?.icon, cat?.name),
+        leading: Text(categoryEmoji(cat?.icon, cat?.slug),
             style: TextStyle(fontSize: dense ? 17 : 20)),
         title: Text(name),
         subtitle: !dense && txDisplayLabel(tx) != null
             ? Text(txDisplayLabel(tx)!)
             : null,
         trailing: Text(
-          signedYen(tx.type, tx.amountYen),
+          mf.signed(tx.type, tx.amountYen),
           style: TextStyle(
             color: tx.type == TxnType.expense
                 ? context.kakeiboColors.expense
@@ -211,12 +217,13 @@ class DayTransactionList extends ConsumerWidget {
   /// Undo は同内容の再add（id/createdAtは新規になる: v1の既知の限界）
   void _deleteWithUndo(
       BuildContext context, WidgetRef ref, TransactionEntity tx) {
+    final l = AppLocalizations.of(context);
     final repo = ref.read(transactionRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
     repo.delete(tx.id!);
     messenger.showSnackBar(SnackBar(
-      content: const Text('削除しました'),
-      action: SnackBarAction(label: '元に戻す', onPressed: () => repo.add(tx)),
+      content: Text(l.calendarDeleteSnackbar),
+      action: SnackBarAction(label: l.calendarUndoAction, onPressed: () => repo.add(tx)),
     ));
   }
 }

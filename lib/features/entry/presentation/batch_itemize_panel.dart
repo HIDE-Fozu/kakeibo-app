@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
-import '../../../core/format.dart';
+import '../../../core/money.dart';
 import '../../../domain/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/entry_form_controller.dart';
 import 'receipt_line_strip.dart';
 
@@ -28,8 +30,10 @@ class BatchItemizePanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final items = state.batchItems!;
+    final l = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,7 +44,7 @@ class BatchItemizePanel extends ConsumerWidget {
             const SizedBox(width: 4),
             // 合計はすぐ上の金額表示に出ているので、ここは短く
             Expanded(
-              child: Text('一括内訳',
+              child: Text(l.batchPanelTitle,
                   style: Theme.of(context).textTheme.labelLarge,
                   overflow: TextOverflow.ellipsis),
             ),
@@ -50,9 +54,9 @@ class BatchItemizePanel extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              segments: const [
-                ButtonSegment(value: false, label: Text('選んで割当')),
-                ButtonSegment(value: true, label: Text('塗り分け')),
+              segments: [
+                ButtonSegment(value: false, label: Text(l.batchModeSelectAssign)),
+                ButtonSegment(value: true, label: Text(l.batchModePaint)),
               ],
               selected: {state.batchPaintMode},
               onSelectionChanged: (s) => ctrl.setBatchPaintMode(s.single),
@@ -60,14 +64,14 @@ class BatchItemizePanel extends ConsumerWidget {
             TextButton(
               key: const Key('cancel-batch'),
               onPressed: ctrl.cancelBatchItemize,
-              child: const Text('やめる'),
+              child: Text(l.batchCancelButton),
             ),
           ],
         ),
         // 税ヘッダー: レシート単位で一括指定
         Row(
           children: [
-            Text('このレシート:',
+            Text(l.batchThisReceiptLabel,
                 style: TextStyle(fontSize: 11, color: scheme.outline)),
             const SizedBox(width: 6),
             Expanded(
@@ -81,10 +85,10 @@ class BatchItemizePanel extends ConsumerWidget {
                       visualDensity: VisualDensity.compact,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('内税')),
-                      ButtonSegment(value: 8, label: Text('外税8%')),
-                      ButtonSegment(value: 10, label: Text('外税10%')),
+                    segments: [
+                      ButtonSegment(value: 0, label: Text(l.batchTaxIncluded)),
+                      ButtonSegment(value: 8, label: Text(l.batchTaxExclusive8)),
+                      ButtonSegment(value: 10, label: Text(l.batchTaxExclusive10)),
                     ],
                     selected: {state.batchHeaderTax},
                     onSelectionChanged: (s) =>
@@ -98,7 +102,7 @@ class BatchItemizePanel extends ConsumerWidget {
         const SizedBox(height: 4),
         for (var i = 0; i < items.length; i++) _itemRow(context, ref, i),
         const SizedBox(height: 6),
-        _hintBar(context),
+        _hintBar(context, mf),
         const SizedBox(height: 8),
         _paper(context, ref),
       ],
@@ -107,6 +111,7 @@ class BatchItemizePanel extends ConsumerWidget {
 
   Widget _itemRow(BuildContext context, WidgetRef ref, int i) {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final b = state.batchItems![i];
     final cat = b.categoryId == null ? null : categoriesById[b.categoryId];
@@ -118,7 +123,7 @@ class BatchItemizePanel extends ConsumerWidget {
     Widget leading;
     if (state.batchPaintMode) {
       leading = Text(
-        cat == null ? '○' : categoryEmoji(cat.icon, cat.name),
+        cat == null ? '○' : categoryEmoji(cat.icon, cat.slug),
         style: TextStyle(
             fontSize: 15,
             color: cat == null ? scheme.outline : null),
@@ -186,14 +191,14 @@ class BatchItemizePanel extends ConsumerWidget {
               if (!state.batchPaintMode && cat != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 4),
-                  child: Text(categoryEmoji(cat.icon, cat.name),
+                  child: Text(categoryEmoji(cat.icon, cat.slug),
                       style: const TextStyle(fontSize: 14)),
                 ),
               taxChip(8),
               taxChip(10),
               const SizedBox(width: 6),
               Text(
-                formatYen(state.batchItemAmount(b)),
+                mf.format(state.batchItemAmount(b)),
                 style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -206,24 +211,25 @@ class BatchItemizePanel extends ConsumerWidget {
     );
   }
 
-  Widget _hintBar(BuildContext context) {
+  Widget _hintBar(BuildContext context, MoneyFormatter mf) {
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context);
     final String text;
     if (state.batchPaintMode) {
       final paint = state.batchPaintCategoryId == null
           ? null
           : categoriesById[state.batchPaintCategoryId];
       text = paint == null
-          ? '下のカテゴリを選んでから、行をタップして塗り分け'
-          : '「${paint.name}」を塗り中 — 行をタップ（もう一度で解除）';
+          ? l.batchPaintHintNoCategory
+          : l.batchPaintHintActive(paint.name);
     } else {
       final sel = state.batchSelectedIndexes;
       if (sel.isEmpty) {
-        text = '行を選択 → 下のカテゴリをタップして割当';
+        text = l.batchSelectHint;
       } else {
         final sum = sel.fold(
             0, (a, i) => a + state.batchItemAmount(state.batchItems![i]));
-        text = '選択中 ${sel.length}件 ${formatYen(sum)} → 下のカテゴリをタップ';
+        text = l.batchSelectionSummary(sel.length, mf.format(sum));
       }
     }
     return Container(
@@ -244,7 +250,9 @@ class BatchItemizePanel extends ConsumerWidget {
 
   /// B2: レシート紙風の集約＋合計照合＋差額行。
   Widget _paper(BuildContext context, WidgetRef ref) {
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context);
     final groups = state.batchGroups;
     final diff = state.batchDiff;
     final diffCat = state.batchDiffCategoryId == null
@@ -289,18 +297,18 @@ class BatchItemizePanel extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            '🧾 ${headerLabel.isEmpty ? 'レシート' : headerLabel}　${state.date.toIso()}',
+            '🧾 ${headerLabel.isEmpty ? l.batchReceiptFallbackLabel : headerLabel}　${state.date.toIso()}',
             style: TextStyle(fontSize: 11, color: scheme.outline),
             overflow: TextOverflow.ellipsis,
           ),
           Divider(height: 10, color: scheme.outlineVariant),
           if (groups.isEmpty)
-            row('（まだ割当がありません）', '', color: scheme.outline),
+            row(l.batchNoAssignmentsYet, '', color: scheme.outline),
           for (final e in groups.entries)
             row(
-              '${categoryEmoji(categoriesById[e.key]?.icon, categoriesById[e.key]?.name)} '
-              '${categoriesById[e.key]?.name ?? '不明'}',
-              formatYen(e.value),
+              '${categoryEmoji(categoriesById[e.key]?.icon, categoriesById[e.key]?.slug)} '
+              '${categoriesById[e.key]?.name ?? l.batchCategoryUnknown}',
+              mf.format(e.value),
             ),
           if (diff > 0)
             InkWell(
@@ -308,19 +316,19 @@ class BatchItemizePanel extends ConsumerWidget {
               onTap: () => _pickDiffCategory(context, ref),
               child: row(
                 diffCat == null
-                    ? '残り（差額）— タップしてカテゴリを選ぶ'
-                    : '${categoryEmoji(diffCat.icon, diffCat.name)} '
-                        '${diffCat.name}（差額）',
-                formatYen(diff),
+                    ? l.batchDiffPickCategory
+                    : '${categoryEmoji(diffCat.icon, diffCat.slug)} '
+                        '${l.batchDiffCategorySuffix(diffCat.name)}',
+                mf.format(diff),
                 color: diffCat == null ? scheme.error : null,
               ),
             ),
           Divider(height: 10, color: scheme.outlineVariant),
           row(
-            '合計',
+            l.batchTotalLabel,
             diff < 0
-                ? '${formatYen(state.amountYen)} ✗ ${formatYen(-diff)} 超過'
-                : '${formatYen(state.amountYen)}${state.canSave ? ' ✓' : ''}',
+                ? l.batchExcessAmount(mf.format(state.amountYen), mf.format(-diff))
+                : '${mf.format(state.amountYen)}${state.canSave ? ' ✓' : ''}',
             color: diff < 0
                 ? scheme.error
                 : state.canSave
@@ -344,7 +352,7 @@ class BatchItemizePanel extends ConsumerWidget {
             for (final c in pickableCategories)
               ListTile(
                 dense: true,
-                leading: Text(categoryEmoji(c.icon, c.name),
+                leading: Text(categoryEmoji(c.icon, c.slug),
                     style: const TextStyle(fontSize: 18)),
                 title: Text(c.name),
                 onTap: () => Navigator.pop(ctx, c.id),

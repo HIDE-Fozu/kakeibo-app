@@ -45,6 +45,9 @@ class CategoryEntity {
   final bool isArchived;
   final bool isSystem;
   final int? parentId; // 非null=内訳（階層は2段まで）
+
+  /// 安定キー（シードカテゴリのみ非null）。絵文字・自動税率の結び付け先。
+  final String? slug;
   const CategoryEntity({
     required this.id,
     required this.name,
@@ -54,5 +57,6 @@ class CategoryEntity {
     required this.isArchived,
     required this.isSystem,
     this.parentId,
+    this.slug,
   });
 }

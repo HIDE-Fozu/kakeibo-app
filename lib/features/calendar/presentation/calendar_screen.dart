@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/dates.dart';
-import '../../../core/format.dart';
+import '../../../core/money.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
@@ -16,13 +18,16 @@ class CalendarScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final (year, month) = ref.watch(currentMonthProvider);
     final selected = ref.watch(selectedDayProvider);
-    final summary = ref.watch(monthSummaryProvider((year, month))).valueOrNull ??
+    final summary =
+        ref.watch(monthSummaryProvider((year, month))).valueOrNull ??
         const MonthlySummary(income: 0, expense: 0);
     final totals =
         ref.watch(dayExpenseTotalsProvider((year, month))).valueOrNull ??
-            const <CivilDate, int>{};
+        const <CivilDate, int>{};
+    final mf = ref.watch(moneyFormatterProvider);
 
     return SafeArea(
       child: Column(
@@ -54,7 +59,7 @@ class CalendarScreen extends ConsumerWidget {
                 .set(focused.year, focused.month),
             calendarBuilders: CalendarBuilders(
               dowBuilder: (context, day) {
-                final (label, color) = _dowLabelColor(day.weekday);
+                final (label, color) = _dowLabelColor(day.weekday, l);
                 return Center(
                   child: Text(
                     label,
@@ -64,11 +69,11 @@ class CalendarScreen extends ConsumerWidget {
               },
               // 数字を上・金額を下に分離（選択/今日の丸は数字だけを囲む小さめの丸）。
               defaultBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.normal, totals),
+                  _dayCell(context, day, _DayStyle.normal, totals, mf),
               todayBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.today, totals),
+                  _dayCell(context, day, _DayStyle.today, totals, mf),
               selectedBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.selected, totals),
+                  _dayCell(context, day, _DayStyle.selected, totals, mf),
             ),
           ),
           const Divider(height: 1),
@@ -80,14 +85,15 @@ class CalendarScreen extends ConsumerWidget {
 }
 
 /// 曜日ヘッダの日本語ラベルと色（日曜=薄赤 / 土曜=薄青 / 平日=既定）。
-(String, Color?) _dowLabelColor(int weekday) => switch (weekday) {
-      DateTime.sunday => ('日', kSunday),
-      DateTime.monday => ('月', null),
-      DateTime.tuesday => ('火', null),
-      DateTime.wednesday => ('水', null),
-      DateTime.thursday => ('木', null),
-      DateTime.friday => ('金', null),
-      _ => ('土', kSaturday),
+(String, Color?) _dowLabelColor(int weekday, AppLocalizations l) =>
+    switch (weekday) {
+      DateTime.sunday => (l.calendarWeekdaySun, kSunday),
+      DateTime.monday => (l.calendarWeekdayMon, null),
+      DateTime.tuesday => (l.calendarWeekdayTue, null),
+      DateTime.wednesday => (l.calendarWeekdayWed, null),
+      DateTime.thursday => (l.calendarWeekdayThu, null),
+      DateTime.friday => (l.calendarWeekdayFri, null),
+      _ => (l.calendarWeekdaySat, kSaturday),
     };
 
 enum _DayStyle { normal, selected, today }
@@ -102,6 +108,7 @@ Widget _dayCell(
   DateTime day,
   _DayStyle style,
   Map<CivilDate, int> totals,
+  MoneyFormatter mf,
 ) {
   final total = totals[civilOfDateTime(day)] ?? 0;
   BoxDecoration? deco;
@@ -141,7 +148,7 @@ Widget _dayCell(
           Padding(
             padding: const EdgeInsets.only(top: 1),
             child: Text(
-              manYen(total),
+              mf.compact(total),
               style: TextStyle(
                 fontSize: 10,
                 fontFeatures: kTabularFigures,
@@ -158,13 +165,18 @@ class _MonthHeader extends ConsumerWidget {
   final int year;
   final int month;
   final MonthlySummary summary;
-  const _MonthHeader(
-      {required this.year, required this.month, required this.summary});
+  const _MonthHeader({
+    required this.year,
+    required this.month,
+    required this.summary,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final mf = ref.watch(moneyFormatterProvider);
     final net = summary.net;
-    final netLabel = net >= 0 ? '+${formatYen(net)}' : formatYen(net);
+    final netLabel = net >= 0 ? '+${mf.format(net)}' : mf.format(net);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
@@ -177,14 +189,19 @@ class _MonthHeader extends ConsumerWidget {
           Expanded(
             child: Column(
               children: [
-                Text('$year年$month月',
-                    style: Theme.of(context).textTheme.titleMedium),
                 Text(
-                  '支出 ${formatYen(summary.expense)}　収入 ${formatYen(summary.income)}　差引 $netLabel',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(fontFeatures: kTabularFigures),
+                  l.calendarMonthYearHeader(year, month),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  l.calendarMonthSummary(
+                    mf.format(summary.expense),
+                    mf.format(summary.income),
+                    netLabel,
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontFeatures: kTabularFigures,
+                  ),
                 ),
               ],
             ),

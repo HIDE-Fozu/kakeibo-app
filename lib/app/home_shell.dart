@@ -11,6 +11,7 @@ import '../features/settings/application/settings_controller.dart';
 import '../features/settings/presentation/onboarding_dialog.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
+import '../l10n/app_localizations.dart';
 import 'navigation.dart';
 import 'providers.dart';
 
@@ -60,6 +61,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final index = ref.watch(homeTabIndexProvider);
     // 入力画面(1)表示中はタブ選択なし → カレンダーを選択表示にしておく。
     final navSelected = _navToShell.indexOf(index);
@@ -87,7 +89,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
               },
               icon: const Icon(Icons.add),
-              label: const Text('金額を入力する'),
+              label: Text(l.homeFabEntryLabel),
             )
           : null,
       // 入力画面表示中は下部タブを隠して縦スペースを空ける（戻るは入力画面の「←」）。
@@ -97,12 +99,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           : NavigationBar(
               selectedIndex: navSelected < 0 ? 0 : navSelected,
               onDestinationSelected: _onSelect,
-              destinations: const [
+              destinations: [
                 NavigationDestination(
-                    icon: Icon(Icons.calendar_month), label: 'カレンダー'),
+                    icon: const Icon(Icons.calendar_month),
+                    label: l.homeNavCalendar),
                 NavigationDestination(
-                    icon: Icon(Icons.bar_chart), label: 'サマリ'),
-                NavigationDestination(icon: Icon(Icons.settings), label: '設定'),
+                    icon: const Icon(Icons.bar_chart),
+                    label: l.homeNavSummary),
+                NavigationDestination(
+                    icon: const Icon(Icons.settings),
+                    label: l.homeNavSettings),
               ],
             ),
     );

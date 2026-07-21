@@ -545,4 +545,33 @@ void main() {
         await container.read(transactionRepositoryProvider).forMonth(2026, 7);
     expect(txs.single.categoryId, foodId); // 親に計上
   });
+
+  testWidgets('OCR: 日本円ならレシートスキャンボタンが出る', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) => ref
+                .read(entryFormControllerProvider.notifier)
+                .startCreate(day)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('scan-receipt')), findsOneWidget);
+  });
+
+  testWidgets('OCR: 日本円以外ではレシートスキャンボタンを隠す', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness(
+        prefs: {'onboardingDone': true, 'locale': 'en', 'currency': 'USD'});
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) => ref
+                .read(entryFormControllerProvider.notifier)
+                .startCreate(day)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('scan-receipt')), findsNothing);
+  });
 }

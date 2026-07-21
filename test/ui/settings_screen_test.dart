@@ -106,4 +106,42 @@ void main() {
     expect(c.read(appSettingsProvider).pageColor.toARGB32(),
         isNot(kPaper.toARGB32()));
   });
+
+  testWidgets('言語タイル: Englishを選ぶと設定に永続化される', (tester) async {
+    final c = await openSettings(tester);
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('language-tile')), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('language-tile')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    expect(c.read(appSettingsProvider).locale?.languageCode, 'en');
+  });
+
+  testWidgets('通貨タイル: 取引が無ければUSDに変更できる', (tester) async {
+    final c = await openSettings(tester);
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('currency-tile')), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('currency-tile')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('USD'));
+    await tester.pumpAndSettle();
+    expect(c.read(appSettingsProvider).currencyCode, 'USD');
+  });
+
+  testWidgets('通貨タイル: 取引があるとロックされ変更不可', (tester) async {
+    final c = await openSettings(tester);
+    await seed(c); // 取引を1件作る
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('currency-tile')), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('currency-tile')));
+    await tester.pumpAndSettle();
+    // ロック説明ダイアログが出て、ピッカーは開かない。
+    expect(find.text('通貨は変更できません'), findsOneWidget);
+    expect(c.read(appSettingsProvider).currencyCode, 'JPY');
+  });
 }

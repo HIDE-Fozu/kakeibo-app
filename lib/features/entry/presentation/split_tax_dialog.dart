@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/format.dart';
+import '../../../app/l10n_providers.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/entry_form_controller.dart';
 
 /// 「個別」: 品目ごとに内税/8%/10%を設定するダイアログ。
@@ -15,13 +16,14 @@ class SplitTaxDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(entryFormControllerProvider);
     if (state == null || state.splits == null) return const SizedBox.shrink();
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
 
     return AlertDialog(
-      title: const Text('品目ごとの税率', style: TextStyle(fontSize: 16)),
+      title: Text(l.splitTaxDialogTitle, style: const TextStyle(fontSize: 16)),
       contentPadding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
       content: SizedBox(
         width: double.maxFinite,
@@ -29,39 +31,40 @@ class SplitTaxDialog extends ConsumerWidget {
           shrinkWrap: true,
           itemCount: lines.length,
           separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (context, i) => _row(context, ref, ctrl, state, i),
+          itemBuilder: (context, i) => _row(context, ref, ctrl, state, i, l),
         ),
       ),
       actions: [
         TextButton(
           key: const Key('split-tax-done'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('完了'),
+          child: Text(l.commonDone),
         ),
       ],
     );
   }
 
   Widget _row(BuildContext context, WidgetRef ref, EntryFormController ctrl,
-      EntryFormState state, int i) {
+      EntryFormState state, int i, AppLocalizations l) {
+    final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final lines = state.splits!;
     final line = lines[i];
     final isRemainder = i == lines.length - 1;
     final label = isRemainder
-        ? '残り'
-        : (categoryLabels[line.categoryId] ?? '品目${i + 1}');
+        ? l.splitRemainderLabel
+        : (categoryLabels[line.categoryId] ?? l.splitItemNumberLabel(i + 1));
     final entered = line.enteredYen;
     final net = state.splitLineAmount(i);
     final String amountText;
     if (isRemainder) {
-      amountText = '${formatYen(state.splitRemainder)}（自動）';
+      amountText = l.splitRemainderAutoAmount(mf.format(state.splitRemainder));
     } else if (entered == null) {
-      amountText = '¥ —';
+      amountText = '—';
     } else if (!line.taxIncluded && net != null) {
-      amountText = '${formatYen(entered)} → 税込 ${formatYen(net)}';
+      amountText = l.splitAmountWithTax(mf.format(entered), mf.format(net));
     } else {
-      amountText = formatYen(entered);
+      amountText = mf.format(entered);
     }
 
     Widget seg(String text, bool selected, VoidCallback onTap, Key key) {
@@ -111,7 +114,7 @@ class SplitTaxDialog extends ConsumerWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                seg('内税', line.taxIncluded,
+                seg(l.splitTaxIncludedLabel, line.taxIncluded,
                     () => ctrl.setSplitIncluded(i, true), Key('split-incl-$i')),
                 seg('8%', !line.taxIncluded && line.rate == 8, () {
                   ctrl.setSplitIncluded(i, false);

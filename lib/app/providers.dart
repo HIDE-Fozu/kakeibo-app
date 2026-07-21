@@ -112,3 +112,8 @@ final cloudFixtureUploaderProvider = Provider<CloudFixtureUploader>(
 final allCategoriesProvider = StreamProvider<List<CategoryEntity>>(
   (ref) => ref.watch(categoryRepositoryProvider).watchAll(),
 );
+
+/// 全取引件数（通貨ロック判定用）。autoDispose で設定画面を開くたび再評価。
+final transactionCountProvider = FutureProvider.autoDispose<int>(
+  (ref) => ref.watch(transactionRepositoryProvider).count(),
+);

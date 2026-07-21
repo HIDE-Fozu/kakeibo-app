@@ -1,8 +1,10 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/core/dates.dart';
 import 'package:kakeibo_app/core/format.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/l10n/app_localizations.dart';
 
 void main() {
   test('formatYen: 桁区切り', () {
@@ -37,10 +39,11 @@ void main() {
   });
 
   test('backupAgeLabel', () {
+    final l = lookupAppLocalizations(const Locale('ja'));
     final now = DateTime.utc(2026, 7, 15, 3);
-    expect(backupAgeLabel(null, now), 'バックアップ未作成');
-    expect(backupAgeLabel(DateTime.utc(2026, 7, 15, 1), now), '前回バックアップ: 今日');
-    expect(backupAgeLabel(DateTime.utc(2026, 7, 12, 1), now), '前回バックアップ: 3日前');
+    expect(backupAgeLabel(l, null, now), 'バックアップ未作成');
+    expect(backupAgeLabel(l, DateTime.utc(2026, 7, 15, 1), now), '前回バックアップ: 今日');
+    expect(backupAgeLabel(l, DateTime.utc(2026, 7, 12, 1), now), '前回バックアップ: 3日前');
   });
 
   test('dates: CivilDate <-> DateTime 正規化', () {

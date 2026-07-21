@@ -7,7 +7,8 @@ import '../../domain/money/civil_date.dart';
 class BackupCodec {
   /// バックアップ形式のバージョン。DBのschemaVersionとは独立に管理する。
   /// v2: categories[].parentId（内訳）を追加。
-  static const int formatVersion = 2;
+  /// v3: categories[].slug（安定キー）を追加。旧バックアップはnull復元。
+  static const int formatVersion = 3;
 
   const BackupCodec();
 
@@ -26,6 +27,7 @@ class BackupCodec {
             'isArchived': c.isArchived,
             'isSystem': c.isSystem,
             'parentId': c.parentId,
+            'slug': c.slug,
           },
       ],
       'transactions': [
@@ -132,6 +134,7 @@ class BackupCodec {
         isArchived: req<bool>(raw, 'isArchived', ctx),
         isSystem: req<bool>(raw, 'isSystem', ctx),
         parentId: opt<int>(raw, 'parentId', ctx),
+        slug: opt<String>(raw, 'slug', ctx),
       );
       if (c.name.isEmpty) {
         throw BackupValidationError('$ctx.name が空です');
@@ -246,6 +249,8 @@ class BackupCodec {
       switch (v) {
         case 1:
           m = _migrateV1toV2(m);
+        case 2:
+          m = _migrateV2toV3(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -260,6 +265,18 @@ class BackupCodec {
     if (cats is List) {
       for (final c in cats) {
         if (c is Map<String, dynamic>) c.putIfAbsent('parentId', () => null);
+      }
+    }
+    return root;
+  }
+
+  /// v2→v3: categories に slug を補完（旧バックアップのシード行は名前からは
+  /// 復元しない＝null。slug無しでもDBのマイグレーションで再付与される）。
+  Map<String, dynamic> _migrateV2toV3(Map<String, dynamic> root) {
+    final cats = root['categories'];
+    if (cats is List) {
+      for (final c in cats) {
+        if (c is Map<String, dynamic>) c.putIfAbsent('slug', () => null);
       }
     }
     return root;

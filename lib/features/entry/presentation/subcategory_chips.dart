@@ -6,6 +6,7 @@ import '../../../core/category_emoji.dart';
 import '../../../domain/entities.dart';
 import '../../settings/application/settings_controller.dart';
 import '../application/entry_category_providers.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// 内訳チップ列（押したタイルの真上に出るオーバーレイの中身）。
 /// 横スクロール1行＋右端固定の「＋」（この場で内訳を追加→そのまま選択）。
@@ -24,6 +25,7 @@ class SubcategoryChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final subs = ref.watch(entrySubcategoriesProvider(parentId)).valueOrNull ??
         const <CategoryEntity>[];
     if (subs.isEmpty) return const SizedBox.shrink();
@@ -73,7 +75,7 @@ class SubcategoryChips extends ConsumerWidget {
             TextButton.icon(
               key: const Key('add-sub-inline'),
               icon: const Icon(Icons.add_circle_outline, size: 20),
-              label: const Text('追加'),
+              label: Text(l.commonAdd),
               onPressed: () => _showAddDialog(context, ref, parentCat),
             ),
         ],
@@ -101,6 +103,7 @@ class SubcategoryChips extends ConsumerWidget {
   /// 内訳チップの長押し: 名前変更・削除。
   Future<void> _showEditSheet(
       BuildContext context, WidgetRef ref, CategoryEntity sub) async {
+    final l = AppLocalizations.of(context);
     final action = await showModalBottomSheet<String>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -115,13 +118,13 @@ class SubcategoryChips extends ConsumerWidget {
             ListTile(
               key: const Key('sub-rename'),
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('名前を変更'),
+              title: Text(l.categoryRenameAction),
               onTap: () => Navigator.pop(ctx, 'rename'),
             ),
             ListTile(
               key: const Key('sub-delete'),
               leading: const Icon(Icons.delete_outline),
-              title: const Text('削除'),
+              title: Text(l.commonDelete),
               onTap: () => Navigator.pop(ctx, 'delete'),
             ),
           ],
@@ -167,23 +170,24 @@ class _RenameSubDialogState extends State<_RenameSubDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('内訳を改名'),
+      title: Text(l.categorySubcategoryRenameTitle),
       content: TextField(
         key: const Key('sub-rename-field'),
         controller: _name,
         autofocus: true,
-        decoration: const InputDecoration(labelText: '名前'),
+        decoration: InputDecoration(labelText: l.categoryNameFieldLabel),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('キャンセル'),
+          child: Text(l.commonCancel),
         ),
         FilledButton(
           key: const Key('sub-rename-save'),
           onPressed: () => Navigator.pop(context, _name.text),
-          child: const Text('保存'),
+          child: Text(l.commonSave),
         ),
       ],
     );
@@ -243,6 +247,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final subs =
         ref.watch(entrySubcategoriesProvider(widget.parent.id)).valueOrNull ??
             const <CategoryEntity>[];
@@ -258,7 +263,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
         .toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     return AlertDialog(
-      title: const Text('内訳を追加'),
+      title: Text(l.categorySubcategoryAddTitle),
       // ボタンを本文内に入れ、「既存の内容を編集」を追加ボタンの下に置く
       content: SizedBox(
         width: double.maxFinite,
@@ -270,13 +275,12 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
               TextField(
                 key: const Key('category-name-field'),
                 controller: _name,
-                decoration: const InputDecoration(labelText: '名前'),
+                decoration: InputDecoration(labelText: l.categoryNameFieldLabel),
               ),
               TextField(
                 key: const Key('category-icon-field'),
                 controller: _icon,
-                decoration:
-                    const InputDecoration(labelText: 'アイコン（絵文字・任意）'),
+                decoration: InputDecoration(labelText: l.categoryIconFieldLabel),
               ),
               const SizedBox(height: 12),
               Row(
@@ -284,7 +288,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('キャンセル'),
+                    child: Text(l.commonCancel),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
@@ -292,7 +296,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                       if (_name.text.trim().isEmpty) return;
                       Navigator.pop(context, (_name.text, _icon.text));
                     },
-                    child: const Text('追加'),
+                    child: Text(l.commonAdd),
                   ),
                 ],
               ),
@@ -306,7 +310,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                     key: const Key('edit-existing-subs'),
                     tilePadding: EdgeInsets.zero,
                     childrenPadding: EdgeInsets.zero,
-                    title: const Text('既存の内容を編集'),
+                    title: Text(l.categoryEditExistingTitle),
                     children: [
                       for (final s in subs)
                         ListTile(
@@ -320,13 +324,13 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                               IconButton(
                                 key: Key('edit-sub-rename-${s.id}'),
                                 icon: const Icon(Icons.edit_outlined),
-                                tooltip: '名前を変更',
+                                tooltip: l.categoryRenameAction,
                                 onPressed: () => _renameSub(s),
                               ),
                               IconButton(
                                 key: Key('edit-sub-delete-${s.id}'),
                                 icon: const Icon(Icons.delete_outline),
-                                tooltip: '削除',
+                                tooltip: l.commonDelete,
                                 onPressed: () => _deleteSub(s),
                               ),
                             ],
@@ -344,13 +348,13 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                   key: const Key('reorder-icons'),
                   tilePadding: EdgeInsets.zero,
                   childrenPadding: EdgeInsets.zero,
-                  title: const Text('アイコンの表示順設定'),
+                  title: Text(l.categoryIconOrderTitle),
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('ドラッグで並べ替え（自分の順で表示されます）',
+                        child: Text(l.categoryIconOrderHint,
                             style: Theme.of(context).textTheme.bodySmall),
                       ),
                     ),
@@ -366,7 +370,7 @@ class _AddSubDialogState extends ConsumerState<_AddSubDialog> {
                             key: ValueKey('reorder-parent-${p.id}'),
                             dense: true,
                             contentPadding: EdgeInsets.zero,
-                            leading: Text(categoryEmoji(p.icon, p.name),
+                            leading: Text(categoryEmoji(p.icon, p.slug),
                                 style: const TextStyle(fontSize: 20)),
                             title: Text(p.name),
                             trailing: ReorderableDragStartListener(

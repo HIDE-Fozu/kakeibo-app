@@ -23,6 +23,13 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   Future<int> insertTransaction(TransactionsCompanion c) =>
       into(transactions).insert(c);
 
+  /// 全取引の件数（通貨ロック判定用: 1件でもあれば通貨変更を禁止する）。
+  Future<int> count() async {
+    final cnt = transactions.id.count();
+    final q = selectOnly(transactions)..addColumns([cnt]);
+    return (await q.getSingle()).read(cnt) ?? 0;
+  }
+
   /// 編集で変わりうるフィールドだけを更新し、updatedAt を現在時刻に。
   /// type / source / createdAt は触らない（source は由来として不変）。
   Future<void> updateFields(

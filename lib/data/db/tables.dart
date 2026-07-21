@@ -12,6 +12,11 @@ class Categories extends Table {
   BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
   BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
 
+  /// 安定キー（シードカテゴリのみ非null）。表示名(name)から独立し、絵文字・
+  /// 自動税率・多言語シードの結び付け先になる。ユーザー作成カテゴリはnull。
+  /// v5で追加。既存シード行は名前一致でバックフィルする（database.dartのmigration）。
+  TextColumn get slug => text().nullable()();
+
   /// 非null=内訳（親カテゴリのid）。階層は2段まで（アプリ側で保証）。
   IntColumn get parentId => integer().nullable().references(Categories, #id)();
 }

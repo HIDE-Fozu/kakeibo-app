@@ -36,6 +36,8 @@ void main() {
     expect(p.exportedAt, isNotNull);
     expect(p.categories.length, 20); // プリセット18 + 未分類2
     expect(p.categories.where((c) => c.isSystem).length, 2);
+    // slug（安定キー）がバックアップに載る（復元後も絵文字・税が壊れない）
+    expect(p.categories.firstWhere((c) => c.name == '食費').slug, 'food');
 
     final tx = p.transactions.single;
     expect(tx.id, txId); // IDが逐語的に載る

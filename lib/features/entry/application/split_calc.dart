@@ -1,16 +1,18 @@
 /// 詳細入力（分割）の電卓式評価。
 ///
 /// 規則（ユーザー確定仕様）:
-/// - 対応トークン: 数字と ＋ − × ÷。
+/// - 対応トークン: 数字（小数点可）と ＋ − × ÷。
 /// - **左から順に計算**（× ÷ の優先なし・電卓式）。
 /// - 先頭の ＋ は無視（「+100+100」OK）。先頭の − は 0−n（結果が負なら無効）。
 /// - 末尾の演算子は入力途中とみなして無視（「100+」→ 100）。
 /// - ÷ の端数・負値・0除算・空・不正文字は null（無効）。
-/// - 結果は**切り捨て**で整数円（0以下は null）。
-int? evalCalcExpr(String expr) {
+/// - 結果は通貨の最小単位（minor unit）に換算し**切り捨て**（0以下は null）。
+///   [decimals]=0（JPY等）は従来通り整数。=2（USD等）は「12.50」→1250 のように
+///   ×100 して cent 整数にする（浮動小数の誤差は微小εで吸収）。
+int? evalCalcExpr(String expr, {int decimals = 0}) {
   final s = expr.replaceAll(' ', '');
   if (s.isEmpty) return null;
-  final matches = RegExp(r'(\d+)|([+\-×÷])').allMatches(s).toList();
+  final matches = RegExp(r'(\d+(?:\.\d+)?)|([+\-×÷])').allMatches(s).toList();
   if (matches.map((m) => m.group(0)!).join() != s) return null; // 不正文字
 
   double? acc;
@@ -47,7 +49,16 @@ int? evalCalcExpr(String expr) {
     }
   }
   if (acc == null) return null;
-  final v = acc.floor(); // 切り捨て（確定仕様）
+  if (decimals == 0) {
+    final v = acc.floor(); // 切り捨て（確定仕様・JPYは従来と完全一致）
+    return v <= 0 ? null : v;
+  }
+  var scale = 1;
+  for (var i = 0; i < decimals; i++) {
+    scale *= 10;
+  }
+  // minor unit化。0.29×100=28.9999… のような二進誤差を微小εで吸収してから切り捨て。
+  final v = (acc * scale + 1e-6).floor();
   return v <= 0 ? null : v;
 }
 

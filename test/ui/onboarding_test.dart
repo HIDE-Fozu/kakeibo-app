@@ -8,7 +8,9 @@ import '../support/test_app.dart';
 void main() {
   testWidgets('初回のみオンボーディング表示→はじめるで永続化', (tester) async {
     setPhoneSurface(tester);
-    final h = await createHarness(prefs: {}); // onboardingDone未設定=false
+    // onboardingDone未設定=false（オンボーディング表示）。locale は ja に固定して
+    // 日本語UIアサートを決定的にする（prefsを渡すと既定のlocale固定が外れるため）。
+    final h = await createHarness(prefs: {'locale': 'ja'});
     addTearDown(h.dispose);
     await pumpApp(tester, h);
     expect(find.text('データの取り扱いについて'), findsOneWidget);

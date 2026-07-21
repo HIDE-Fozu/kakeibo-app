@@ -63,6 +63,7 @@ class DriftCategoryRepository implements CategoryRepository {
         isArchived: r.isArchived,
         isSystem: r.isSystem,
         parentId: r.parentId,
+        slug: r.slug,
       );
 
   @override

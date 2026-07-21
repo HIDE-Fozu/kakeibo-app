@@ -52,4 +52,28 @@ void main() {
       expect(applyTax(999999, 10), 1099998); // 1099998.9 → 切り捨て
     });
   });
+
+  group('小数対応（decimals: minor unit 換算）', () {
+    test('decimals=2: "12.50"→1250 cent', () {
+      expect(evalCalcExpr('12.50', decimals: 2), 1250);
+    });
+    test('decimals=2: 二進誤差を吸収（0.29→29 / 0.07→7）', () {
+      expect(evalCalcExpr('0.29', decimals: 2), 29);
+      expect(evalCalcExpr('0.07', decimals: 2), 7);
+    });
+    test('decimals=2: 式も評価 "12.50+5"→1750', () {
+      expect(evalCalcExpr('12.50+5', decimals: 2), 1750);
+    });
+    test('decimals=2: 最小単位未満は切り捨て "12.999"→1299', () {
+      expect(evalCalcExpr('12.999', decimals: 2), 1299);
+    });
+    test('decimals=2: 0.005→null（1cent未満）', () {
+      expect(evalCalcExpr('0.005', decimals: 2), isNull);
+    });
+    test('decimals=0(JPY): 従来通り整数・小数点は×1切り捨て', () {
+      expect(evalCalcExpr('1250'), 1250);
+      expect(evalCalcExpr('1250', decimals: 0), 1250);
+      expect(evalCalcExpr('12.5', decimals: 0), 12);
+    });
+  });
 }

@@ -19,6 +19,12 @@ class SettingsState {
   final Color pageColor;
   final Color accentColor;
   final CategoryOrderMode categoryOrder;
+
+  /// 表示言語。null = 端末のシステム言語に追従。
+  final Locale? locale;
+
+  /// 通貨（ISO 4217）。既定 JPY。取引が1件でもあると変更ロック（Phase 2でUI制御）。
+  final String currencyCode;
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
@@ -26,6 +32,8 @@ class SettingsState {
     required this.pageColor,
     required this.accentColor,
     required this.categoryOrder,
+    this.locale,
+    this.currencyCode = 'JPY',
   });
 }
 
@@ -37,6 +45,8 @@ class AppSettings extends Notifier<SettingsState> {
   static const kPageColor = 'pageColor';
   static const kAccentColor = 'accentColor';
   static const kCategoryOrder = 'categoryOrder';
+  static const kLocale = 'locale';
+  static const kCurrency = 'currency';
 
   @override
   SettingsState build() {
@@ -52,7 +62,22 @@ class AppSettings extends Notifier<SettingsState> {
       categoryOrder: p.getString(kCategoryOrder) == 'manual'
           ? CategoryOrderMode.manual
           : CategoryOrderMode.recentlyUsed,
+      locale: parseLocale(p.getString(kLocale)),
+      currencyCode: p.getString(kCurrency) ?? 'JPY',
     );
+  }
+
+  /// BCP-47 タグ（例: "ja" / "zh" / "pt-BR"）→ Locale。null/空 = システム追従。
+  static Locale? parseLocale(String? tag) {
+    if (tag == null || tag.isEmpty) return null;
+    final parts = tag.split('-');
+    if (parts.length == 1) return Locale(parts[0]);
+    // 2番目が4文字（例: Hans）ならスクリプト、それ以外は国コード扱い。
+    final second = parts[1];
+    if (second.length == 4) {
+      return Locale.fromSubtags(languageCode: parts[0], scriptCode: second);
+    }
+    return Locale(parts[0], second);
   }
 
   Future<void> markOnboardingDone() async {
@@ -88,6 +113,23 @@ class AppSettings extends Notifier<SettingsState> {
     await ref.read(sharedPreferencesProvider).setString(
         kCategoryOrder,
         value == CategoryOrderMode.manual ? 'manual' : 'recent');
+    ref.invalidateSelf();
+  }
+
+  /// 表示言語を設定。null = システム追従（キーを削除）。
+  Future<void> setLocale(Locale? value) async {
+    final p = ref.read(sharedPreferencesProvider);
+    if (value == null) {
+      await p.remove(kLocale);
+    } else {
+      await p.setString(kLocale, value.toLanguageTag());
+    }
+    ref.invalidateSelf();
+  }
+
+  /// 通貨（ISO 4217）を設定。取引ロックの判定は呼び出し側（設定画面）で行う。
+  Future<void> setCurrency(String code) async {
+    await ref.read(sharedPreferencesProvider).setString(kCurrency, code);
     ref.invalidateSelf();
   }
 }

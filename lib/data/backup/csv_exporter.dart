@@ -8,13 +8,15 @@ import 'backup_data.dart';
 String buildTransactionsCsv(BackupPayload payload) {
   final byId = {for (final c in payload.categories) c.id: c};
   final sb = StringBuffer('\uFEFF');
-  sb.write('日付,種別,金額,カテゴリ,内訳,支払方法,店舗名,メモ,レシートID\r\n');
+  // ヘッダ・区分・支払方法は相互運用のため英語固定（ロケール非依存）。
+  // カテゴリ名・メモはユーザーデータなのでDBの言語のまま。
+  sb.write('Date,Type,Amount,Category,Subcategory,Payment,Store,Memo,ReceiptID\r\n');
   for (final t in payload.transactions) {
     final cat = byId[t.categoryId];
     final parent = cat?.parentId == null ? null : byId[cat!.parentId];
     final fields = [
       t.date.toIso(),
-      t.type == TxnType.expense ? '支出' : '収入',
+      t.type == TxnType.expense ? 'Expense' : 'Income',
       t.amount.toString(),
       // 内訳取引はカテゴリ列=親名・内訳列=自名。親直接は内訳列空
       parent?.name ?? cat?.name ?? '',
@@ -33,11 +35,11 @@ String buildTransactionsCsv(BackupPayload payload) {
 
 String _paymentLabel(PaymentMethod? m) => switch (m) {
       null => '',
-      PaymentMethod.cash => '現金',
-      PaymentMethod.creditCard => 'クレジットカード',
-      PaymentMethod.eMoney => '電子マネー',
-      PaymentMethod.bankDraft => '口座引落',
-      PaymentMethod.other => 'その他',
+      PaymentMethod.cash => 'Cash',
+      PaymentMethod.creditCard => 'Credit card',
+      PaymentMethod.eMoney => 'E-money',
+      PaymentMethod.bankDraft => 'Bank draft',
+      PaymentMethod.other => 'Other',
     };
 
 String _escape(String v) {

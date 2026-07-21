@@ -12,6 +12,7 @@ import '../data/ocr/apple_vision_ocr_service.dart';
 import '../data/ocr/image_picker_receipt_capture.dart';
 import '../domain/services/ocr/ocr_types.dart';
 import '../domain/services/ocr/receipt_capture.dart';
+import '../l10n/app_localizations.dart';
 import 'app.dart';
 import 'providers.dart';
 
@@ -24,8 +25,14 @@ Future<void> bootstrap() async {
   final prefs = await SharedPreferences.getInstance();
 
   final sep = Platform.pathSeparator;
+  // 新規インストールのカテゴリ名は端末言語でシードする（UIのロケール解決と同じ規則）。
+  final seedLang = basicLocaleListResolution(
+    WidgetsBinding.instance.platformDispatcher.locales,
+    AppLocalizations.supportedLocales,
+  ).languageCode;
   final db = AppDatabase(
     NativeDatabase.createInBackground(File('${support.path}${sep}kakeibo.sqlite')),
+    seedLocaleTag: seedLang,
   );
 
   runApp(ProviderScope(

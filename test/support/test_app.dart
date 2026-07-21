@@ -8,6 +8,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:kakeibo_app/app/app.dart';
 import 'package:kakeibo_app/app/providers.dart';
 import 'package:kakeibo_app/app/theme.dart';
+import 'package:kakeibo_app/l10n/app_localizations.dart';
 import 'package:kakeibo_app/data/backup/auto_backup_store.dart';
 import 'package:kakeibo_app/data/backup/backup_crypto.dart';
 import 'package:kakeibo_app/data/db/database.dart';
@@ -73,7 +74,8 @@ class TestHarness {
 }
 
 Future<TestHarness> createHarness({
-  Map<String, Object> prefs = const {'onboardingDone': true},
+  // 既定でロケール ja 固定（日本語UIアサートを決定的にする）。
+  Map<String, Object> prefs = const {'onboardingDone': true, 'locale': 'ja'},
 }) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting(); // table_calendarの曜日ラベル(DateFormat.E)に必須
@@ -92,9 +94,17 @@ Future<void> pumpApp(
 }) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [...h.overrides(), ...extra],
-    // home指定でも実テーマを使う（kakeiboColors拡張に依存する画面があるため）
+    // home指定でも実テーマを使う（kakeiboColors拡張に依存する画面があるため）。
+    // 単一画面でも AppLocalizations を解決できるようデリゲートを付与し、
+    // ロケールは ja に固定（日本語UIアサートを決定的に保つ）。
     child: home != null
-        ? MaterialApp(theme: buildKakeiboTheme(), home: home)
+        ? MaterialApp(
+            theme: buildKakeiboTheme(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('ja'),
+            home: home,
+          )
         : const KakeiboApp(),
   ));
   await tester.pumpAndSettle();

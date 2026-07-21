@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/backup/backup_data.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/backup_controller.dart';
 
 class RestorePickerPage extends ConsumerStatefulWidget {
@@ -14,18 +15,21 @@ class RestorePickerPage extends ConsumerStatefulWidget {
 class _RestorePickerPageState extends ConsumerState<RestorePickerPage> {
   @override
   Widget build(BuildContext context) {
-    final sources =
-        ref.read(backupControllerProvider.notifier).listRestoreSources();
+    final l = AppLocalizations.of(context);
+    final sources = ref
+        .read(backupControllerProvider.notifier)
+        .listRestoreSources();
     return Scaffold(
-      appBar: AppBar(title: const Text('復元')),
+      appBar: AppBar(title: Text(l.restorePageTitle)),
       body: sources.isEmpty
-          ? const Center(child: Text('復元できるバックアップがありません'))
+          ? Center(child: Text(l.restoreEmptyMessage))
           : ListView(
               children: [
                 for (final s in sources)
                   ListTile(
                     leading: Icon(
-                        s.isAutoBackup ? Icons.history : Icons.file_present),
+                      s.isAutoBackup ? Icons.history : Icons.file_present,
+                    ),
                     title: Text(s.label),
                     trailing: s.encrypted ? const Icon(Icons.lock) : null,
                     onTap: () => _restore(s),
@@ -36,21 +40,23 @@ class _RestorePickerPageState extends ConsumerState<RestorePickerPage> {
   }
 
   Future<void> _restore(RestoreSource src) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('復元しますか？'),
-        content: const Text('現在のデータはすべて置き換えられます。'
-            '直前の状態は自動退避され、あとで取り出せます。'),
+        title: Text(l.restoreConfirmTitle),
+        content: Text(l.restoreConfirmMessage),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('キャンセル')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.commonCancel),
+          ),
           FilledButton(
-              key: const Key('confirm-restore'),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('復元')),
+            key: const Key('confirm-restore'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.restoreButton),
+          ),
         ],
       ),
     );
@@ -70,16 +76,18 @@ class _RestorePickerPageState extends ConsumerState<RestorePickerPage> {
       final okEmpty = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('取引が0件のバックアップです'),
-          content: const Text('復元するとすべての取引が消えます。それでも復元しますか？'),
+          title: Text(l.restoreEmptyBackupTitle),
+          content: Text(l.restoreEmptyBackupMessage),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('キャンセル')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.commonCancel),
+            ),
             FilledButton(
-                key: const Key('confirm-empty-restore'),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('復元する')),
+              key: const Key('confirm-empty-restore'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.restoreEmptyBackupConfirmButton),
+            ),
           ],
         ),
       );
@@ -87,22 +95,26 @@ class _RestorePickerPageState extends ConsumerState<RestorePickerPage> {
       try {
         await ctrl.restoreFrom(src, passphrase: pass, allowEmpty: true);
       } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('復元に失敗しました: $e')));
+        messenger.showSnackBar(
+          SnackBar(content: Text(l.restoreFailedMessage('$e'))),
+        );
         return;
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('復元に失敗しました: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l.restoreFailedMessage('$e'))),
+      );
       return;
     }
     if (!mounted) return;
     Navigator.pop(context);
-    messenger.showSnackBar(const SnackBar(content: Text('復元しました')));
+    messenger.showSnackBar(SnackBar(content: Text(l.restoreSuccessMessage)));
   }
 
   Future<String?> _askPassphrase() => showDialog<String>(
-        context: context,
-        builder: (_) => const _RestorePassphraseDialog(),
-      );
+    context: context,
+    builder: (_) => const _RestorePassphraseDialog(),
+  );
 }
 
 /// controllerの寿命をダイアログ自身に閉じ込める（popアニメーション中のdispose事故防止）
@@ -124,25 +136,30 @@ class _RestorePassphraseDialogState extends State<_RestorePassphraseDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        title: const Text('パスフレーズを入力'),
-        content: TextField(
-          key: const Key('restore-passphrase-field'),
-          controller: _controller,
-          obscureText: true,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l.restorePassphraseTitle),
+      content: TextField(
+        key: const Key('restore-passphrase-field'),
+        controller: _controller,
+        obscureText: true,
+        decoration: const InputDecoration(border: OutlineInputBorder()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.commonCancel),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('キャンセル')),
-          FilledButton(
-              onPressed: () {
-                if (_controller.text.isNotEmpty) {
-                  Navigator.pop(context, _controller.text);
-                }
-              },
-              child: const Text('復元')),
-        ],
-      );
+        FilledButton(
+          onPressed: () {
+            if (_controller.text.isNotEmpty) {
+              Navigator.pop(context, _controller.text);
+            }
+          },
+          child: Text(l.restoreButton),
+        ),
+      ],
+    );
+  }
 }

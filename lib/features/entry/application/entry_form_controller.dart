@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../settings/application/settings_controller.dart';
 import 'split_calc.dart';
 
@@ -23,6 +25,7 @@ class SplitLine {
   final bool taxTouched; // 手で税を変えたか（カテゴリ自動で上書きしないため）
   final int? categoryId;
   final String memo; // 行ごとの詳細メモ（各取引に保存）
+  final int decimals; // 通貨の小数桁（式評価の minor unit 換算に使う）
   const SplitLine({
     this.expr = '',
     this.taxIncluded = false,
@@ -30,6 +33,7 @@ class SplitLine {
     this.taxTouched = false,
     this.categoryId,
     this.memo = '',
+    this.decimals = 0,
   });
 
   SplitLine copyWith({
@@ -39,6 +43,7 @@ class SplitLine {
     bool? taxTouched,
     int? categoryId,
     String? memo,
+    int? decimals,
   }) =>
       SplitLine(
         expr: expr ?? this.expr,
@@ -47,14 +52,15 @@ class SplitLine {
         taxTouched: taxTouched ?? this.taxTouched,
         categoryId: categoryId ?? this.categoryId,
         memo: memo ?? this.memo,
+        decimals: decimals ?? this.decimals,
       );
 
-  /// 入力額（生の値・税抜/税込どちらでも）。式が空/不正なら null。
-  int? get enteredYen => evalCalcExpr(expr);
+  /// 入力額（生の値・税抜/税込どちらでも・minor unit）。式が空/不正なら null。
+  int? get enteredYen => evalCalcExpr(expr, decimals: decimals);
 
   /// 合計に効く税込値。税込ならそのまま、税抜なら rate を乗せる（切り捨て）。
   int? get amountYen {
-    final v = evalCalcExpr(expr);
+    final v = evalCalcExpr(expr, decimals: decimals);
     if (v == null) return null;
     return taxIncluded ? v : applyTax(v, rate);
   }
@@ -94,7 +100,10 @@ class EntryFormState {
   final EntryMode mode;
   final int? editingId;
   final TxnType type;
-  final int amountYen;
+  final int amountYen; // 入力金額（minor unit）。表示は MoneyFormatter で整形。
+  /// メイン入力のテンキー・バッファ（小数点入力を含む。例 "12.5"）。
+  /// amountYen はこれを評価した値。分割/一括モードでは未使用。
+  final String amountText;
   final int? categoryId;
   final CivilDate date;
   final String storeName; // 店舗名（memoとは別。空=未設定）
@@ -138,6 +147,7 @@ class EntryFormState {
     this.editingId,
     required this.type,
     required this.amountYen,
+    this.amountText = '',
     this.categoryId,
     required this.date,
     this.storeName = '',
@@ -168,31 +178,32 @@ class EntryFormState {
           : amountYen > 0 && categoryId != null;
 
   /// 保存できない理由（canSave=false時）。null=理由なし。UIのヒント表示に使う。
-  String? get saveHint {
+  /// 表示文言はローカライズするので AppLocalizations を受け取る。
+  String? saveHint(AppLocalizations l) {
     if (canSave) return null;
-    if (amountYen <= 0) return '金額を入力してください';
+    if (amountYen <= 0) return l.entryHintEnterAmount;
     if (batchItems != null) {
-      if (batchGroups.isEmpty) return '品目にカテゴリを割り当ててください';
-      if (batchDiff < 0) return '割り当てが合計を超えています';
+      if (batchGroups.isEmpty) return l.entryHintAssignItemCategory;
+      if (batchDiff < 0) return l.entryHintAssignExceedsTotal;
       if (batchDiff > 0 && batchDiffCategoryId == null) {
-        return '差額のカテゴリを選んでください';
+        return l.entryHintPickDiffCategory;
       }
       return null;
     }
     if (splits != null) {
-      if (splitRemainder < 0) return '内訳が合計を超えています';
+      if (splitRemainder < 0) return l.entryHintSplitExceedsTotal;
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {
-          return 'カテゴリを選んでください';
+          return l.entryHintPickCategory;
         }
       }
-      if (splitFixedSum <= 0) return '金額とカテゴリを入力してください';
+      if (splitFixedSum <= 0) return l.entryHintEnterAmountAndCategory;
       // 金額はあるが合計に届かない（残りの行を追加/入力）
-      if (splitRemainder > 0) return '残りの金額も入力してください';
-      return '金額とカテゴリを入力してください';
+      if (splitRemainder > 0) return l.entryHintEnterRemainingAmount;
+      return l.entryHintEnterAmountAndCategory;
     }
-    if (categoryId == null) return 'カテゴリを選んでください';
+    if (categoryId == null) return l.entryHintPickCategory;
     return null;
   }
 
@@ -300,6 +311,7 @@ class EntryFormState {
     Object? editingId = _unset,
     TxnType? type,
     int? amountYen,
+    String? amountText,
     Object? categoryId = _unset,
     CivilDate? date,
     String? storeName,
@@ -329,6 +341,7 @@ class EntryFormState {
             identical(editingId, _unset) ? this.editingId : editingId as int?,
         type: type ?? this.type,
         amountYen: amountYen ?? this.amountYen,
+        amountText: amountText ?? this.amountText,
         categoryId:
             identical(categoryId, _unset) ? this.categoryId : categoryId as int?,
         date: date ?? this.date,
@@ -401,6 +414,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       editingId: tx.id,
       type: tx.type,
       amountYen: tx.amountYen,
+      amountText: amountTextFromMinor(tx.amountYen, _decimals),
       categoryId: tx.categoryId,
       date: tx.date,
       storeName: tx.storeName ?? '',
@@ -418,6 +432,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       mode: EntryMode.receiptConfirm,
       type: TxnType.expense,
       amountYen: parsed.total?.yen ?? 0,
+      amountText: amountTextFromMinor(parsed.total?.yen ?? 0, _decimals),
       date: parsed.date.date,
       // 店名が読めていれば店舗名にプリフィル（候補チップ/直接入力で修正可）。
       // 詳細メモは空のまま（店名と詳細を混ぜない）。
@@ -432,21 +447,57 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   EntryFormState get _s => state!;
 
+  /// 現在通貨の小数桁（JPY=0 / USD=2）。
+  int get _decimals => ref.read(currencyProvider).decimals;
+
+  /// minor unit → テンキー・バッファ文字列（プリフィル用）。0以下は空。
+  static String amountTextFromMinor(int minor, int decimals) {
+    if (minor <= 0) return '';
+    if (decimals == 0) return '$minor';
+    var per = 1;
+    for (var i = 0; i < decimals; i++) {
+      per *= 10;
+    }
+    final whole = minor ~/ per;
+    final frac = minor % per;
+    return '$whole.${frac.toString().padLeft(decimals, '0')}';
+  }
+
+  /// バッファを更新し amountYen（minor unit）を再評価する。maxAmount超過は拒否。
+  void _setAmountText(String text) {
+    final parsed =
+        text.isEmpty ? 0 : (evalCalcExpr(text, decimals: _decimals) ?? _s.amountYen);
+    if (parsed > maxAmount) return;
+    state = _s.copyWith(amountText: text, amountYen: parsed);
+  }
+
   void tapDigit(int digit) {
     assert(digit >= 0 && digit <= 9);
-    final next = _s.amountYen * 10 + digit;
-    if (next > maxAmount) return;
-    state = _s.copyWith(amountYen: next);
+    final t = _s.amountText;
+    final dot = t.indexOf('.');
+    // 小数桁が上限に達していたら無視（例: USDで3桁目）。
+    if (dot >= 0 && t.length - dot - 1 >= _decimals) return;
+    _setAmountText('$t$digit');
   }
 
   void tapDoubleZero() {
-    if (_s.amountYen == 0) return;
-    final next = _s.amountYen * 100;
-    if (next > maxAmount) return;
-    state = _s.copyWith(amountYen: next);
+    if (_s.amountText.isEmpty) return;
+    tapDigit(0);
+    tapDigit(0);
   }
 
-  void backspace() => state = _s.copyWith(amountYen: _s.amountYen ~/ 10);
+  /// 小数点。小数桁0の通貨（JPY等）では無効。既に小数点があれば無視。
+  void tapDecimal() {
+    if (_decimals == 0) return;
+    final t = _s.amountText;
+    if (t.contains('.')) return;
+    _setAmountText(t.isEmpty ? '0.' : '$t.');
+  }
+
+  void backspace() {
+    final t = _s.amountText;
+    _setAmountText(t.isEmpty ? '' : t.substring(0, t.length - 1));
+  }
 
   void setType(TxnType type) {
     // 編集では型不変: updateFieldsはtypeを書かないため、許すと型/カテゴリdesyncが
@@ -649,13 +700,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
         // 保存済み額は確定済み（税込）。そのまま扱う＝税込・手動扱いで自動税率を効かせない。
         for (final t in txs)
           SplitLine(
-              expr: '${t.amountYen}',
+              expr: amountTextFromMinor(t.amountYen, _decimals),
               taxIncluded: true,
               taxTouched: true,
               categoryId: t.categoryId,
-              memo: t.memo ?? ''),
+              memo: t.memo ?? '',
+              decimals: _decimals),
         // 末尾に空の残額行（差分表示・最下段固定）。全額割当済なら「残り ¥0」。
-        const SplitLine(taxIncluded: true),
+        SplitLine(taxIncluded: true, decimals: _decimals),
       ],
       replacesTxIds: [for (final t in txs) t.id!],
       reuseSplitGroupId: first.splitGroupId,
@@ -670,9 +722,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
     state = _s.copyWith(
       // 入力行1＋残額行(末尾・差分表示)で開始。既定は内税（入力額そのまま）。
-      splits: const [
-        SplitLine(taxIncluded: true),
-        SplitLine(taxIncluded: true),
+      splits: [
+        SplitLine(taxIncluded: true, decimals: _decimals),
+        SplitLine(taxIncluded: true, decimals: _decimals),
       ],
       activeSplitIndex: 0,
       splitCatPickerOpen: false,
@@ -709,7 +761,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final last = lines.last;
     final i = lines.length - 1; // 残額行の位置＝挿入先
     final next = [...lines]
-      ..insert(i, SplitLine(taxIncluded: last.taxIncluded, rate: last.rate));
+      ..insert(
+          i,
+          SplitLine(
+              taxIncluded: last.taxIncluded,
+              rate: last.rate,
+              decimals: _decimals));
     state = _s.copyWith(splits: next, activeSplitIndex: i);
   }
 
@@ -737,7 +794,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     final lines = [..._s.splits!];
     if (i < 0 || i >= lines.length) return;
     lines.removeAt(i);
-    if (lines.isEmpty) lines.add(const SplitLine());
+    if (lines.isEmpty) lines.add(SplitLine(decimals: _decimals));
     state = _s.copyWith(
       splits: lines,
       activeSplitIndex: _s.activeSplitIndex.clamp(0, lines.length - 1),
@@ -776,6 +833,25 @@ class EntryFormController extends Notifier<EntryFormState?> {
       // 通常モードの00と同じ思想: 数字の後にのみ意味を持つ
       if (!RegExp(r'\d$').hasMatch(l.expr)) return l;
       return l.expr.length >= 29 ? l : l.copyWith(expr: '${l.expr}00');
+    });
+  }
+
+  /// 小数点キー（分割モード）。小数桁0の通貨では無効。
+  /// 現在入力中の数値セグメント（最後の演算子より後ろ）に既に小数点があれば無視。
+  void splitTapDecimal() {
+    if (_decimals == 0) return;
+    _retargetIfRemainder();
+    _updateActiveSplit((l) {
+      final e = l.expr;
+      if (e.length >= 30) return l;
+      var idx = -1;
+      for (var k = 0; k < e.length; k++) {
+        if ('+-×÷'.contains(e[k])) idx = k;
+      }
+      final seg = e.substring(idx + 1);
+      if (seg.contains('.')) return l;
+      // 空セグメント（式が空 or 末尾が演算子）は "0." で始める
+      return l.copyWith(expr: seg.isEmpty ? '${e}0.' : '$e.');
     });
   }
 
@@ -837,16 +913,18 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// カテゴリに対応する軽減税率の自動値（食費=8 / 外食=10 / 他=null）。
   /// 食費は軽減税率8%、外食(店内)は標準10%。手で税を変えた行には効かせない。
   int? _autoRateForCategory(int categoryId) {
+    // 軽減税率の自動適用は日本の消費税プロファイルのときだけ（非JPは税なし）。
+    if (!ref.read(taxProfileProvider).reducedRateSupported) return null;
     final cats = ref.read(allCategoriesProvider).valueOrNull ??
         const <CategoryEntity>[];
     CategoryEntity? cat;
     CategoryEntity? foodParent;
     for (final c in cats) {
       if (c.id == categoryId) cat = c;
-      if (c.name == '食費' && c.parentId == null) foodParent = c;
+      if (c.slug == 'food' && c.parentId == null) foodParent = c;
     }
     if (cat == null) return null;
-    if (cat.name == '外食') return 10;
+    if (cat.slug == 'dining') return 10;
     if (foodParent != null &&
         (cat.id == foodParent.id || cat.parentId == foodParent.id)) {
       return 8;
@@ -887,8 +965,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
   void toggleMemoExpanded() =>
       state = _s.copyWith(memoExpanded: !_s.memoExpanded);
 
-  void selectTotalCandidate(AmountCandidate c) =>
-      state = _s.copyWith(amountYen: c.yen);
+  void selectTotalCandidate(AmountCandidate c) => state = _s.copyWith(
+      amountYen: c.yen, amountText: amountTextFromMinor(c.yen, _decimals));
 
   void selectDateCandidate(DateCandidate c) => state = _s.copyWith(date: c.date);
 

@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
+import 'package:kakeibo_app/app/l10n_providers.dart';
 import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/l10n/app_localizations.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
@@ -284,21 +287,22 @@ void main() {
       ctrl().tapDigit(0); // 1000
       ctrl().startSplit();
       // 開いた直後（金額未入力）でも理由が出る
+      final jaL = lookupAppLocalizations(const Locale('ja'));
       expect(st().canSave, isFalse);
-      expect(st().saveHint, '金額とカテゴリを入力してください');
+      expect(st().saveHint(jaL), '金額とカテゴリを入力してください');
 
       ctrl().setSplitBulkIncluded(true);
       ctrl().splitTapDigit(3);
       ctrl().splitTapDoubleZero(); // 300 → 残額行700が未カテゴリ
       ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
       expect(st().canSave, isFalse);
-      expect(st().saveHint, 'カテゴリを選んでください');
+      expect(st().saveHint(jaL), 'カテゴリを選んでください');
 
       // 残額行にカテゴリ → 保存可・ヒント消える
       ctrl().setActiveSplit(1);
       ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
       expect(st().canSave, isTrue);
-      expect(st().saveHint, isNull);
+      expect(st().saveHint(jaL), isNull);
     });
 
     test('＋品目は残額行の直前に挿入・残額行への打鍵は新しい行で受ける', () {
@@ -739,6 +743,74 @@ void main() {
       await ctrl().saveAndContinue();
       expect(st().expandedParentId, isNull); // 再初期化でチップ列も閉じる
       expect(st().categoryId, isNull);
+    });
+  });
+
+  group('小数通貨の入力', () {
+    test('JPY(既定): 小数点キーは無効・整数のまま', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDigit(2);
+      ctrl().tapDecimal(); // decimals=0 → 無視
+      ctrl().tapDigit(5);
+      expect(st().amountText, '125');
+      expect(st().amountYen, 125);
+    });
+
+    test('USD(小数2桁): 12 . 5 0 → amountYen=1250 cent', () async {
+      final hu = await createHarness(
+          prefs: {'onboardingDone': true, 'locale': 'en', 'currency': 'USD'});
+      addTearDown(hu.dispose);
+      final cu = ProviderContainer(overrides: hu.overrides());
+      addTearDown(cu.dispose);
+      final ctl = cu.read(entryFormControllerProvider.notifier);
+      ctl.startCreate(day);
+      ctl.tapDigit(1);
+      ctl.tapDigit(2);
+      ctl.tapDecimal();
+      ctl.tapDigit(5);
+      ctl.tapDigit(0);
+      final s = cu.read(entryFormControllerProvider)!;
+      expect(s.amountText, '12.50');
+      expect(s.amountYen, 1250); // $12.50 = 1250 cent
+      // 小数3桁目は無視（上限=2）
+      ctl.tapDigit(9);
+      expect(cu.read(entryFormControllerProvider)!.amountText, '12.50');
+    });
+
+    test('taxProfile: JPYは日本税・USDは税なし', () async {
+      expect(c.read(taxProfileProvider).enabled, isTrue); // 既定JPY
+      expect(c.read(taxProfileProvider).reducedRateSupported, isTrue);
+      final hu = await createHarness(
+          prefs: {'onboardingDone': true, 'currency': 'USD'});
+      addTearDown(hu.dispose);
+      final cu = ProviderContainer(overrides: hu.overrides());
+      addTearDown(cu.dispose);
+      expect(cu.read(taxProfileProvider).enabled, isFalse);
+      expect(cu.read(taxProfileProvider).reducedRateSupported, isFalse);
+    });
+
+    test('USD: バックスペースは1文字ずつ', () async {
+      final hu = await createHarness(
+          prefs: {'onboardingDone': true, 'locale': 'en', 'currency': 'USD'});
+      addTearDown(hu.dispose);
+      final cu = ProviderContainer(overrides: hu.overrides());
+      addTearDown(cu.dispose);
+      final ctl = cu.read(entryFormControllerProvider.notifier);
+      ctl.startCreate(day);
+      for (final d in [1, 2, -1, 5]) {
+        if (d == -1) {
+          ctl.tapDecimal();
+        } else {
+          ctl.tapDigit(d);
+        }
+      }
+      expect(cu.read(entryFormControllerProvider)!.amountText, '12.5');
+      ctl.backspace(); // "12."
+      ctl.backspace(); // "12"
+      final s = cu.read(entryFormControllerProvider)!;
+      expect(s.amountText, '12');
+      expect(s.amountYen, 1200); // $12.00
     });
   });
 }

@@ -1,25 +1,8 @@
-/// プリセットカテゴリの絵文字（表示のみ。DB・スキーマは触らない）。
-/// ユーザーがカテゴリ管理で設定したicon（絵文字）があればそちらを優先する。
-const presetCategoryEmoji = <String, String>{
-  '食費': '🍚',
-  '外食': '🍽️',
-  '日用品': '🧴',
-  '水道光熱費': '💡',
-  '通信費': '📱',
-  '交通費': '🚃',
-  '交際費': '🍻',
-  '趣味・娯楽': '🎮',
-  '衣服・美容': '👕',
-  '医療・健康': '🩺',
-  '住居': '🏠',
-  '教育': '📚',
-  '特別費': '🎁',
-  'その他': '📦',
-  '給与': '💰',
-  '賞与': '🎉',
-  '副収入': '💼',
-  '未分類': '❓',
-};
+import '../data/db/category_seeds.dart';
 
-String categoryEmoji(String? icon, String? name) =>
-    icon ?? presetCategoryEmoji[name] ?? '📁';
+/// カテゴリの絵文字を返す。
+/// ユーザーがカテゴリ管理で設定した icon（絵文字）を最優先し、無ければ
+/// slug からプリセット絵文字を引く。どちらも無ければ既定（📁）。
+/// slug は表示名から独立しているので、多言語化しても絵文字が壊れない。
+String categoryEmoji(String? icon, String? slug) =>
+    icon ?? (slug == null ? null : seedEmojiBySlug[slug]) ?? '📁';

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
-import '../../../core/format.dart';
+import '../../../core/money.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/entry_form_controller.dart';
 import 'split_tax_dialog.dart';
 
@@ -43,7 +45,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final mf = ref.watch(moneyFormatterProvider);
+    final taxEnabled = ref.watch(taxProfileProvider).enabled;
     final lines = state.splits!;
     final scheme = Theme.of(context).colorScheme;
     final inputCount = lines.length - 1; // 末尾は残額行（窓の外に固定描画）
@@ -83,11 +88,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 key: ValueKey('split-store-${state.formSeq}'),
                 initialValue: state.storeName,
                 style: const TextStyle(fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: '店名',
+                decoration: InputDecoration(
+                  hintText: l.splitStoreNameHint,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 6),
-                  border: UnderlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                  border: const UnderlineInputBorder(),
                 ),
                 onChanged: ctrl.setStoreName,
               ),
@@ -98,7 +103,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: const Size(0, 32)),
-              child: const Text('やめる'),
+              child: Text(l.splitCancel),
             ),
           ],
         ),
@@ -107,14 +112,16 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         // ＋品目は残額行の右端へ移動。「品目を追加」等の独立行は置かない（3行を保つ）。
         Row(
           children: [
-            Text('内訳',
+            Text(l.splitBreakdownLabel,
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
                     color: scheme.primary)),
             const Spacer(),
             // 消費税グループ: 内税トグルと8/10%は分離。個別も含め同じ薄緑背景でまとめる。
-            Container(
+            // 非JP（税プロファイル無効）では丸ごと非表示（入力額=税込扱い）。
+            if (taxEnabled)
+              Container(
               padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
               decoration: BoxDecoration(
                 color: scheme.primaryContainer,
@@ -123,7 +130,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('消費税',
+                  Text(l.splitTaxLabel,
                       style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -141,7 +148,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                         color: scheme.primary.withValues(alpha: 0.22),
                         borderRadius: BorderRadius.circular(7),
                       ),
-                      child: Text(incAll ? '内税' : '外税',
+                      child: Text(
+                          incAll
+                              ? l.splitTaxIncludedToggle
+                              : l.splitTaxExcludedToggle,
                           style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -164,7 +174,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     ]),
                   ),
                   const SizedBox(width: 5),
-                  _chipButton(scheme, '個別',
+                  _chipButton(scheme, l.splitTaxIndividual,
                       key: const Key('split-tax-per'), onTap: () {
                     showDialog<void>(
                       context: context,
@@ -186,13 +196,13 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (var i = 0; i < inputCount; i++) _line(context, i),
+                for (var i = 0; i < inputCount; i++) _line(context, mf, i),
               ],
             ),
           ),
         ),
         const SizedBox(height: 4),
-        _remainderRow(context),
+        _remainderRow(context, mf),
       ],
     );
   }
@@ -261,7 +271,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 
   /// 入力行（1行構成: カテゴリチップ｜メモ｜金額）。
-  Widget _line(BuildContext context, int i) {
+  Widget _line(BuildContext context, MoneyFormatter mf, int i) {
+    final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
     final line = lines[i];
@@ -278,10 +289,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     if (active && hasOp) {
       mainLabel = line.expr;
     } else {
-      mainLabel = entered == null ? '¥ —' : formatYen(entered);
+      mainLabel = entered == null ? '—' : mf.format(entered);
     }
     final String? subLabel = (!line.taxIncluded && net != null)
-        ? '税込 ${formatYen(net)}'
+        ? l.splitTaxIncludedAmount(mf.format(net))
         : null;
 
     return Padding(
@@ -318,7 +329,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    catLabel ?? '＋ カテゴリ',
+                    catLabel ?? l.splitAddCategoryChip,
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
@@ -336,11 +347,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     key: ValueKey('split-linememo-$i-${state.formSeq}'),
                     initialValue: line.memo,
                     style: const TextStyle(fontSize: 12),
-                    decoration: const InputDecoration(
-                      hintText: 'メモ',
+                    decoration: InputDecoration(
+                      hintText: l.splitMemoHint,
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 2),
-                      border: UnderlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 2),
+                      border: const UnderlineInputBorder(),
                     ),
                     onChanged: (v) => ctrl.setSplitMemo(i, v),
                   ),
@@ -384,7 +395,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 
   /// 残額行（最下段固定・差分表示）。カテゴリを付けるだけで最後の1品になる。
-  Widget _remainderRow(BuildContext context) {
+  Widget _remainderRow(BuildContext context, MoneyFormatter mf) {
+    final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final lines = state.splits!;
     final i = lines.length - 1;
@@ -426,7 +438,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.add, size: 15, color: scheme.primary),
-                          Text('カテゴリを追加',
+                          Text(l.splitAddCategoryLabel,
                               style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
@@ -452,11 +464,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
             ),
             const Spacer(),
             // 右: 残り（差分・非タップ）
-            Text(over ? '超過' : '残り',
+            Text(over ? l.splitOverLabel : l.splitRemainingLabel,
                 style: TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w800, color: fg)),
             const SizedBox(width: 6),
-            Text(formatYen(over ? -rem : rem),
+            Text(mf.format(over ? -rem : rem),
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,

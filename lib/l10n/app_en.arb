@@ -1,0 +1,441 @@
+{
+  "@@locale": "en",
+  "appTitle": "Kakeibo",
+  "@appTitle": {
+    "description": "Application title shown in the OS task switcher"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Generic cancel button label"
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Generic close button label"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Generic save button label"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings row title for choosing the app language"
+  },
+  "settingsCurrency": "Currency",
+  "@settingsCurrency": {
+    "description": "Settings row title for choosing the currency"
+  },
+  "languageSystemDefault": "System default",
+  "@languageSystemDefault": {
+    "description": "Option to follow the device system language"
+  },
+  "currencyLockedSubtitle": "Locked — transactions already exist",
+  "@currencyLockedSubtitle": {
+    "description": "Currency row subtitle shown when currency can no longer be changed"
+  },
+  "currencyLockedTitle": "Currency can't be changed",
+  "@currencyLockedTitle": {
+    "description": "Title of the dialog explaining why currency is locked"
+  },
+  "currencyLockedBody": "To keep past amounts consistent, the currency can't be changed once transactions have been recorded.",
+  "@currencyLockedBody": {
+    "description": "Body of the dialog explaining why currency is locked"
+  },
+  "settingsAutoBackupSubtitle": "Auto backup: {generations} generations (on device)",
+  "@settingsAutoBackupSubtitle": {
+    "placeholders": {
+      "generations": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsBackupNowTitle": "Back up now",
+  "settingsExportJsonTitle": "Export JSON",
+  "settingsExportJsonSubtitle": "Optionally encrypt with a passphrase (usable for restore)",
+  "settingsExportCsvTitle": "Export CSV",
+  "settingsExportCsvSubtitle": "For viewing only (cannot be used to restore)",
+  "settingsRestoreTitle": "Restore",
+  "settingsRestoreSubtitle": "Replaces all data",
+  "settingsTestUploadTitle": "Test cooperation (auto-send)",
+  "settingsTestUploadSubtitle": "To improve receipt scanning, scan records and photos are automatically sent to the developer (testing period only). Your household ledger entries themselves are never sent.",
+  "settingsShareTestDataTitle": "Send test data",
+  "settingsShareTestDataSubtitle": "Share manually all at once (LINE/AirDrop)",
+  "settingsFetchCollectedTitle": "Import collected data (developer only)",
+  "settingsFetchCollectedSubtitle": "Import data from all devices into this device's exports/ocr-collected",
+  "settingsRetainImagesTitle": "Keep receipt images on device",
+  "settingsRetainImagesSubtitle": "Discarded after saving by default",
+  "settingsCategoryManageTitle": "Manage categories",
+  "settingsCategoryOrderTitle": "Arrange categories in my own order",
+  "settingsCategoryOrderSubtitle": "Off = most recently used / On = fixed order (long-press a tile on the entry screen to reorder)",
+  "settingsPageColorTitle": "Page color (background)",
+  "settingsAccentColorTitle": "Accent color",
+  "settingsAccentColorSubtitle": "Color for buttons and selections",
+  "settingsDataPolicyTitle": "About data handling",
+  "settingsDataPolicyBody": "• Your records are stored only on this device. They are never sent externally automatically.\n• Automatic backups are made on this device, but please also save an export from Settings in case you switch devices or your device breaks.",
+  "settingsPassphraseFieldLabel": "Passphrase (if encrypting)",
+  "settingsSaveAsIs": "Save as is",
+  "settingsSaveEncrypted": "Encrypt and save",
+  "settingsBackupSuccessSnackbar": "Backup created",
+  "settingsBackupFailedSnackbar": "Backup failed: {error}",
+  "@settingsBackupFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExportSavedSnackbar": "Saved: {fileName}",
+  "@settingsExportSavedSnackbar": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExportFailedSnackbar": "Export failed: {error}",
+  "@settingsExportFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFetchCollectedSuccessSnackbar": "Imported {count} items (exports/ocr-collected)",
+  "@settingsFetchCollectedSuccessSnackbar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsFetchCollectedFailedSnackbar": "Import failed: {error}",
+  "@settingsFetchCollectedFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNoScanRecordsSnackbar": "No scan records yet",
+  "settingsShareTestDataSubject": "Household ledger test data ({count} items)",
+  "@settingsShareTestDataSubject": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsShareTestDataFailedSnackbar": "Send failed: {error}",
+  "@settingsShareTestDataFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "entryTitleCreate": "Entry",
+  "entryTitleReceiptConfirm": "Confirm Receipt",
+  "commonEdit": "Edit",
+  "entryTypeExpense": "Expense",
+  "entryTypeIncome": "Income",
+  "entryDateLabel": "{month}/{day}/{year}",
+  "@entryDateLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "entryStartSplitButton": "Itemize",
+  "entryCategoryHeading": "Category",
+  "entryDetailMemoLabel": "Notes",
+  "entryStoreNameLabel": "Store name",
+  "entrySaveContinueButton": "Save & Continue",
+  "entrySavedSnackbar": "Saved",
+  "entryReceiptCaptureUnavailableSnackbar": "Receipt capture isn't available on this device",
+  "entryOcrFailedSnackbar": "Failed to read receipt: {error}",
+  "@entryOcrFailedSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "entryReceiptSourceCamera": "Take a photo",
+  "entryReceiptSourceLibrary": "Choose from photos",
+  "entryDeleteConfirmTitle": "Delete this entry?",
+  "entryDeleteConfirmContent": "This transaction will be deleted.",
+  "commonDelete": "Delete",
+  "batchPanelTitle": "Itemize",
+  "batchModeSelectAssign": "Select & assign",
+  "batchModePaint": "Paint",
+  "batchCancelButton": "Cancel",
+  "batchThisReceiptLabel": "This receipt:",
+  "batchTaxIncluded": "Tax incl.",
+  "batchTaxExclusive8": "Tax excl. 8%",
+  "batchTaxExclusive10": "Tax excl. 10%",
+  "batchPaintHintNoCategory": "Pick a category below, then tap rows to paint",
+  "batchPaintHintActive": "Painting \"{name}\" — tap rows (tap again to undo)",
+  "@batchPaintHintActive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "batchSelectHint": "Select rows → tap a category below to assign",
+  "batchSelectionSummary": "{count} selected, {amount} → tap a category below",
+  "@batchSelectionSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "batchNoAssignmentsYet": "(No assignments yet)",
+  "batchCategoryUnknown": "Unknown",
+  "batchDiffPickCategory": "Remainder (difference) — tap to pick a category",
+  "batchDiffCategorySuffix": "{category} (difference)",
+  "@batchDiffCategorySuffix": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "batchReceiptFallbackLabel": "Receipt",
+  "batchTotalLabel": "Total",
+  "batchExcessAmount": "{amount} ✗ {excess} over",
+  "@batchExcessAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "excess": {
+        "type": "String"
+      }
+    }
+  },
+  "restorePageTitle": "Restore",
+  "restoreEmptyMessage": "No backups available to restore",
+  "restoreConfirmTitle": "Restore this backup?",
+  "restoreConfirmMessage": "All current data will be replaced. The previous state is saved automatically and can be recovered later.",
+  "restoreButton": "Restore",
+  "restoreEmptyBackupTitle": "This backup has 0 transactions",
+  "restoreEmptyBackupMessage": "Restoring will delete all your existing transactions. Restore anyway?",
+  "restoreEmptyBackupConfirmButton": "Restore anyway",
+  "restoreFailedMessage": "Restore failed: {error}",
+  "@restoreFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreSuccessMessage": "Restore complete",
+  "restorePassphraseTitle": "Enter passphrase",
+  "commonAdd": "Add",
+  "categoryRenameAction": "Rename",
+  "categorySubcategoryRenameTitle": "Rename subcategory",
+  "categoryNameFieldLabel": "Name",
+  "categorySubcategoryAddTitle": "Add subcategory",
+  "categoryIconFieldLabel": "Icon (emoji, optional)",
+  "categoryEditExistingTitle": "Edit existing items",
+  "categoryIconOrderTitle": "Icon display order settings",
+  "categoryIconOrderHint": "Drag to reorder (shown in your custom order)",
+  "categoryManageTitle": "Manage Categories",
+  "categoryTabExpense": "Expense",
+  "categoryTabIncome": "Income",
+  "categorySubAddTitle": "Add Sub-category",
+  "categoryAddTitle": "Add Category",
+  "categorySubRenameTitle": "Rename Sub-category",
+  "categoryRenameTitle": "Rename Category",
+  "categorySubAddTooltip": "Add sub-category",
+  "categoryArchiveBlockedSnackbar": "Archive its sub-categories first",
+  "categoryArchivedSectionTitle": "Archived",
+  "categoryArchivedItemLabel": "{name} (Archived)",
+  "@categoryArchivedItemLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "splitStoreNameHint": "Store name",
+  "splitCancel": "Cancel",
+  "splitBreakdownLabel": "Breakdown",
+  "splitTaxLabel": "Tax",
+  "splitTaxIncludedToggle": "Tax incl.",
+  "splitTaxExcludedToggle": "Tax excl.",
+  "splitTaxIndividual": "Custom",
+  "splitMemoHint": "Memo",
+  "splitAddCategoryChip": "+ Category",
+  "splitTaxIncludedAmount": "Tax incl. {amount}",
+  "@splitTaxIncludedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "splitAddCategoryLabel": "Add category",
+  "splitOverLabel": "Over",
+  "splitRemainingLabel": "Remaining",
+  "summaryMonthHeader": "{month}/{year}",
+  "@summaryMonthHeader": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryEmptyTitle": "No data for this month yet",
+  "summaryEmptyHint": "Tap + on the calendar to add an entry",
+  "summaryIncomeLabel": "Income",
+  "summaryExpenseLabel": "Expense",
+  "summaryNetLabel": "Balance",
+  "summaryCategoryBreakdownTitle": "Spending by category",
+  "summaryArchivedSuffix": "{name} (Archived)",
+  "@summaryArchivedSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "summaryBreakdownCollapse": "▲ Details",
+  "summaryBreakdownExpand": "▼ Details",
+  "summaryNoBreakdownLabel": "(No breakdown)",
+  "entryNoImage": "No image",
+  "entryAmountReadFailed": "Couldn't read the amount. Please enter it manually.",
+  "entryStoreDirectInput": "Enter manually",
+  "entryStoreNameDialogTitle": "Enter store name",
+  "commonOk": "OK",
+  "calendarWeekdaySun": "Sun",
+  "calendarWeekdayMon": "Mon",
+  "calendarWeekdayTue": "Tue",
+  "calendarWeekdayWed": "Wed",
+  "calendarWeekdayThu": "Thu",
+  "calendarWeekdayFri": "Fri",
+  "calendarWeekdaySat": "Sat",
+  "calendarMonthYearHeader": "{month}/{year}",
+  "@calendarMonthYearHeader": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarMonthSummary": "Expense {expense}   Income {income}   Net {net}",
+  "@calendarMonthSummary": {
+    "placeholders": {
+      "expense": {
+        "type": "String"
+      },
+      "income": {
+        "type": "String"
+      },
+      "net": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarDayEmptyTitle": "No entries on {month}/{day}",
+  "@calendarDayEmptyTitle": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarDayEmptyHintFirst": "Add your first entry using \"Enter Amount\" in the bottom right",
+  "calendarDayEmptyHint": "Add an entry using \"Enter Amount\" in the bottom right",
+  "calendarReceiptFallbackLabel": "Receipt",
+  "calendarCategoryUnknown": "Unknown",
+  "calendarCategoryArchivedLabel": "{name} (Archived)",
+  "@calendarCategoryArchivedLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarDeleteSnackbar": "Deleted",
+  "calendarUndoAction": "Undo",
+  "splitTaxDialogTitle": "Tax rate per item",
+  "commonDone": "Done",
+  "splitRemainderLabel": "Remaining",
+  "splitItemNumberLabel": "Item {index}",
+  "@splitItemNumberLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "splitTaxIncludedLabel": "Incl. tax",
+  "splitRemainderAutoAmount": "{amount} (auto)",
+  "@splitRemainderAutoAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "splitAmountWithTax": "{entered} → incl. tax {net}",
+  "@splitAmountWithTax": {
+    "placeholders": {
+      "entered": {
+        "type": "String"
+      },
+      "net": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingTitle": "About Your Data",
+  "onboardingBody": "• Your records are stored only on this device. Nothing is sent externally.\n• The app backs up automatically on this device, but please save an export from Settings in case you switch or lose your device.",
+  "onboardingStartButton": "Get Started",
+  "homeFabEntryLabel": "Enter amount",
+  "homeNavCalendar": "Calendar",
+  "homeNavSummary": "Summary",
+  "homeNavSettings": "Settings",
+  "settingsColorPickerResetDefault": "Reset to default",
+  "settingsColorPickerConfirm": "Confirm",
+  "categoryManualOrderSnackbar": "Switched to your custom order (you can change this back in Settings).",
+  "entryHintEnterAmount": "Enter an amount",
+  "entryHintAssignItemCategory": "Assign a category to each item",
+  "entryHintAssignExceedsTotal": "Assignments exceed the total",
+  "entryHintPickDiffCategory": "Pick a category for the difference",
+  "entryHintSplitExceedsTotal": "The breakdown exceeds the total",
+  "entryHintPickCategory": "Pick a category",
+  "entryHintEnterAmountAndCategory": "Enter an amount and a category",
+  "entryHintEnterRemainingAmount": "Enter the remaining amount too",
+  "settingsBackupNever": "No backup yet",
+  "settingsBackupToday": "Last backup: today",
+  "settingsBackupDaysAgo": "Last backup: {days} days ago",
+  "@settingsBackupDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
+}

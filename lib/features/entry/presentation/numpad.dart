@@ -9,6 +9,9 @@ class Numpad extends StatelessWidget {
   /// 渡される op は '+', '-', '×', '÷'。
   final void Function(String op)? onOperator;
 
+  /// 非null時は「00」キーの位置に小数点「.」キーを出す（小数桁のある通貨）。
+  final VoidCallback? onDecimal;
+
   /// キーの高さ。既定56。入力画面では下部を詰めるため小さめを渡す。
   final double cellHeight;
 
@@ -18,6 +21,7 @@ class Numpad extends StatelessWidget {
     required this.onDoubleZero,
     required this.onBackspace,
     this.onOperator,
+    this.onDecimal,
     this.cellHeight = 56,
   });
 
@@ -49,8 +53,13 @@ class Numpad extends StatelessWidget {
       Row(children: [digit(4), digit(5), digit(6), if (ops) op('-', '−')]),
       Row(children: [digit(7), digit(8), digit(9), if (ops) op('×', '×')]),
       Row(children: [
-        cell(const Text('00', style: TextStyle(fontSize: 24)), onDoubleZero,
-            key: const Key('np-00')),
+        // 小数桁のある通貨では「00」の位置に「.」を出す。
+        onDecimal != null
+            ? cell(const Text('.', style: TextStyle(fontSize: 24)), onDecimal!,
+                key: const Key('np-dot'))
+            : cell(const Text('00', style: TextStyle(fontSize: 24)),
+                onDoubleZero,
+                key: const Key('np-00')),
         digit(0, key: const Key('np-0')),
         cell(const Icon(Icons.backspace_outlined), onBackspace,
             key: const Key('np-back')),

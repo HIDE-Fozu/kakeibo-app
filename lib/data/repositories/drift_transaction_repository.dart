@@ -89,6 +89,9 @@ class DriftTransactionRepository implements TransactionRepository {
           (m) => m.map((id, iso) => MapEntry(id, CivilDate.parse(iso))));
 
   @override
+  Future<int> count() => _db.transactionDao.count();
+
+  @override
   Future<void> delete(int id) => _db.transactionDao.deleteById(id);
 
   TransactionEntity _toEntity(TransactionRow r) => TransactionEntity(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// パッケージ非依存のフルカラーピッカー（RGBスライダ＋プレビュー）。
 /// 任意の色を自由に選べる。決定でその色を返し、キャンセルで null を返す。
@@ -45,6 +46,7 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return AlertDialog(
       title: Text(widget.title),
       content: Column(
@@ -83,16 +85,16 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
             _g = (widget.defaultColor.g * 255).roundToDouble();
             _b = (widget.defaultColor.b * 255).roundToDouble();
           }),
-          child: const Text('既定に戻す'),
+          child: Text(l.settingsColorPickerResetDefault),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('キャンセル'),
+          child: Text(l.commonCancel),
         ),
         FilledButton(
           key: const Key('color-apply'),
           onPressed: () => Navigator.pop(context, _color),
-          child: const Text('決定'),
+          child: Text(l.settingsColorPickerConfirm),
         ),
       ],
     );

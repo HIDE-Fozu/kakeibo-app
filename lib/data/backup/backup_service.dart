@@ -36,6 +36,7 @@ class BackupService {
             isArchived: c.isArchived,
             isSystem: c.isSystem,
             parentId: c.parentId,
+            slug: c.slug,
           ),
       ],
       transactions: [
@@ -111,6 +112,7 @@ class BackupService {
               isArchived: Value(c.isArchived),
               isSystem: Value(c.isSystem),
               parentId: Value(c.parentId),
+              slug: Value(c.slug),
             ),
           );
         }

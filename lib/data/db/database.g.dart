@@ -95,6 +95,15 @@ class $CategoriesTable extends Categories
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _slugMeta = const VerificationMeta('slug');
+  @override
+  late final GeneratedColumn<String> slug = GeneratedColumn<String>(
+    'slug',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _parentIdMeta = const VerificationMeta(
     'parentId',
   );
@@ -118,6 +127,7 @@ class $CategoriesTable extends Categories
     sortOrder,
     isArchived,
     isSystem,
+    slug,
     parentId,
   ];
   @override
@@ -167,6 +177,12 @@ class $CategoriesTable extends Categories
         isSystem.isAcceptableOrUnknown(data['is_system']!, _isSystemMeta),
       );
     }
+    if (data.containsKey('slug')) {
+      context.handle(
+        _slugMeta,
+        slug.isAcceptableOrUnknown(data['slug']!, _slugMeta),
+      );
+    }
     if (data.containsKey('parent_id')) {
       context.handle(
         _parentIdMeta,
@@ -212,6 +228,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.bool,
         data['${effectivePrefix}is_system'],
       )!,
+      slug: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}slug'],
+      ),
       parentId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}parent_id'],
@@ -237,6 +257,11 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final bool isArchived;
   final bool isSystem;
 
+  /// 安定キー（シードカテゴリのみ非null）。表示名(name)から独立し、絵文字・
+  /// 自動税率・多言語シードの結び付け先になる。ユーザー作成カテゴリはnull。
+  /// v5で追加。既存シード行は名前一致でバックフィルする（database.dartのmigration）。
+  final String? slug;
+
   /// 非null=内訳（親カテゴリのid）。階層は2段まで（アプリ側で保証）。
   final int? parentId;
   const CategoryRow({
@@ -247,6 +272,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     required this.sortOrder,
     required this.isArchived,
     required this.isSystem,
+    this.slug,
     this.parentId,
   });
   @override
@@ -265,6 +291,9 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     map['sort_order'] = Variable<int>(sortOrder);
     map['is_archived'] = Variable<bool>(isArchived);
     map['is_system'] = Variable<bool>(isSystem);
+    if (!nullToAbsent || slug != null) {
+      map['slug'] = Variable<String>(slug);
+    }
     if (!nullToAbsent || parentId != null) {
       map['parent_id'] = Variable<int>(parentId);
     }
@@ -280,6 +309,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       sortOrder: Value(sortOrder),
       isArchived: Value(isArchived),
       isSystem: Value(isSystem),
+      slug: slug == null && nullToAbsent ? const Value.absent() : Value(slug),
       parentId: parentId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentId),
@@ -301,6 +331,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       isArchived: serializer.fromJson<bool>(json['isArchived']),
       isSystem: serializer.fromJson<bool>(json['isSystem']),
+      slug: serializer.fromJson<String?>(json['slug']),
       parentId: serializer.fromJson<int?>(json['parentId']),
     );
   }
@@ -317,6 +348,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'sortOrder': serializer.toJson<int>(sortOrder),
       'isArchived': serializer.toJson<bool>(isArchived),
       'isSystem': serializer.toJson<bool>(isSystem),
+      'slug': serializer.toJson<String?>(slug),
       'parentId': serializer.toJson<int?>(parentId),
     };
   }
@@ -329,6 +361,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     int? sortOrder,
     bool? isArchived,
     bool? isSystem,
+    Value<String?> slug = const Value.absent(),
     Value<int?> parentId = const Value.absent(),
   }) => CategoryRow(
     id: id ?? this.id,
@@ -338,6 +371,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     sortOrder: sortOrder ?? this.sortOrder,
     isArchived: isArchived ?? this.isArchived,
     isSystem: isSystem ?? this.isSystem,
+    slug: slug.present ? slug.value : this.slug,
     parentId: parentId.present ? parentId.value : this.parentId,
   );
   CategoryRow copyWithCompanion(CategoriesCompanion data) {
@@ -351,6 +385,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ? data.isArchived.value
           : this.isArchived,
       isSystem: data.isSystem.present ? data.isSystem.value : this.isSystem,
+      slug: data.slug.present ? data.slug.value : this.slug,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
     );
   }
@@ -365,6 +400,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('sortOrder: $sortOrder, ')
           ..write('isArchived: $isArchived, ')
           ..write('isSystem: $isSystem, ')
+          ..write('slug: $slug, ')
           ..write('parentId: $parentId')
           ..write(')'))
         .toString();
@@ -379,6 +415,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     sortOrder,
     isArchived,
     isSystem,
+    slug,
     parentId,
   );
   @override
@@ -392,6 +429,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.sortOrder == this.sortOrder &&
           other.isArchived == this.isArchived &&
           other.isSystem == this.isSystem &&
+          other.slug == this.slug &&
           other.parentId == this.parentId);
 }
 
@@ -403,6 +441,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<int> sortOrder;
   final Value<bool> isArchived;
   final Value<bool> isSystem;
+  final Value<String?> slug;
   final Value<int?> parentId;
   const CategoriesCompanion({
     this.id = const Value.absent(),
@@ -412,6 +451,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.sortOrder = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.slug = const Value.absent(),
     this.parentId = const Value.absent(),
   });
   CategoriesCompanion.insert({
@@ -422,6 +462,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.sortOrder = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.slug = const Value.absent(),
     this.parentId = const Value.absent(),
   }) : name = Value(name),
        type = Value(type);
@@ -433,6 +474,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<int>? sortOrder,
     Expression<bool>? isArchived,
     Expression<bool>? isSystem,
+    Expression<String>? slug,
     Expression<int>? parentId,
   }) {
     return RawValuesInsertable({
@@ -443,6 +485,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (sortOrder != null) 'sort_order': sortOrder,
       if (isArchived != null) 'is_archived': isArchived,
       if (isSystem != null) 'is_system': isSystem,
+      if (slug != null) 'slug': slug,
       if (parentId != null) 'parent_id': parentId,
     });
   }
@@ -455,6 +498,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<int>? sortOrder,
     Value<bool>? isArchived,
     Value<bool>? isSystem,
+    Value<String?>? slug,
     Value<int?>? parentId,
   }) {
     return CategoriesCompanion(
@@ -465,6 +509,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       sortOrder: sortOrder ?? this.sortOrder,
       isArchived: isArchived ?? this.isArchived,
       isSystem: isSystem ?? this.isSystem,
+      slug: slug ?? this.slug,
       parentId: parentId ?? this.parentId,
     );
   }
@@ -495,6 +540,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     if (isSystem.present) {
       map['is_system'] = Variable<bool>(isSystem.value);
     }
+    if (slug.present) {
+      map['slug'] = Variable<String>(slug.value);
+    }
     if (parentId.present) {
       map['parent_id'] = Variable<int>(parentId.value);
     }
@@ -511,6 +559,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('sortOrder: $sortOrder, ')
           ..write('isArchived: $isArchived, ')
           ..write('isSystem: $isSystem, ')
+          ..write('slug: $slug, ')
           ..write('parentId: $parentId')
           ..write(')'))
         .toString();
@@ -1323,6 +1372,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<int> sortOrder,
       Value<bool> isArchived,
       Value<bool> isSystem,
+      Value<String?> slug,
       Value<int?> parentId,
     });
 typedef $$CategoriesTableUpdateCompanionBuilder =
@@ -1334,6 +1384,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<int> sortOrder,
       Value<bool> isArchived,
       Value<bool> isSystem,
+      Value<String?> slug,
       Value<int?> parentId,
     });
 
@@ -1419,6 +1470,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<bool> get isSystem => $composableBuilder(
     column: $table.isSystem,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get slug => $composableBuilder(
+    column: $table.slug,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1515,6 +1571,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get slug => $composableBuilder(
+    column: $table.slug,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CategoriesTableOrderingComposer get parentId {
     final $$CategoriesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -1570,6 +1631,9 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<bool> get isSystem =>
       $composableBuilder(column: $table.isSystem, builder: (column) => column);
+
+  GeneratedColumn<String> get slug =>
+      $composableBuilder(column: $table.slug, builder: (column) => column);
 
   $$CategoriesTableAnnotationComposer get parentId {
     final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
@@ -1655,6 +1719,7 @@ class $$CategoriesTableTableManager
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<String?> slug = const Value.absent(),
                 Value<int?> parentId = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
@@ -1664,6 +1729,7 @@ class $$CategoriesTableTableManager
                 sortOrder: sortOrder,
                 isArchived: isArchived,
                 isSystem: isSystem,
+                slug: slug,
                 parentId: parentId,
               ),
           createCompanionCallback:
@@ -1675,6 +1741,7 @@ class $$CategoriesTableTableManager
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<String?> slug = const Value.absent(),
                 Value<int?> parentId = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
@@ -1684,6 +1751,7 @@ class $$CategoriesTableTableManager
                 sortOrder: sortOrder,
                 isArchived: isArchived,
                 isSystem: isSystem,
+                slug: slug,
                 parentId: parentId,
               ),
           withReferenceMapper: (p0) => p0

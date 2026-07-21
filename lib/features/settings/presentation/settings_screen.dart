@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/format.dart';
+import '../../../core/locale_names.dart';
+import '../../../core/money.dart';
 import '../../../data/ocr/ocr_fixture_recorder.dart';
 import '../../../data/ocr/ocr_fixture_share.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
 import 'category_manage_page.dart';
@@ -20,9 +24,13 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final last = ref.watch(lastBackupProvider);
     final now = ref.watch(utcNowProvider)();
     final settings = ref.watch(appSettingsProvider);
+    final currency = ref.watch(currencyProvider);
+    // 取引が1件でもあれば通貨変更ロック（best-effort表示。確定判定はタップ時に再確認）。
+    final currencyLocked = (ref.watch(transactionCountProvider).valueOrNull ?? 0) > 0;
     final generations =
         ref.watch(autoBackupStoreProvider).listGenerations().length;
 
@@ -31,34 +39,34 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.backup_outlined),
-            title: Text(backupAgeLabel(last, now)),
-            subtitle: Text('自動バックアップ $generations世代（端末内）'),
+            title: Text(backupAgeLabel(l, last, now)),
+            subtitle: Text(l.settingsAutoBackupSubtitle(generations)),
           ),
           ListTile(
             key: const Key('backup-now'),
             leading: const Icon(Icons.save_alt),
-            title: const Text('今すぐバックアップ'),
+            title: Text(l.settingsBackupNowTitle),
             onTap: () => _backupNow(context, ref),
           ),
           ListTile(
             key: const Key('export-json'),
             leading: const Icon(Icons.upload_file),
-            title: const Text('JSONエクスポート'),
-            subtitle: const Text('任意でパスフレーズ暗号化（復元に使えます）'),
+            title: Text(l.settingsExportJsonTitle),
+            subtitle: Text(l.settingsExportJsonSubtitle),
             onTap: () => _exportJson(context, ref),
           ),
           ListTile(
             key: const Key('export-csv'),
             leading: const Icon(Icons.table_view),
-            title: const Text('CSVエクスポート'),
-            subtitle: const Text('閲覧用（復元には使えません）'),
+            title: Text(l.settingsExportCsvTitle),
+            subtitle: Text(l.settingsExportCsvSubtitle),
             onTap: () => _exportCsv(context, ref),
           ),
           ListTile(
             key: const Key('restore-tile'),
             leading: const Icon(Icons.settings_backup_restore),
-            title: const Text('復元'),
-            subtitle: const Text('全データを置き換えます'),
+            title: Text(l.settingsRestoreTitle),
+            subtitle: Text(l.settingsRestoreSubtitle),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const RestorePickerPage()),
@@ -69,9 +77,8 @@ class SettingsScreen extends ConsumerWidget {
           if (kCollectReceiptPhotosDuringTest) ...[
             SwitchListTile(
               key: const Key('auto-upload-switch'),
-              title: const Text('テスト協力（自動送信）'),
-              subtitle: const Text(
-                  'レシート読み取りの改善のため、スキャンの記録と写真を開発者へ自動送信します（テスト期間限定）。家計簿の入力内容そのものは送信しません'),
+              title: Text(l.settingsTestUploadTitle),
+              subtitle: Text(l.settingsTestUploadSubtitle),
               value: settings.autoUploadTestData,
               onChanged: (v) => ref
                   .read(appSettingsProvider.notifier)
@@ -80,23 +87,23 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               key: const Key('share-test-data'),
               leading: const Icon(Icons.outbox_outlined),
-              title: const Text('テストデータを送る'),
-              subtitle: const Text('手動でまとめて共有（LINE/AirDrop）'),
+              title: Text(l.settingsShareTestDataTitle),
+              subtitle: Text(l.settingsShareTestDataSubtitle),
               onTap: () => _shareTestData(context, ref),
             ),
             ListTile(
               key: const Key('fetch-collected'),
               leading: const Icon(Icons.cloud_download_outlined),
-              title: const Text('収集データを取り込む（開発者用）'),
-              subtitle: const Text('全端末分をこの端末の exports/ocr-collected へ'),
+              title: Text(l.settingsFetchCollectedTitle),
+              subtitle: Text(l.settingsFetchCollectedSubtitle),
               onTap: () => _fetchCollected(context, ref),
             ),
           ],
           const Divider(),
           SwitchListTile(
             key: const Key('retain-images-switch'),
-            title: const Text('レシート画像をローカル保持'),
-            subtitle: const Text('既定では保存後に破棄します'),
+            title: Text(l.settingsRetainImagesTitle),
+            subtitle: Text(l.settingsRetainImagesSubtitle),
             value: settings.retainReceiptImages,
             onChanged: (v) =>
                 ref.read(appSettingsProvider.notifier).setRetainReceiptImages(v),
@@ -104,7 +111,7 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             key: const Key('category-manage-tile'),
             leading: const Icon(Icons.category_outlined),
-            title: const Text('カテゴリ管理'),
+            title: Text(l.settingsCategoryManageTitle),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const CategoryManagePage()),
@@ -113,8 +120,8 @@ class SettingsScreen extends ConsumerWidget {
           SwitchListTile(
             key: const Key('category-order-switch'),
             secondary: const Icon(Icons.sort),
-            title: const Text('カテゴリを自分の順で並べる'),
-            subtitle: const Text('オフ=最近使った順 / オン=固定順（入力画面でタイル長押し→並べ替え）'),
+            title: Text(l.settingsCategoryOrderTitle),
+            subtitle: Text(l.settingsCategoryOrderSubtitle),
             value: settings.categoryOrder == CategoryOrderMode.manual,
             onChanged: (v) =>
                 ref.read(appSettingsProvider.notifier).setCategoryOrder(
@@ -125,14 +132,34 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
+            key: const Key('language-tile'),
+            leading: const Icon(Icons.language),
+            title: Text(l.settingsLanguage),
+            subtitle: Text(settings.locale == null
+                ? l.languageSystemDefault
+                : nativeLocaleName(settings.locale!)),
+            onTap: () => _pickLanguage(context, ref, settings),
+          ),
+          ListTile(
+            key: const Key('currency-tile'),
+            leading: const Icon(Icons.payments_outlined),
+            title: Text(l.settingsCurrency),
+            subtitle: Text(currencyLocked
+                ? l.currencyLockedSubtitle
+                : '${currency.code}  ${currency.symbol}'),
+            trailing: currencyLocked ? const Icon(Icons.lock_outline) : null,
+            onTap: () => _pickCurrency(context, ref, currency),
+          ),
+          const Divider(),
+          ListTile(
             key: const Key('page-color-tile'),
             leading: const Icon(Icons.palette_outlined),
-            title: const Text('ページの色（背景）'),
+            title: Text(l.settingsPageColorTitle),
             trailing: _swatch(settings.pageColor),
             onTap: () => _pickColor(
               context,
               ref,
-              title: 'ページの色（背景）',
+              title: l.settingsPageColorTitle,
               current: settings.pageColor,
               defaultColor: kPaper,
               onPicked: (c) =>
@@ -142,13 +169,13 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             key: const Key('accent-color-tile'),
             leading: const Icon(Icons.format_color_fill),
-            title: const Text('アクセント色'),
-            subtitle: const Text('ボタンや選択の色'),
+            title: Text(l.settingsAccentColorTitle),
+            subtitle: Text(l.settingsAccentColorSubtitle),
             trailing: _swatch(settings.accentColor),
             onTap: () => _pickColor(
               context,
               ref,
-              title: 'アクセント色',
+              title: l.settingsAccentColorTitle,
               current: settings.accentColor,
               defaultColor: kPrimary,
               onPicked: (c) =>
@@ -159,7 +186,7 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             key: const Key('about-data-tile'),
             leading: const Icon(Icons.privacy_tip_outlined),
-            title: const Text('データの取り扱いについて'),
+            title: Text(l.settingsDataPolicyTitle),
             onTap: () => showDataPolicyDialog(context),
           ),
         ],
@@ -195,18 +222,111 @@ class SettingsScreen extends ConsumerWidget {
     if (picked != null) onPicked(picked);
   }
 
+  Future<void> _pickLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    SettingsState settings,
+  ) async {
+    final l = AppLocalizations.of(context);
+    final options = <Locale?>[null, ...AppLocalizations.supportedLocales];
+    final currentTag = settings.locale?.toLanguageTag();
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.settingsLanguage),
+        children: [
+          for (var i = 0; i < options.length; i++)
+            _choiceRow(
+              ctx,
+              label: options[i] == null
+                  ? l.languageSystemDefault
+                  : nativeLocaleName(options[i]!),
+              selected: options[i]?.toLanguageTag() == currentTag,
+              onTap: () => Navigator.pop(ctx, i),
+            ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref.read(appSettingsProvider.notifier).setLocale(options[picked]);
+  }
+
+  Future<void> _pickCurrency(
+    BuildContext context,
+    WidgetRef ref,
+    Currency current,
+  ) async {
+    final l = AppLocalizations.of(context);
+    // タップ時に最新件数で確定判定（表示側の best-effort ロックの取りこぼしを防ぐ）。
+    final count = await ref.read(transactionRepositoryProvider).count();
+    if (!context.mounted) return;
+    if (count > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.currencyLockedTitle),
+          content: Text(l.currencyLockedBody),
+          actions: [
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.commonClose)),
+          ],
+        ),
+      );
+      return;
+    }
+    final picked = await showDialog<Currency>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.settingsCurrency),
+        children: [
+          for (final c in kSupportedCurrencies)
+            _choiceRow(
+              ctx,
+              label: '${c.code}  ${c.symbol}',
+              secondary: c.englishName,
+              selected: c.code == current.code,
+              onTap: () => Navigator.pop(ctx, c),
+            ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref.read(appSettingsProvider.notifier).setCurrency(picked.code);
+  }
+
+  /// 言語/通貨ピッカー共通の選択行（選択中はチェックを表示）。
+  Widget _choiceRow(
+    BuildContext context, {
+    required String label,
+    String? secondary,
+    required bool selected,
+    required VoidCallback onTap,
+  }) =>
+      ListTile(
+        title: Text(label),
+        subtitle: secondary == null ? null : Text(secondary),
+        trailing: selected
+            ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+            : null,
+        onTap: onTap,
+      );
+
   Future<void> _backupNow(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(backupControllerProvider.notifier).backupNow();
-      messenger
-          .showSnackBar(const SnackBar(content: Text('バックアップを作成しました')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.settingsBackupSuccessSnackbar)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('バックアップに失敗しました: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.settingsBackupFailedSnackbar('$e'))));
     }
   }
 
   Future<void> _exportJson(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final choice = await showDialog<String>(
       context: context,
@@ -217,62 +337,72 @@ class SettingsScreen extends ConsumerWidget {
       final file = await ref
           .read(backupControllerProvider.notifier)
           .exportJson(passphrase: choice.isEmpty ? null : choice);
-      messenger.showSnackBar(
-          SnackBar(content: Text('保存しました: ${file.uri.pathSegments.last}')));
+      messenger.showSnackBar(SnackBar(
+          content: Text(l.settingsExportSavedSnackbar(
+              file.uri.pathSegments.last))));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.settingsExportFailedSnackbar('$e'))));
     }
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       final file = await ref.read(backupControllerProvider.notifier).exportCsv();
-      messenger.showSnackBar(
-          SnackBar(content: Text('保存しました: ${file.uri.pathSegments.last}')));
+      messenger.showSnackBar(SnackBar(
+          content: Text(l.settingsExportSavedSnackbar(
+              file.uri.pathSegments.last))));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.settingsExportFailedSnackbar('$e'))));
     }
   }
 
   /// 開発者用: CloudKitに集まった全端末分を exports/ocr-collected へ取り込む。
   Future<void> _fetchCollected(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       final out = Directory(
           '${ref.read(exportsDirProvider).path}${Platform.pathSeparator}ocr-collected');
       final count =
           await ref.read(cloudFixtureUploaderProvider).fetchAllTo(out);
-      messenger.showSnackBar(
-          SnackBar(content: Text('$count 件を取り込みました（exports/ocr-collected）')));
+      messenger.showSnackBar(SnackBar(
+          content:
+              Text(l.settingsFetchCollectedSuccessSnackbar(count))));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('取り込みに失敗しました: $e')));
+      messenger.showSnackBar(SnackBar(
+          content: Text(l.settingsFetchCollectedFailedSnackbar('$e'))));
     }
   }
 
   /// テスト期間限定: 収集済みOCRデータ（JSON+写真）をzipして共有シートへ。
   Future<void> _shareTestData(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       final dir = ref.read(ocrFixtureRecorderProvider).dir;
       final count = countOcrFixtures(dir);
       if (count == 0) {
         messenger.showSnackBar(
-            const SnackBar(content: Text('まだスキャンの記録がありません')));
+            SnackBar(content: Text(l.settingsNoScanRecordsSnackbar)));
         return;
       }
       final zipPath = zipOcrFixtures(dir, Directory.systemTemp);
       if (zipPath == null) return;
       await Share.shareXFiles(
         [XFile(zipPath)],
-        subject: '家計簿テストデータ（$count件）',
+        subject: l.settingsShareTestDataSubject(count),
         // iPad等では共有シートがポップオーバーで出るため、アンカー矩形(非ゼロ・
         // source view内)が必須。未指定だと端末により PlatformException
         // (sharePositionOrigin ...) で落ちる（iPhoneのシート経路では無視される）。
         sharePositionOrigin: _shareOrigin(context),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('送信に失敗しました: $e')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l.settingsShareTestDataFailedSnackbar('$e'))));
     }
   }
 
@@ -290,18 +420,18 @@ class SettingsScreen extends ConsumerWidget {
 /// オンボーディングと共通の説明（Task 13 で初回起動ダイアログからも使う）
 Future<void> showDataPolicyDialog(BuildContext context) => showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('データの取り扱いについて'),
-        content: const Text(
-          '・記録は端末の中だけに保存されます。自動で外部に送信されることはありません。\n'
-          '・端末内で自動バックアップを取りますが、機種変更や端末の故障に備えて、'
-          '設定からエクスポートを保存してください。',
-        ),
-        actions: [
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
-        ],
-      ),
+      builder: (ctx) {
+        final l = AppLocalizations.of(ctx);
+        return AlertDialog(
+          title: Text(l.settingsDataPolicyTitle),
+          content: Text(l.settingsDataPolicyBody),
+          actions: [
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.commonClose)),
+          ],
+        );
+      },
     );
 
 class _ExportPassphraseDialog extends StatefulWidget {
@@ -322,30 +452,33 @@ class _ExportPassphraseDialogState extends State<_ExportPassphraseDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        title: const Text('JSONエクスポート'),
-        content: TextField(
-          key: const Key('passphrase-field'),
-          controller: _controller,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'パスフレーズ（暗号化する場合）',
-            border: OutlineInputBorder(),
-          ),
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l.settingsExportJsonTitle),
+      content: TextField(
+        key: const Key('passphrase-field'),
+        controller: _controller,
+        obscureText: true,
+        decoration: InputDecoration(
+          labelText: l.settingsPassphraseFieldLabel,
+          border: const OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('キャンセル')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, ''),
-              child: const Text('そのまま保存')),
-          FilledButton(
-              onPressed: () {
-                final t = _controller.text;
-                if (t.isNotEmpty) Navigator.pop(context, t);
-              },
-              child: const Text('暗号化して保存')),
-        ],
-      );
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.commonCancel)),
+        TextButton(
+            onPressed: () => Navigator.pop(context, ''),
+            child: Text(l.settingsSaveAsIs)),
+        FilledButton(
+            onPressed: () {
+              final t = _controller.text;
+              if (t.isNotEmpty) Navigator.pop(context, t);
+            },
+            child: Text(l.settingsSaveEncrypted)),
+      ],
+    );
+  }
 }

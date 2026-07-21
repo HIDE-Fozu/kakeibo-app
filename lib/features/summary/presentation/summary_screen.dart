@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
-import '../../../core/format.dart';
+import '../../../core/money.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/services/spending_rollup.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../calendar/application/calendar_providers.dart';
 import '../application/summary_providers.dart';
 
@@ -13,6 +15,7 @@ class SummaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final (year, month) = ref.watch(currentMonthProvider);
     final summary = ref.watch(monthSummaryProvider((year, month))).valueOrNull ??
         const MonthlySummary(income: 0, expense: 0);
@@ -20,6 +23,7 @@ class SummaryScreen extends ConsumerWidget {
         ref.watch(monthSpendingRollupProvider((year, month))).valueOrNull ??
             const <CategorySpendGroup>[];
     final isEmpty = summary.income == 0 && summary.expense == 0;
+    final mf = ref.watch(moneyFormatterProvider);
 
     return SafeArea(
       child: Column(
@@ -32,7 +36,7 @@ class SummaryScreen extends ConsumerWidget {
                 onPressed: () => ref.read(currentMonthProvider.notifier).prev(),
               ),
               Expanded(
-                child: Text('$year年$month月',
+                child: Text(l.summaryMonthHeader(year, month),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleMedium),
               ),
@@ -49,9 +53,9 @@ class SummaryScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('この月のデータはまだありません'),
+                    Text(l.summaryEmptyTitle),
                     const SizedBox(height: 4),
-                    Text('カレンダーの＋から入力できます', // spec §5.5 空サマリの入力導線
+                    Text(l.summaryEmptyHint, // spec §5.5 空サマリの入力導線
                         style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),
@@ -67,17 +71,17 @@ class SummaryScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _totalRow(context, '収入', '+${formatYen(summary.income)}',
+                          _totalRow(context, l.summaryIncomeLabel, '+${mf.format(summary.income)}',
                               color: context.kakeiboColors.income),
-                          _totalRow(context, '支出', '-${formatYen(summary.expense)}',
+                          _totalRow(context, l.summaryExpenseLabel, '-${mf.format(summary.expense)}',
                               color: context.kakeiboColors.expense),
                           const Divider(),
                           _totalRow(
                             context,
-                            '差引',
+                            l.summaryNetLabel,
                             summary.net >= 0
-                                ? '+${formatYen(summary.net)}'
-                                : formatYen(summary.net),
+                                ? '+${mf.format(summary.net)}'
+                                : mf.format(summary.net),
                             emphasize: true,
                           ),
                         ],
@@ -85,11 +89,11 @@ class SummaryScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('カテゴリ別支出',
+                  Text(l.summaryCategoryBreakdownTitle,
                       style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 8),
                   for (final g in groups)
-                    _GroupRow(group: g, grandTotal: summary.expense),
+                    _GroupRow(group: g, grandTotal: summary.expense, mf: mf),
                 ],
               ),
             ),
@@ -119,7 +123,9 @@ class SummaryScreen extends ConsumerWidget {
 class _GroupRow extends StatefulWidget {
   final CategorySpendGroup group;
   final int grandTotal;
-  const _GroupRow({required this.group, required this.grandTotal});
+  final MoneyFormatter mf;
+  const _GroupRow(
+      {required this.group, required this.grandTotal, required this.mf});
 
   @override
   State<_GroupRow> createState() => _GroupRowState();
@@ -130,9 +136,10 @@ class _GroupRowState extends State<_GroupRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final g = widget.group;
     final ratio = widget.grandTotal == 0 ? 0.0 : g.total / widget.grandTotal;
-    final name = g.isArchived ? '${g.name}（アーカイブ）' : g.name;
+    final name = g.isArchived ? l.summaryArchivedSuffix(g.name) : g.name;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
@@ -141,7 +148,7 @@ class _GroupRowState extends State<_GroupRow> {
           Row(
             children: [
               Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
-              Text(formatYen(g.total),
+              Text(widget.mf.format(g.total),
                   style: const TextStyle(fontFeatures: kTabularFigures)),
               const SizedBox(width: 8),
               SizedBox(
@@ -163,7 +170,8 @@ class _GroupRowState extends State<_GroupRow> {
               onTap: () => setState(() => _expanded = !_expanded),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(_expanded ? '▲ 内訳' : '▼ 内訳',
+                child: Text(
+                    _expanded ? l.summaryBreakdownCollapse : l.summaryBreakdownExpand,
                     style: Theme.of(context).textTheme.bodySmall),
               ),
             ),
@@ -176,11 +184,14 @@ class _GroupRowState extends State<_GroupRow> {
   }
 
   /// 内訳と直接分（（内訳なし））を同列・金額降順で並べる（モック準拠）。
-  List<(String, int)> _expandedEntries(CategorySpendGroup g) => <(String, int)>[
-        for (final s in g.subs)
-          (s.isArchived ? '${s.name}（アーカイブ）' : s.name, s.total),
-        if (g.directTotal > 0) ('（内訳なし）', g.directTotal),
-      ]..sort((a, b) => b.$2.compareTo(a.$2));
+  List<(String, int)> _expandedEntries(CategorySpendGroup g) {
+    final l = AppLocalizations.of(context);
+    return <(String, int)>[
+      for (final s in g.subs)
+        (s.isArchived ? l.summaryArchivedSuffix(s.name) : s.name, s.total),
+      if (g.directTotal > 0) (l.summaryNoBreakdownLabel, g.directTotal),
+    ]..sort((a, b) => b.$2.compareTo(a.$2));
+  }
 
   Widget _subRow(BuildContext context, String name, int amount, int parentTotal) {
     final pct = parentTotal == 0 ? 0 : (amount * 100 / parentTotal).round();
@@ -191,7 +202,7 @@ class _GroupRowState extends State<_GroupRow> {
         children: [
           Expanded(
               child: Text(name, style: small, overflow: TextOverflow.ellipsis)),
-          Text(formatYen(amount),
+          Text(widget.mf.format(amount),
               style: small?.copyWith(fontFeatures: kTabularFigures)),
           SizedBox(
             width: 40,

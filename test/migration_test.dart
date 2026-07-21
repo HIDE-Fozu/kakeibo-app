@@ -68,7 +68,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 4); // v1からでも現行(v4)まで一気に上がる
+    expect(v, 5); // v1からでも現行(v5)まで一気に上がる
     await db.close();
   });
 
@@ -127,7 +127,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 4);
+    expect(v, 5);
     await db.close();
   });
 
@@ -188,7 +188,80 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 4);
+    expect(v, 5);
+    await db.close();
+  });
+
+  test('schema v4 → v5: slug列が追加され既存シード行がバックフィルされる', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v5');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v4.db');
+
+    // v4スキーマ（store_name あり / slug なし）
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "categories" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "icon" TEXT NULL,
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  "is_archived" INTEGER NOT NULL DEFAULT 0,
+  "is_system" INTEGER NOT NULL DEFAULT 0,
+  "parent_id" INTEGER NULL REFERENCES "categories" ("id")
+);''');
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    // 旧シード相当＋ユーザー作成カテゴリ。「その他」はexpense/incomeの両方。
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order) VALUES (1,'食費','expense',0)");
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order, parent_id) VALUES (2,'外食','expense',0,1)");
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order) VALUES (3,'その他','expense',12)");
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order) VALUES (4,'その他','income',16)");
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order, is_system) VALUES (5,'未分類','expense',17,1)");
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order) VALUES (6,'マイカテゴリ','expense',20)");
+    raw.execute('PRAGMA user_version = 4');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final cats = await db.categoryDao.allCategories();
+    String? slugOf(int id) => cats.firstWhere((c) => c.id == id).slug;
+    expect(slugOf(1), 'food');
+    expect(slugOf(2), 'dining');
+    expect(slugOf(3), 'otherExpense'); // その他(expense)
+    expect(slugOf(4), 'otherIncome'); // その他(income)
+    expect(slugOf(5), 'uncategorized');
+    expect(slugOf(6), isNull); // ユーザー作成はnullのまま
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 5);
     await db.close();
   });
 

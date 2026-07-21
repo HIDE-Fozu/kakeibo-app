@@ -61,6 +61,7 @@ class BackupCategory {
   final bool isArchived;
   final bool isSystem;
   final int? parentId; // 非null=内訳（formatVersion 2で追加）
+  final String? slug; // 安定キー（formatVersion 3で追加。旧バックアップはnull復元）
   const BackupCategory({
     required this.id,
     required this.name,
@@ -70,6 +71,7 @@ class BackupCategory {
     required this.isArchived,
     required this.isSystem,
     required this.parentId,
+    this.slug,
   });
 }
 

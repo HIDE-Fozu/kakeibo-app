@@ -3,6 +3,7 @@ import 'tables.dart';
 import 'daos.dart';
 import 'enums.dart';
 import 'converters.dart';
+import 'category_seeds.dart';
 import '../../domain/money/civil_date.dart';
 
 part 'database.g.dart';
@@ -12,10 +13,13 @@ part 'database.g.dart';
   daos: [CategoryDao, TransactionDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase(super.e);
+  /// 新規インストール時にシードするカテゴリ名の言語（BCP-47のlanguageCode）。
+  /// 既定 'ja'。bootstrap が端末言語を解決して渡す。テストは既定のまま日本語。
+  final String seedLocaleTag;
+  AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,6 +42,12 @@ class AppDatabase extends _$AppDatabase {
             await customStatement(
                 'UPDATE transactions SET store_name = memo, memo = NULL');
           }
+          if (from < 5) {
+            // v5: カテゴリに slug（安定キー）を追加。既存シード行は日本語名で
+            // バックフィルし、絵文字・自動税率がローカライズ後も壊れないようにする。
+            await m.addColumn(categories, categories.slug);
+            await _backfillSlugs();
+          }
         },
         beforeOpen: (details) async {
           // FK は接続ごとに有効化しないと SQLite が無視する。
@@ -48,70 +58,45 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
+  /// 新規DBのカテゴリシード。slug（安定キー）＋端末言語の表示名で挿入する。
+  /// 構成・並び順は kSeedCategories（旧シードと同一）。外食は食費の内訳。
   Future<void> _seedInitialCategories() async {
-    // 並び順は sortOrder に一致させる（スコープ＝同じ親の中）。システム「未分類」は末尾。
-    // 外食は食費の内訳としてシード（モック確定のデモ構成に合わせる）。
-    final foodId = await into(categories).insert(CategoriesCompanion.insert(
-      name: '食費',
-      type: CategoryType.expense,
-      sortOrder: const Value(0),
-    ));
-    const expensePresets = <String>[
-      '日用品', '水道光熱費', '通信費', '交通費', '交際費',
-      '趣味・娯楽', '衣服・美容', '医療・健康', '住居', '教育', '特別費', 'その他',
-    ];
-    const incomePresets = <String>['給与', '賞与', '副収入', 'その他'];
+    final lang = seedLocaleTag;
+    final idBySlug = <String, int>{};
+    // parentSlug 解決のため順次挿入（親は子より前に定義されている）。
+    for (final s in kSeedCategories) {
+      final parentId = s.parentSlug == null ? null : idBySlug[s.parentSlug];
+      final id = await into(categories).insert(CategoriesCompanion.insert(
+        name: seedCategoryName(s.slug, lang),
+        type: s.type,
+        sortOrder: Value(s.sortOrder),
+        isSystem: Value(s.isSystem),
+        parentId: Value(parentId),
+        slug: Value(s.slug),
+      ));
+      idBySlug[s.slug] = id; // uncategorized は2回入るが親参照には使わないので可
+    }
+  }
 
-    await batch((b) {
-      b.insert(
-        categories,
-        CategoriesCompanion.insert(
-          name: '外食',
-          type: CategoryType.expense,
-          sortOrder: const Value(0), // 内訳スコープ内の先頭
-          parentId: Value(foodId),
-        ),
-      );
-      var order = 1; // 食費=0 の続きから
-      for (final name in expensePresets) {
-        b.insert(
-          categories,
-          CategoriesCompanion.insert(
-            name: name,
-            type: CategoryType.expense,
-            sortOrder: Value(order++),
-          ),
-        );
-      }
-      for (final name in incomePresets) {
-        b.insert(
-          categories,
-          CategoriesCompanion.insert(
-            name: name,
-            type: CategoryType.income,
-            sortOrder: Value(order++),
-          ),
-        );
-      }
-      // システム「未分類」（削除不可・集計には含めるがピッカーで扱いを分ける）
-      b.insert(
-        categories,
-        CategoriesCompanion.insert(
-          name: '未分類',
-          type: CategoryType.expense,
-          sortOrder: Value(order++),
-          isSystem: const Value(true),
-        ),
-      );
-      b.insert(
-        categories,
-        CategoriesCompanion.insert(
-          name: '未分類',
-          type: CategoryType.income,
-          sortOrder: Value(order++),
-          isSystem: const Value(true),
-        ),
-      );
-    });
+  /// v4→v5: 既存シード行（日本語名）に slug を付与。ユーザー作成行はnullのまま。
+  Future<void> _backfillSlugs() async {
+    for (final e in seedSlugByJapaneseName.entries) {
+      await (update(categories)
+            ..where((c) => c.name.equals(e.key) & c.slug.isNull()))
+          .write(CategoriesCompanion(slug: Value(e.value)));
+    }
+    // 'その他' は expense/income で slug が分かれる。
+    await (update(categories)
+          ..where((c) =>
+              c.name.equals('その他') &
+              c.type.equalsValue(CategoryType.expense) &
+              c.slug.isNull()))
+        .write(const CategoriesCompanion(slug: Value('otherExpense')));
+    await (update(categories)
+          ..where((c) =>
+              c.name.equals('その他') &
+              c.type.equalsValue(CategoryType.income) &
+              c.slug.isNull()))
+        .write(const CategoriesCompanion(slug: Value('otherIncome')));
   }
 }

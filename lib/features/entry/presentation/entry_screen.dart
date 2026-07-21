@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/l10n_providers.dart';
 import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
 import '../../../core/dates.dart';
-import '../../../core/format.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/ocr/receipt_capture.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../calendar/application/calendar_providers.dart';
 import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
@@ -31,14 +32,17 @@ class EntryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(entryFormControllerProvider);
     if (state == null) return const Scaffold(body: SizedBox());
     final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final mf = ref.watch(moneyFormatterProvider);
+    final currency = ref.watch(currencyProvider);
 
     final title = switch (state.mode) {
-      EntryMode.create => '入力',
-      EntryMode.receiptConfirm => 'レシート確認',
-      EntryMode.edit => '編集',
+      EntryMode.create => l.entryTitleCreate,
+      EntryMode.receiptConfirm => l.entryTitleReceiptConfirm,
+      EntryMode.edit => l.commonEdit,
     };
 
     // グリッドは2行横スクロール（偶数index=上段 / 奇数index=下段）。
@@ -64,7 +68,7 @@ class EntryScreen extends ConsumerWidget {
     // 分割の行・税ダイアログに出すカテゴリ表示ラベル（絵文字＋名前）。
     final categoryNames = {
       for (final c in allCats)
-        c.id: '${categoryEmoji(c.icon, c.name)} ${c.name}'
+        c.id: '${categoryEmoji(c.icon, c.slug)} ${c.name}'
     };
     // グリッドの選択表示: batch=塗るカテゴリ / split=アクティブ行 / 通常=state
     final gridSelectedId = batchMode
@@ -87,7 +91,8 @@ class EntryScreen extends ConsumerWidget {
             : null,
         title: Text(title),
         actions: [
-          if (state.mode == EntryMode.create)
+          // レシートOCRは日本語レシート専用。日本円のときだけ入口を出す。
+          if (state.mode == EntryMode.create && currency.code == 'JPY')
             IconButton(
               key: const Key('scan-receipt'),
               icon: const Icon(Icons.receipt_long),
@@ -116,14 +121,14 @@ class EntryScreen extends ConsumerWidget {
                       // 詳細入力/一括内訳中は場所を空けるため隠す（型は開始前に確定済み）。
                       if (state.mode != EntryMode.edit && !splitMode && !batchMode)
                         SegmentedButton<TxnType>(
-                          segments: const [
+                          segments: [
                             ButtonSegment(
                               value: TxnType.expense,
-                              label: Text('支出'),
+                              label: Text(l.entryTypeExpense),
                             ),
                             ButtonSegment(
                               value: TxnType.income,
-                              label: Text('収入'),
+                              label: Text(l.entryTypeIncome),
                             ),
                           ],
                           selected: {state.type},
@@ -160,7 +165,7 @@ class EntryScreen extends ConsumerWidget {
                                             .colorScheme
                                             .outline),
                                     const SizedBox(width: 4),
-                                    Text(_dateLabel(state.date),
+                                    Text(_dateLabel(l, state.date),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium),
@@ -187,9 +192,7 @@ class EntryScreen extends ConsumerWidget {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerRight,
                                   child: Text(
-                                    state.amountYen == 0
-                                        ? '¥0'
-                                        : formatYen(state.amountYen),
+                                    mf.format(state.amountYen),
                                     style: Theme.of(context)
                                         .textTheme
                                         .headlineLarge
@@ -227,6 +230,12 @@ class EntryScreen extends ConsumerWidget {
                           onBackspace:
                               splitMode ? ctrl.splitBackspace : ctrl.backspace,
                           onOperator: splitMode ? ctrl.splitTapOperator : null,
+                          // 小数桁のある通貨だけ「.」キーを出す。
+                          onDecimal: currency.decimals > 0
+                              ? (splitMode
+                                  ? ctrl.splitTapDecimal
+                                  : ctrl.tapDecimal)
+                              : null,
                         ),
                       const SizedBox(height: 8),
                       // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
@@ -249,7 +258,7 @@ class EntryScreen extends ConsumerWidget {
                               }
                             },
                             icon: const Icon(Icons.call_split, size: 18),
-                            label: const Text('内訳入力'),
+                            label: Text(l.entryStartSplitButton),
                           ),
                         ),
                       // カテゴリ: 分割中は常設グリッドを出さず、行の「カテゴリを追加」/
@@ -261,7 +270,7 @@ class EntryScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(left: 2, bottom: 4),
                         child: Row(
                           children: [
-                            Text('カテゴリ',
+                            Text(l.entryCategoryHeading,
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -275,12 +284,12 @@ class EntryScreen extends ConsumerWidget {
                                   key: ValueKey('split-memo-${state.formSeq}'),
                                   initialValue: state.memo,
                                   style: const TextStyle(fontSize: 13),
-                                  decoration: const InputDecoration(
-                                    hintText: '詳細メモ',
+                                  decoration: InputDecoration(
+                                    hintText: l.entryDetailMemoLabel,
                                     isDense: true,
-                                    contentPadding:
-                                        EdgeInsets.symmetric(vertical: 4),
-                                    border: UnderlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 4),
+                                    border: const UnderlineInputBorder(),
                                   ),
                                   onChanged: ctrl.setMemo,
                                 ),
@@ -336,9 +345,9 @@ class EntryScreen extends ConsumerWidget {
                           TextFormField(
                             key: ValueKey('store-field-${state.formSeq}'),
                             initialValue: state.storeName,
-                            decoration: const InputDecoration(
-                              labelText: '店舗名',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l.entryStoreNameLabel,
+                              border: const OutlineInputBorder(),
                             ),
                             onChanged: ctrl.setStoreName,
                           ),
@@ -347,9 +356,9 @@ class EntryScreen extends ConsumerWidget {
                         TextFormField(
                           key: ValueKey('memo-field-${state.formSeq}'),
                           initialValue: state.memo,
-                          decoration: const InputDecoration(
-                            labelText: '詳細メモ',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: l.entryDetailMemoLabel,
+                            border: const OutlineInputBorder(),
                           ),
                           onChanged: ctrl.setMemo,
                         ),
@@ -365,11 +374,11 @@ class EntryScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (!state.canSave && state.saveHint != null)
+                  if (!state.canSave && state.saveHint(l) != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
-                        state.saveHint!,
+                        state.saveHint(l)!,
                         key: const Key('save-hint'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -402,7 +411,7 @@ class EntryScreen extends ConsumerWidget {
                                       }
                                     }
                                   : null,
-                              child: const Text('保存'),
+                              child: Text(l.commonSave),
                             ),
                           ),
                           if (state.mode != EntryMode.edit) ...[
@@ -418,13 +427,14 @@ class EntryScreen extends ConsumerWidget {
                                         );
                                         await ctrl.saveAndContinue();
                                         messenger.showSnackBar(
-                                          const SnackBar(
-                                            content: Text('保存しました'),
+                                          SnackBar(
+                                            content:
+                                                Text(l.entrySavedSnackbar),
                                           ),
                                         );
                                       }
                                     : null,
-                                child: const Text('保存して続ける'),
+                                child: Text(l.entrySaveContinueButton),
                               ),
                             ),
                           ],
@@ -439,8 +449,8 @@ class EntryScreen extends ConsumerWidget {
     );
   }
 
-  String _dateLabel(CivilDate date) =>
-      '${date.year}年${date.month}月${date.day}日';
+  String _dateLabel(AppLocalizations l, CivilDate date) =>
+      l.entryDateLabel(date.year, date.month, date.day);
 
   Future<void> _pickDate(
       BuildContext context, WidgetRef ref, CivilDate current) async {
@@ -458,13 +468,14 @@ class EntryScreen extends ConsumerWidget {
   }
 
   Future<void> _scanReceipt(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final source = await _pickReceiptSource(context);
     if (source == null) return; // シート外タップ＝キャンセル
     final path = await ref.read(receiptCaptureProvider).capture(source);
     if (path == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('この端末ではレシート撮影を利用できません')),
+        SnackBar(content: Text(l.entryReceiptCaptureUnavailableSnackbar)),
       );
       return;
     }
@@ -485,12 +496,15 @@ class EntryScreen extends ConsumerWidget {
           .read(entryFormControllerProvider.notifier)
           .startReceipt(parsed, imagePath: path, fixturePath: fixturePath);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('読み取りに失敗しました: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l.entryOcrFailedSnackbar('$e'))),
+      );
     }
   }
 
   /// レシート画像の取得元を選ぶボトムシート。外タップ（キャンセル）は null。
   Future<ReceiptSource?> _pickReceiptSource(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return showModalBottomSheet<ReceiptSource>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -500,13 +514,13 @@ class EntryScreen extends ConsumerWidget {
             ListTile(
               key: const Key('receipt-source-camera'),
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('カメラで撮影'),
+              title: Text(l.entryReceiptSourceCamera),
               onTap: () => Navigator.pop(ctx, ReceiptSource.camera),
             ),
             ListTile(
               key: const Key('receipt-source-library'),
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('写真から選ぶ'),
+              title: Text(l.entryReceiptSourceLibrary),
               onTap: () => Navigator.pop(ctx, ReceiptSource.library),
             ),
           ],
@@ -516,19 +530,20 @@ class EntryScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('削除しますか？'),
-        content: const Text('この取引を削除します。'),
+        title: Text(l.entryDeleteConfirmTitle),
+        content: Text(l.entryDeleteConfirmContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('キャンセル'),
+            child: Text(l.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('削除'),
+            child: Text(l.commonDelete),
           ),
         ],
       ),

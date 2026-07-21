@@ -5,6 +5,9 @@ import 'money/civil_date.dart';
 
 abstract interface class TransactionRepository {
   Future<int> add(TransactionEntity tx);
+
+  /// 全取引件数（通貨ロック判定用）。
+  Future<int> count();
   Future<List<TransactionEntity>> forMonth(int year, int month);
   Future<MonthlySummary> summary(int year, int month);
   Future<List<CategorySpendRow>> spendingByCategory(int year, int month);

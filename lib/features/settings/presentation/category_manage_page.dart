@@ -5,6 +5,7 @@ import '../../../core/category_emoji.dart';
 import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
+import '../../../l10n/app_localizations.dart';
 
 class CategoryManagePage extends ConsumerStatefulWidget {
   const CategoryManagePage({super.key});
@@ -29,9 +30,10 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('カテゴリ管理'),
+        title: Text(l.categoryManageTitle),
         actions: [
           IconButton(
             key: const Key('add-category'),
@@ -41,7 +43,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage>
         ],
         bottom: TabBar(
           controller: _tab,
-          tabs: const [Tab(text: '支出'), Tab(text: '収入')],
+          tabs: [Tab(text: l.categoryTabExpense), Tab(text: l.categoryTabIncome)],
         ),
       ),
       body: TabBarView(
@@ -99,38 +101,41 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final isNew = widget.category == null;
     return AlertDialog(
       title: Text(isNew
-          ? (widget.isSub ? '内訳を追加' : 'カテゴリを追加')
-          : (widget.category!.parentId != null ? '内訳を改名' : 'カテゴリを改名')),
+          ? (widget.isSub ? l.categorySubAddTitle : l.categoryAddTitle)
+          : (widget.category!.parentId != null
+              ? l.categorySubRenameTitle
+              : l.categoryRenameTitle)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             key: const Key('category-name-field'),
             controller: _name,
-            decoration: const InputDecoration(labelText: '名前'),
+            decoration: InputDecoration(labelText: l.categoryNameFieldLabel),
           ),
           if (isNew)
             TextField(
               key: const Key('category-icon-field'),
               controller: _icon,
               decoration:
-                  const InputDecoration(labelText: 'アイコン（絵文字・任意）'),
+                  InputDecoration(labelText: l.categoryIconFieldLabel),
             ),
         ],
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル')),
+            child: Text(l.commonCancel)),
         FilledButton(
           onPressed: () {
             if (_name.text.trim().isEmpty) return;
             Navigator.pop(context, (_name.text, _icon.text));
           },
-          child: Text(isNew ? '追加' : '保存'),
+          child: Text(isNew ? l.commonAdd : l.commonSave),
         ),
       ],
     );
@@ -143,6 +148,7 @@ class _CategoryTypeList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final all =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final ofType = all.where((c) => c.type == type && !c.isSystem).toList();
@@ -175,7 +181,7 @@ class _CategoryTypeList extends ConsumerWidget {
                   key: ValueKey('cat-${p.id}'),
                   children: [
                     ListTile(
-                      leading: Text(categoryEmoji(p.icon, p.name),
+                      leading: Text(categoryEmoji(p.icon, p.slug),
                           style: const TextStyle(fontSize: 20)),
                       title: Text(p.name),
                       trailing: Row(
@@ -184,7 +190,7 @@ class _CategoryTypeList extends ConsumerWidget {
                           IconButton(
                             key: Key('add-sub-${p.id}'),
                             icon: const Icon(Icons.playlist_add),
-                            tooltip: '内訳を追加',
+                            tooltip: l.categorySubAddTooltip,
                             onPressed: () =>
                                 pageState._showEditDialog(parentId: p.id),
                           ),
@@ -203,9 +209,9 @@ class _CategoryTypeList extends ConsumerWidget {
                               if ((childrenByParent[p.id] ?? const [])
                                   .isNotEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('内訳を先にアーカイブしてください')));
+                                    SnackBar(
+                                        content: Text(
+                                            l.categoryArchiveBlockedSnackbar)));
                                 return;
                               }
                               repo.setArchived(p.id, true);
@@ -225,16 +231,16 @@ class _CategoryTypeList extends ConsumerWidget {
         ),
         if (archived.isNotEmpty)
           ExpansionTile(
-            title: const Text('アーカイブ済み'),
+            title: Text(l.categoryArchivedSectionTitle),
             children: [
               for (final c in archived)
                 ListTile(
                   leading: Text(
                       c.parentId != null
-                          ? '└ ${categoryEmoji(c.icon, c.name)}'
-                          : categoryEmoji(c.icon, c.name),
+                          ? '└ ${categoryEmoji(c.icon, c.slug)}'
+                          : categoryEmoji(c.icon, c.slug),
                       style: const TextStyle(fontSize: 16)),
-                  title: Text('${c.name}（アーカイブ）'),
+                  title: Text(l.categoryArchivedItemLabel(c.name)),
                   trailing: IconButton(
                     key: Key('unarchive-${c.id}'),
                     icon: const Icon(Icons.unarchive_outlined),
@@ -275,7 +281,7 @@ class _SubList extends ConsumerWidget {
             key: ValueKey('sub-${s.id}'),
             dense: true,
             contentPadding: const EdgeInsets.only(left: 32, right: 16),
-            leading: Text('└ ${categoryEmoji(s.icon, s.name)}',
+            leading: Text('└ ${categoryEmoji(s.icon, s.slug)}',
                 style: const TextStyle(fontSize: 16)),
             title: Text(s.name),
             trailing: Row(
