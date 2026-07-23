@@ -6,7 +6,7 @@ import '../../domain/services/ocr/ocr_types.dart';
 /// 【テスト期間限定】レシート写真もフィクスチャと同名で保存する。
 /// 収集した写真で座標/切り抜き/OCR品質を実物照合できる。
 /// **一般公開前に false へ戻すこと**（写真は端末容量を食う・spec §7.6）。
-const bool kCollectReceiptPhotosDuringTest = true;
+const bool kCollectReceiptPhotosDuringTest = false;
 
 /// スキャンごとのOCRブロック列をフィクスチャJSONとして保存する（spec §8.2）。
 /// 形式は test/support/receipt_fixtures.dart の loadFixture と同一
