@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/category_emoji.dart';
+import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../settings/presentation/category_manage_page.dart';
 import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
 
@@ -85,6 +88,14 @@ class SplitCategoryStrip extends ConsumerWidget {
             },
             key: Key('strip-cat-${c.id}'),
           ),
+        // 末尾に「＋ カテゴリを追加」。追加後は provider 経由で帯に即反映される。
+        chip(
+          '＋ ${AppLocalizations.of(context).categoryAddTitle}',
+          false,
+          () => showCategoryAddDialog(context, ref,
+              type: categoryTypeOf(state.type)),
+          key: const Key('strip-add-category'),
+        ),
       ];
     }
 

@@ -8,6 +8,7 @@ import '../../../core/category_emoji.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../settings/application/settings_controller.dart';
+import '../../settings/presentation/category_manage_page.dart';
 import '../application/entry_category_providers.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -241,8 +242,9 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
     final selected = widget.selectedId == null ? null : byId[widget.selectedId];
     final selectedGroupId = selected?.parentId ?? selected?.id;
     final scheme = Theme.of(context).colorScheme;
-    final numPages =
-        _cats.isEmpty ? 0 : (_cats.length - 1) ~/ kCatPerPage + 1;
+    // 末尾の「カテゴリを追加」タイルを含めた総タイル数でページ数と幅を決める。
+    final tileCount = _cats.length + 1;
+    final numPages = (tileCount - 1) ~/ kCatPerPage + 1;
 
     return SizedBox(
       height: kCatGridHeight,
@@ -258,7 +260,7 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
                 scrollDirection: Axis.horizontal,
                 child: SizedBox(
                   key: _contentKey,
-                  width: _metrics.contentWidth(_cats.length),
+                  width: _metrics.contentWidth(tileCount),
                   height: kCatGridHeight,
                   child: Stack(
                     clipBehavior: Clip.none,
@@ -278,6 +280,7 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
                       for (final (i, c) in _cats.indexed)
                         _positionedTile(
                             i, c, scheme, selectedGroupId, selected),
+                      _positionedAddTile(context, scheme),
                     ],
                   ),
                 ),
@@ -315,6 +318,46 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
           ),
         ),
       );
+
+  /// 末尾固定の「カテゴリを追加」タイル（並べ替え・ジグルの対象外）。
+  Widget _positionedAddTile(BuildContext context, ColorScheme scheme) {
+    final l = AppLocalizations.of(context);
+    final pos = _metrics.slotOffset(_cats.length);
+    return Positioned(
+      left: pos.dx,
+      top: pos.dy,
+      width: _metrics.tileW,
+      height: kCatTileH,
+      child: InkWell(
+        key: const Key('cat-add'),
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => showCategoryAddDialog(context, ref,
+            type: categoryTypeOf(widget.type)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add, size: 18, color: scheme.onSurfaceVariant),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Text(
+                  l.categoryAddTitle,
+                  style:
+                      TextStyle(fontSize: 10, color: scheme.onSurfaceVariant),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _positionedTile(
     int i,

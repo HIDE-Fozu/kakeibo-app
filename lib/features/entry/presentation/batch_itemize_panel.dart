@@ -6,7 +6,9 @@ import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
 import '../../../core/money.dart';
 import '../../../domain/entities.dart';
+import '../../../data/db/enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../settings/presentation/category_manage_page.dart';
 import '../application/entry_form_controller.dart';
 import 'receipt_line_strip.dart';
 
@@ -357,6 +359,18 @@ class BatchItemizePanel extends ConsumerWidget {
                 title: Text(c.name),
                 onTap: () => Navigator.pop(ctx, c.id),
               ),
+            // 末尾に「カテゴリを追加」。追加後はシートを閉じて再オープンで反映。
+            ListTile(
+              key: const Key('batch-add-category'),
+              dense: true,
+              leading: const Icon(Icons.add, size: 20),
+              title: Text(AppLocalizations.of(ctx).categoryAddTitle),
+              onTap: () {
+                Navigator.pop(ctx);
+                showCategoryAddDialog(context, ref,
+                    type: categoryTypeOf(state.type));
+              },
+            ),
           ],
         ),
       ),

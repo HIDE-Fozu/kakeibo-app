@@ -78,6 +78,26 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage>
   }
 }
 
+/// カテゴリ追加ダイアログの共通入口。
+/// 管理画面以外（入力グリッド/内訳帯/一括ピッカー）の「カテゴリを追加」からも呼ぶ。
+Future<void> showCategoryAddDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required CategoryType type,
+}) async {
+  final result = await showDialog<(String, String)>(
+    context: context,
+    builder: (_) => const _CategoryEditDialog(category: null),
+  );
+  if (result == null) return;
+  await ref.read(categoryRepositoryProvider).addCategory(
+        name: result.$1,
+        type: type,
+        icon: result.$2.trim().isEmpty ? null : result.$2.trim(),
+        parentId: null,
+      );
+}
+
 /// controllerの寿命をダイアログ自身に閉じ込める（popアニメーション中のdispose事故防止）
 class _CategoryEditDialog extends StatefulWidget {
   final CategoryEntity? category;
