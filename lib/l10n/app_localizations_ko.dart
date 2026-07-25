@@ -188,7 +188,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => '내역 입력';
+  String get entryStartSplitButton => '여러 카테고리 선택';
 
   @override
   String get entryCategoryHeading => '카테고리';

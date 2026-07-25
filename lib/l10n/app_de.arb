@@ -52,7 +52,7 @@
   "entryTypeExpense": "Ausgabe",
   "entryTypeIncome": "Einnahme",
   "entryDateLabel": "{day}.{month}.{year}",
-  "entryStartSplitButton": "Aufteilen",
+  "entryStartSplitButton": "Mehrere Kategorien wählen",
   "entryCategoryHeading": "Kategorie",
   "entryDetailMemoLabel": "Notizen",
   "entryStoreNameLabel": "Geschäftsname",

@@ -52,7 +52,7 @@
   "entryTypeExpense": "지출",
   "entryTypeIncome": "수입",
   "entryDateLabel": "{year}년 {month}월 {day}일",
-  "entryStartSplitButton": "내역 입력",
+  "entryStartSplitButton": "여러 카테고리 선택",
   "entryCategoryHeading": "카테고리",
   "entryDetailMemoLabel": "상세 메모",
   "entryStoreNameLabel": "매장명",

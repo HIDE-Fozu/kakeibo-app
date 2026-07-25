@@ -151,7 +151,7 @@
       }
     }
   },
-  "entryStartSplitButton": "Itemize",
+  "entryStartSplitButton": "Select multiple categories",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",

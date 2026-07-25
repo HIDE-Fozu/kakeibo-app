@@ -427,7 +427,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryStartSplitButton.
   ///
   /// In en, this message translates to:
-  /// **'Itemize'**
+  /// **'Select multiple categories'**
   String get entryStartSplitButton;
 
   /// No description provided for @entryCategoryHeading.

@@ -52,7 +52,7 @@
   "entryTypeExpense": "Gasto",
   "entryTypeIncome": "Ingreso",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Desglosar",
+  "entryStartSplitButton": "Elegir varias categorías",
   "entryCategoryHeading": "Categoría",
   "entryDetailMemoLabel": "Notas",
   "entryStoreNameLabel": "Nombre de la tienda",

@@ -187,7 +187,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => '内訳入力';
+  String get entryStartSplitButton => '複数のカテゴリを選択';
 
   @override
   String get entryCategoryHeading => 'カテゴリ';

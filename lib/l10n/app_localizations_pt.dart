@@ -196,7 +196,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => 'Detalhar';
+  String get entryStartSplitButton => 'Selecionar várias categorias';
 
   @override
   String get entryCategoryHeading => 'Categoria';

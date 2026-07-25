@@ -193,7 +193,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => 'Itemize';
+  String get entryStartSplitButton => 'Select multiple categories';
 
   @override
   String get entryCategoryHeading => 'Category';

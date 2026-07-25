@@ -199,7 +199,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => 'Détailler';
+  String get entryStartSplitButton => 'Choisir plusieurs catégories';
 
   @override
   String get entryCategoryHeading => 'Catégorie';

@@ -52,7 +52,7 @@
   "entryTypeExpense": "Spesa",
   "entryTypeIncome": "Entrata",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Dettaglia",
+  "entryStartSplitButton": "Scegli più categorie",
   "entryCategoryHeading": "Categoria",
   "entryDetailMemoLabel": "Note",
   "entryStoreNameLabel": "Nome del negozio",

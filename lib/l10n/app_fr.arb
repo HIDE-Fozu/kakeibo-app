@@ -52,7 +52,7 @@
   "entryTypeExpense": "Dépense",
   "entryTypeIncome": "Revenu",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Détailler",
+  "entryStartSplitButton": "Choisir plusieurs catégories",
   "entryCategoryHeading": "Catégorie",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Nom du magasin",

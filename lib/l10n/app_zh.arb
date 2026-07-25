@@ -52,7 +52,7 @@
   "entryTypeExpense": "支出",
   "entryTypeIncome": "收入",
   "entryDateLabel": "{year}年{month}月{day}日",
-  "entryStartSplitButton": "拆分明细",
+  "entryStartSplitButton": "选择多个分类",
   "entryCategoryHeading": "分类",
   "entryDetailMemoLabel": "备注",
   "entryStoreNameLabel": "店铺名称",
