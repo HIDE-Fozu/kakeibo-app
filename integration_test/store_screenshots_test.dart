@@ -5,6 +5,7 @@ import 'package:kakeibo_app/app/bootstrap.dart';
 import 'package:kakeibo_app/data/db/category_seeds.dart';
 import 'package:kakeibo_app/features/entry/presentation/entry_screen.dart';
 import 'package:kakeibo_app/features/entry/presentation/numpad.dart';
+import 'package:kakeibo_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// App Store 掲載用スクリーンショット撮影（1ロケール/1実行）。
@@ -118,11 +119,12 @@ void main() {
       await goTab(t, Icons.calendar_month);
     }
 
-    // デモ取引を保存
+    // デモ取引を保存。KRWは日本円スケールだと小さすぎるため×10（末尾に0を足す）。
     final dec = decimalCurrency.contains(localeTag);
+    String intFor(String base) => localeTag == 'ko' ? '${base}0' : base;
     for (final (slug, intAmt, decAmt) in demo) {
       await tapKey(t, 'fab-entry');
-      await typeDigits(t, dec ? decAmt : intAmt);
+      await typeDigits(t, dec ? decAmt : intFor(intAmt));
       await tapCategory(t, slug);
       await tapKey(t, 'save-btn');
       await t.pumpAndSettle(const Duration(milliseconds: 250));
@@ -133,12 +135,39 @@ void main() {
 
     // 2) 入力画面（金額＋カテゴリ選択済み・未保存）
     await tapKey(t, 'fab-entry');
-    await typeDigits(t, dec ? '23.50' : '2350');
+    await typeDigits(t, dec ? '23.50' : intFor('2350'));
     await tapCategory(t, 'food');
     await shot(t, 'store_${localeTag}_2_entry');
 
-    // 3) 内訳入力
+    // 3) 内訳入力 — 空のエラー状態ではなく「2行入力済みの完成形」で撮る。
+    //    内訳を持たない leaf カテゴリ（帯が即閉じる）で組み立てる。
+    final l = lookupAppLocalizations(Locale(localeTag));
     await t.tap(find.byKey(const Key('start-split')), warnIfMissed: false);
+    await settle(t);
+    // 行0: 金額 → 行のカテゴリチップ → 帯で日用品(leaf)
+    await typeDigits(t, dec ? '15.00' : intFor('1500'));
+    await t.tap(find.text(l.splitAddCategoryChip).first, warnIfMissed: false);
+    await settle(t);
+    await t.tap(
+        find
+            .descendant(
+                of: find.byKey(const Key('split-cat-strip')),
+                matching: find
+                    .textContaining(seedCategoryName('dailyGoods', localeTag)))
+            .first,
+        warnIfMissed: false);
+    await settle(t);
+    // 残額行: カテゴリを割当てて確定（残り0の完成形になる）
+    await t.tap(find.byKey(const Key('split-remainder')), warnIfMissed: false);
+    await settle(t);
+    await t.tap(
+        find
+            .descendant(
+                of: find.byKey(const Key('split-cat-strip')),
+                matching: find
+                    .textContaining(seedCategoryName('transport', localeTag)))
+            .first,
+        warnIfMissed: false);
     await settle(t);
     await shot(t, 'store_${localeTag}_3_split');
     await tapKey(t, 'cancel-split');
