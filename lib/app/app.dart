@@ -14,6 +14,8 @@ class KakeiboApp extends ConsumerWidget {
     // 背景色・アクセント色は設定で変更可能（既定は kPaper / kPrimary）。
     final settings = ref.watch(appSettingsProvider);
     return MaterialApp(
+      // ストア用スクショ撮影を含め、デバッグリボンは常に非表示（挙動に影響なし）。
+      debugShowCheckedModeBanner: false,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

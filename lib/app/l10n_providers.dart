@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +13,10 @@ import '../l10n/app_localizations.dart';
 final effectiveLocaleProvider = Provider<Locale>((ref) {
   final settings = ref.watch(appSettingsProvider);
   if (settings.locale != null) return settings.locale!;
-  final preferred = ui.PlatformDispatcher.instance.locales;
+  // 生の ui.PlatformDispatcher.instance ではなく binding 経由で読む。
+  // 実機では同値だが、テストの localesTestValue が効くのは binding 側のみ
+  // （MaterialApp・カテゴリシードと読み口を揃える）。
+  final preferred = WidgetsBinding.instance.platformDispatcher.locales;
   return basicLocaleListResolution(
     preferred,
     AppLocalizations.supportedLocales,
