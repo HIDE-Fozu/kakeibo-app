@@ -9,17 +9,17 @@ import '../../settings/presentation/category_manage_page.dart';
 import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
 
-/// 分割中のカテゴリ帯（電卓の上・1行・絵文字チップ横スクロール）。
-/// 常設せず、行の「カテゴリを追加」/選択済みチップを押した時だけ出す。
-/// 親（内訳あり）をタップ→親を割当てつつ帯が内訳チップに切り替わる。
-/// leaf/内訳チップの確定でcontrollerが帯を閉じる（splitCatPickerOpen=false）。
+/// 分割中のカテゴリ帯（通常グリッドと同じ位置・1行・絵文字チップ横スクロール）。
+/// 分割中は常設で、タップはアクティブ行（編集中の行）への割当になる。
+/// 親（内訳あり）をタップ→親を割当てつつ帯が内訳チップに切り替わり、
+/// leaf/内訳チップの確定で親一覧表示に戻る（expandedParentId=null）。
 class SplitCategoryStrip extends ConsumerWidget {
   const SplitCategoryStrip({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(entryFormControllerProvider);
-    if (state == null || state.splits == null || !state.splitCatPickerOpen) {
+    if (state == null || state.splits == null) {
       return const SizedBox.shrink();
     }
     final ctrl = ref.read(entryFormControllerProvider.notifier);
@@ -101,25 +101,10 @@ class SplitCategoryStrip extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
+      child: SingleChildScrollView(
         key: const Key('split-cat-strip'),
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: chips),
-            ),
-          ),
-          InkWell(
-            key: const Key('strip-close'),
-            onTap: ctrl.closeSplitCatPicker,
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 17, color: scheme.outline),
-            ),
-          ),
-        ],
+        scrollDirection: Axis.horizontal,
+        child: Row(children: chips),
       ),
     );
   }

@@ -214,12 +214,10 @@ class EntryScreen extends ConsumerWidget {
                       if (splitMode)
                         SplitEntryPanel(
                             state: state, categoryNames: categoryNames),
-                      // 分割中: カテゴリ帯（開いている時だけ・電卓の真上に1行）
-                      if (splitMode) const SplitCategoryStrip(),
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
                       if (!batchMode)
                         Numpad(
-                          // 分割中はカテゴリグリッドを出さない（帯で選ぶ）ぶん
+                          // 分割中はグリッド（2行）が1行の帯になるぶん
                           // 空いた縦を電卓に回して大きく。通常モードは従来の詰め高さ。
                           cellHeight: splitMode ? 60 : 46,
                           onDigit:
@@ -261,9 +259,21 @@ class EntryScreen extends ConsumerWidget {
                             label: Text(l.entryStartSplitButton),
                           ),
                         ),
-                      // カテゴリ: 分割中は常設グリッドを出さず、行の「カテゴリを追加」/
-                      // チップを押した時だけ電卓上の帯で選ぶ（split_category_strip）。
+                      // カテゴリ: 分割中もグリッドと同じ位置（電卓の下・見出し付き）に
+                      // 常設の1行帯を出す（split_category_strip・タップ=アクティブ行へ割当）。
                       // 通常/一括内訳では見出し＋グリッドを従来どおり表示。
+                      if (splitMode) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2, bottom: 4),
+                          child: Text(l.entryCategoryHeading,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      Theme.of(context).colorScheme.outline)),
+                        ),
+                        const SplitCategoryStrip(),
+                      ],
                       if (!splitMode) ...[
                       // カテゴリ見出し。一括内訳中は右に詳細メモ欄を置く。
                       Padding(

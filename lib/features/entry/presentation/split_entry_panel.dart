@@ -12,7 +12,8 @@ import 'split_tax_dialog.dart';
 /// 構成: 店名行 → タイトル行（内訳・[内税|8%|10%]・個別・＋品目）→
 ///       入力行（2行分の高さでスクロール）→ 残額行（最下段固定・差分表示）。
 /// 税は全行トグルが基本（既定=内税）。「個別」は品目ごとのダイアログ。
-/// カテゴリは行のチップ／「カテゴリを追加」から電卓上の帯（split_category_strip）。
+/// カテゴリは電卓下の常設帯（split_category_strip）で選ぶ。行のチップ／
+/// 「カテゴリを追加」タップはその行を帯の割当先（アクティブ行）にする。
 class SplitEntryPanel extends ConsumerStatefulWidget {
   final EntryFormState state;
 
@@ -426,7 +427,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         ),
         child: Row(
           children: [
-            // 左: カテゴリを追加（未選択）or 選択済みチップ。タップで帯を開く。
+            // 左: カテゴリを追加（未選択）or 選択済みチップ。タップで割当先にする。
             InkWell(
               key: const Key('split-remainder'),
               onTap: () => ctrl.openSplitCatPicker(i),

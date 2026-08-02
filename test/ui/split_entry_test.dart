@@ -112,44 +112,40 @@ void main() {
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
 
-    // 分割中は本体にカテゴリ見出し・常設グリッド・帯のどれも出ない
-    expect(find.text('カテゴリ'), findsNothing);
-    expect(find.textContaining('日用品'), findsNothing);
-    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
+    // 分割中もカテゴリは同じ位置に常設（見出し＋1行帯）。グリッドは出ない
+    expect(find.text('カテゴリ'), findsOneWidget);
+    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
+    expect(find.textContaining('日用品'), findsOneWidget); // 帯内チップ（絵文字付き）
 
     // 行0に300（既定=内税）
     ctrl.splitTapDigit(3);
     ctrl.splitTapDoubleZero();
     await tester.pumpAndSettle();
 
-    // 行0の「＋ カテゴリ」→ 帯が電卓の上に開く
-    await tester.tap(find.byKey(const Key('split-pickcat-0')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
-    expect(find.textContaining('日用品'), findsOneWidget); // 帯内チップ（絵文字付き）
-
-    // 日用品チップ → 行0へ割当・帯が閉じる
+    // 帯の日用品チップ → アクティブ行（行0）へ割当。帯は出たまま
+    await tester.ensureVisible(find.byKey(const Key('split-cat-strip')));
     await tester.tap(find.textContaining('日用品'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
     expect(st().splits![0].categoryId, isNotNull);
-    expect(find.textContaining('日用品'), findsOneWidget); // 行のチップ表示
+    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
+    // 帯内チップ＋行のチップ表示の2箇所
+    expect(find.textContaining('日用品'), findsNWidgets(2));
 
-    // 残額行タップでも同じ帯が開く
+    // 残額行タップ → 帯の割当先が残額行になる
     await tester.tap(find.byKey(const Key('split-remainder')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
 
     // 食費（内訳あり親）→ 親を割当しつつ帯は内訳チップ表示に切替
-    await tester.tap(find.textContaining('食費'));
+    await tester.tap(find.textContaining('食費').first);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('strip-back')), findsOneWidget);
     expect(find.textContaining('外食'), findsOneWidget);
 
-    // 外食チップ → 残額行が外食に確定・帯が閉じる → 保存可
+    // 外食チップ → 残額行が外食に確定・帯は親一覧表示に戻る → 保存可
     await tester.tap(find.textContaining('外食'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-cat-strip')), findsNothing);
+    expect(find.byKey(const Key('strip-back')), findsNothing);
+    expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
     expect(st().canSave, isTrue);
   });
 }

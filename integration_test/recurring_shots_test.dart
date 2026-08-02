@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 定期取引（毎月の固定費・収入）UIの目視確認用スクショ撮影（使い捨てハーネス）。
 /// 実行例（実行前に app を uninstall しておく）:
 ///   flutter drive --driver=test_driver/integration_test.dart \
-///     --target=integration_test/recurring_shots_test.dart -d <udid>
+///     --target=integration_test/recurring_shots_test.dart -d `<udid>`
 ///
 /// 実時計で動く（clockProvider はデフォルト＝今日）。保存時に当月の期日到来分が
 /// 起票され、カレンダーに現れるところまで確認する。
