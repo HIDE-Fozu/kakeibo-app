@@ -180,6 +180,40 @@ class CategorySpendRow {
   });
 }
 
+/// 毎月の固定費・収入ルールのCRUD。起票ロジックは repository 側
+/// （DriftRecurringRuleRepository.applyDue）が担い、DAOは素朴な読み書きに徹する。
+@DriftAccessor(tables: [RecurringRules, Transactions])
+class RecurringRuleDao extends DatabaseAccessor<AppDatabase>
+    with _$RecurringRuleDaoMixin {
+  RecurringRuleDao(super.db);
+
+  Future<List<RecurringRuleRow>> allRules() =>
+      (select(recurringRules)..orderBy([(r) => OrderingTerm.asc(r.id)])).get();
+
+  Stream<List<RecurringRuleRow>> watchAllRules() =>
+      (select(recurringRules)..orderBy([(r) => OrderingTerm.asc(r.id)]))
+          .watch();
+
+  Future<int> insertRule(RecurringRulesCompanion c) =>
+      into(recurringRules).insert(c);
+
+  Future<void> updateRule(int id, RecurringRulesCompanion c) async {
+    await (update(recurringRules)..where((r) => r.id.equals(id)))
+        .write(c.copyWith(updatedAt: Value(DateTime.now())));
+  }
+
+  /// 冪等（存在しないIDでも例外を投げない）。
+  Future<void> deleteRule(int id) =>
+      (delete(recurringRules)..where((r) => r.id.equals(id))).go();
+
+  /// 起票済みの月を記録する（applyDue 専用。updatedAt はユーザー編集の
+  /// 目印として温存したいので触らない）。
+  Future<void> markGenerated(int id, int ym) async {
+    await (update(recurringRules)..where((r) => r.id.equals(id)))
+        .write(RecurringRulesCompanion(lastGeneratedYm: Value(ym)));
+  }
+}
+
 @DriftAccessor(tables: [Categories, Transactions])
 class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {

@@ -1245,6 +1245,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last backup: {days} days ago'**
   String settingsBackupDaysAgo(int days);
+
+  /// Title of the monthly recurring transactions page and its settings tile
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transactions'**
+  String get recurringPageTitle;
+
+  /// Settings tile subtitle for recurring transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-record monthly fixed costs like rent or salary'**
+  String get settingsRecurringSubtitle;
+
+  /// Empty state on the recurring list page
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet.\nTap + to automate monthly entries like rent or salary.'**
+  String get recurringEmptyMessage;
+
+  /// Title when adding a recurring transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring transaction'**
+  String get recurringAddTitle;
+
+  /// Title when editing a recurring transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring transaction'**
+  String get recurringEditTitle;
+
+  /// Label of the amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get recurringAmountLabel;
+
+  /// Label of the day-of-month picker
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get recurringDayLabel;
+
+  /// Recurrence description, e.g. 'Day 5 every month'
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} every month'**
+  String recurringEveryMonthDay(int day);
+
+  /// Helper text: days beyond a month's end clamp to the last day
+  ///
+  /// In en, this message translates to:
+  /// **'In shorter months it falls on the last day (e.g. the 31st → Feb 28).'**
+  String get recurringDayClampNote;
+
+  /// Label of the start month picker (new rules only)
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get recurringStartMonthLabel;
+
+  /// Start month option: current month
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get recurringStartThisMonth;
+
+  /// Start month option: next month
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get recurringStartNextMonth;
+
+  /// Active/paused switch title on the edit page
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get recurringActiveTitle;
+
+  /// Active/paused switch subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to pause automatic entries'**
+  String get recurringActiveSubtitle;
+
+  /// Shown in the list when a rule is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get recurringPausedLabel;
+
+  /// Delete confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete?'**
+  String get recurringDeleteConfirmTitle;
+
+  /// Delete confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'This recurring transaction will be deleted. Entries already recorded will remain.'**
+  String get recurringDeleteConfirmContent;
 }
 
 class _AppLocalizationsDelegate

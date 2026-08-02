@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "Saisissez aussi le montant restant",
   "settingsBackupNever": "Aucune sauvegarde",
   "settingsBackupToday": "Dernière sauvegarde : aujourd'hui",
-  "settingsBackupDaysAgo": "Dernière sauvegarde : il y a {days} jours"
+  "settingsBackupDaysAgo": "Dernière sauvegarde : il y a {days} jours",
+  "recurringPageTitle": "Opérations fixes mensuelles",
+  "settingsRecurringSubtitle": "Enregistre chaque mois le loyer, le salaire, etc. automatiquement",
+  "recurringEmptyMessage": "Rien pour l'instant.\nTouchez + pour automatiser les écritures mensuelles comme le loyer ou le salaire.",
+  "recurringAddTitle": "Ajouter une opération fixe",
+  "recurringEditTitle": "Modifier l'opération fixe",
+  "recurringAmountLabel": "Montant",
+  "recurringDayLabel": "Jour du mois",
+  "recurringEveryMonthDay": "Le {day} de chaque mois",
+  "recurringDayClampNote": "Les mois plus courts, l'écriture est datée du dernier jour (ex. : le 31 → 28 février).",
+  "recurringStartMonthLabel": "Début",
+  "recurringStartThisMonth": "Ce mois-ci",
+  "recurringStartNextMonth": "Le mois prochain",
+  "recurringActiveTitle": "Actif",
+  "recurringActiveSubtitle": "Désactivez pour suspendre l'enregistrement automatique",
+  "recurringPausedLabel": "En pause",
+  "recurringDeleteConfirmTitle": "Supprimer ?",
+  "recurringDeleteConfirmContent": "Cette opération fixe sera supprimée. Les écritures déjà créées seront conservées."
 }

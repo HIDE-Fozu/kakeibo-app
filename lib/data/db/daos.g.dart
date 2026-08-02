@@ -18,6 +18,27 @@ class TransactionDaoManager {
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
 }
 
+mixin _$RecurringRuleDaoMixin on DatabaseAccessor<AppDatabase> {
+  $CategoriesTable get categories => attachedDatabase.categories;
+  $RecurringRulesTable get recurringRules => attachedDatabase.recurringRules;
+  $TransactionsTable get transactions => attachedDatabase.transactions;
+  RecurringRuleDaoManager get managers => RecurringRuleDaoManager(this);
+}
+
+class RecurringRuleDaoManager {
+  final _$RecurringRuleDaoMixin _db;
+  RecurringRuleDaoManager(this._db);
+  $$CategoriesTableTableManager get categories =>
+      $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$RecurringRulesTableTableManager get recurringRules =>
+      $$RecurringRulesTableTableManager(
+        _db.attachedDatabase,
+        _db.recurringRules,
+      );
+  $$TransactionsTableTableManager get transactions =>
+      $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
+}
+
 mixin _$CategoryDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
   $TransactionsTable get transactions => attachedDatabase.transactions;

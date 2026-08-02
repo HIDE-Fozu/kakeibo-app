@@ -651,4 +651,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return 'Last backup: $days days ago';
   }
+
+  @override
+  String get recurringPageTitle => 'Recurring transactions';
+
+  @override
+  String get settingsRecurringSubtitle =>
+      'Auto-record monthly fixed costs like rent or salary';
+
+  @override
+  String get recurringEmptyMessage =>
+      'Nothing here yet.\nTap + to automate monthly entries like rent or salary.';
+
+  @override
+  String get recurringAddTitle => 'Add recurring transaction';
+
+  @override
+  String get recurringEditTitle => 'Edit recurring transaction';
+
+  @override
+  String get recurringAmountLabel => 'Amount';
+
+  @override
+  String get recurringDayLabel => 'Day of month';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return 'Day $day every month';
+  }
+
+  @override
+  String get recurringDayClampNote =>
+      'In shorter months it falls on the last day (e.g. the 31st → Feb 28).';
+
+  @override
+  String get recurringStartMonthLabel => 'Starts';
+
+  @override
+  String get recurringStartThisMonth => 'This month';
+
+  @override
+  String get recurringStartNextMonth => 'Next month';
+
+  @override
+  String get recurringActiveTitle => 'Active';
+
+  @override
+  String get recurringActiveSubtitle => 'Turn off to pause automatic entries';
+
+  @override
+  String get recurringPausedLabel => 'Paused';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'Delete?';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      'This recurring transaction will be deleted. Entries already recorded will remain.';
 }

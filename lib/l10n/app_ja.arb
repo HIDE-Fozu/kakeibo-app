@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "残りの金額も入力してください",
   "settingsBackupNever": "バックアップ未作成",
   "settingsBackupToday": "前回バックアップ: 今日",
-  "settingsBackupDaysAgo": "前回バックアップ: {days}日前"
+  "settingsBackupDaysAgo": "前回バックアップ: {days}日前",
+  "recurringPageTitle": "毎月の固定費・収入",
+  "settingsRecurringSubtitle": "家賃や給料などを毎月自動で記録",
+  "recurringEmptyMessage": "まだ登録がありません。\n右上の＋から、家賃や給料など毎月の記録を自動化できます",
+  "recurringAddTitle": "固定費・収入を追加",
+  "recurringEditTitle": "固定費・収入を編集",
+  "recurringAmountLabel": "金額",
+  "recurringDayLabel": "記録する日",
+  "recurringEveryMonthDay": "毎月{day}日",
+  "recurringDayClampNote": "その日がない月は月末に記録します（例: 31日→2月は28日）",
+  "recurringStartMonthLabel": "開始",
+  "recurringStartThisMonth": "今月から",
+  "recurringStartNextMonth": "来月から",
+  "recurringActiveTitle": "有効",
+  "recurringActiveSubtitle": "オフにすると自動記録を一時停止します",
+  "recurringPausedLabel": "停止中",
+  "recurringDeleteConfirmTitle": "削除しますか？",
+  "recurringDeleteConfirmContent": "この固定費・収入を削除します。作成済みの取引はそのまま残ります。"
 }

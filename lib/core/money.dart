@@ -74,6 +74,27 @@ Currency currencyForCode(String code) => kSupportedCurrencies.firstWhere(
       orElse: () => kDefaultCurrency,
     );
 
+/// テキスト入力（定期ルールの金額欄など）→ 整数minor unit。
+/// 数字＋小数点（. か , どちらでも）のみ許容。通貨の小数桁を超える・
+/// 数値でない・空 は null。例: JPY "1500"→1500 / EUR "12,5"→1250。
+int? parseAmountMinor(String text, Currency currency) {
+  final m = RegExp(r'^(\d+)(?:[.,](\d*))?$').firstMatch(text.trim());
+  if (m == null) return null;
+  final frac = m[2] ?? '';
+  if (frac.length > currency.decimals) return null;
+  final units = int.tryParse(m[1]!);
+  if (units == null) return null;
+  final fracPadded = frac.padRight(currency.decimals, '0');
+  final fracMinor = currency.decimals == 0 ? 0 : int.parse('0$fracPadded');
+  return units * currency.minorPerUnit + fracMinor;
+}
+
+/// 整数minor unit → 金額欄の初期テキスト（記号・桁区切りなしの素の数）。
+String amountMinorToText(int minor, Currency currency) =>
+    currency.decimals == 0
+        ? '$minor'
+        : (minor / currency.minorPerUnit).toStringAsFixed(currency.decimals);
+
 /// 金額（整数 minor unit）を、ロケール＋通貨に応じて整形する。
 ///
 /// JPY は既存の [formatYen]/[signedYen]/[manYen] にそのまま委譲し、従来の表示

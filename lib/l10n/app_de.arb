@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "Auch den Restbetrag eingeben",
   "settingsBackupNever": "Noch kein Backup",
   "settingsBackupToday": "Letztes Backup: heute",
-  "settingsBackupDaysAgo": "Letztes Backup: vor {days} Tagen"
+  "settingsBackupDaysAgo": "Letztes Backup: vor {days} Tagen",
+  "recurringPageTitle": "Monatliche Fixposten",
+  "settingsRecurringSubtitle": "Miete, Gehalt usw. jeden Monat automatisch erfassen",
+  "recurringEmptyMessage": "Noch nichts eingerichtet.\nTippe auf +, um monatliche Einträge wie Miete oder Gehalt zu automatisieren.",
+  "recurringAddTitle": "Fixposten hinzufügen",
+  "recurringEditTitle": "Fixposten bearbeiten",
+  "recurringAmountLabel": "Betrag",
+  "recurringDayLabel": "Tag im Monat",
+  "recurringEveryMonthDay": "Am {day}. jeden Monats",
+  "recurringDayClampNote": "In kürzeren Monaten wird am letzten Tag gebucht (z. B. 31. → 28. Februar).",
+  "recurringStartMonthLabel": "Beginn",
+  "recurringStartThisMonth": "Diesen Monat",
+  "recurringStartNextMonth": "Nächsten Monat",
+  "recurringActiveTitle": "Aktiv",
+  "recurringActiveSubtitle": "Zum Pausieren der automatischen Buchung ausschalten",
+  "recurringPausedLabel": "Pausiert",
+  "recurringDeleteConfirmTitle": "Löschen?",
+  "recurringDeleteConfirmContent": "Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten."
 }

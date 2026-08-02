@@ -10,6 +10,7 @@ import '../data/db/database.dart';
 import '../data/ocr/cloud_fixture_uploader.dart';
 import '../data/ocr/ocr_fixture_recorder.dart';
 import '../data/repositories/drift_category_repository.dart';
+import '../data/repositories/drift_recurring_rule_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
 import '../domain/entities.dart';
 import '../domain/money/civil_date.dart';
@@ -107,6 +108,15 @@ final cloudFixtureUploaderProvider = Provider<CloudFixtureUploader>(
     ref.watch(ocrFixtureRecorderProvider).dir,
     ref.watch(sharedPreferencesProvider),
   ),
+);
+
+final recurringRuleRepositoryProvider = Provider<RecurringRuleRepository>(
+  (ref) => DriftRecurringRuleRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// 定期ルール一覧（設定→毎月の固定費・収入 の画面用）。
+final recurringRulesProvider = StreamProvider<List<RecurringRuleEntity>>(
+  (ref) => ref.watch(recurringRuleRepositoryProvider).watchAll(),
 );
 
 final allCategoriesProvider = StreamProvider<List<CategoryEntity>>(

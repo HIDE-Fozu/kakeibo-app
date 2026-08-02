@@ -26,6 +26,23 @@ abstract interface class TransactionRepository {
   Future<void> delete(int id);
 }
 
+abstract interface class RecurringRuleRepository {
+  Stream<List<RecurringRuleEntity>> watchAll();
+  Future<int> add(RecurringRuleEntity rule);
+
+  /// 既存ルールを更新する（rule.id 必須）。
+  /// 停止→再開の切り替え時は、停止期間分のさかのぼり起票を防ぐため
+  /// lastGeneratedYm を today の前月まで進める（当月分からの起票になる）。
+  Future<void> update(RecurringRuleEntity rule, {required CivilDate today});
+
+  /// 冪等（存在しないIDでも例外を投げない）。起票済みの取引は消さない。
+  Future<void> delete(int id);
+
+  /// 期日到来分を取引として起票し lastGeneratedYm を進める。生成件数を返す。
+  /// 冪等（同じ today で何度呼んでも二重起票しない）。起動時・復帰時に呼ぶ。
+  Future<int> applyDue(CivilDate today);
+}
+
 abstract interface class CategoryRepository {
   Future<List<CategoryEntity>> active();
 

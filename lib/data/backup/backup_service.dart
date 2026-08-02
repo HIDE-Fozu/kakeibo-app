@@ -22,6 +22,9 @@ class BackupService {
     final txs = await (_db.select(_db.transactions)
           ..orderBy([(t) => OrderingTerm.asc(t.id)]))
         .get();
+    final rules = await (_db.select(_db.recurringRules)
+          ..orderBy([(r) => OrderingTerm.asc(r.id)]))
+        .get();
     return BackupPayload(
       formatVersion: BackupCodec.formatVersion,
       exportedAt: DateTime.now().toUtc(),
@@ -55,6 +58,24 @@ class BackupService {
             splitGroupId: t.splitGroupId,
             createdAt: t.createdAt.toUtc(),
             updatedAt: t.updatedAt.toUtc(),
+          ),
+      ],
+      recurringRules: [
+        for (final r in rules)
+          BackupRecurringRule(
+            id: r.id,
+            type: r.type,
+            amount: r.amount,
+            categoryId: r.categoryId,
+            dayOfMonth: r.dayOfMonth,
+            storeName: r.storeName,
+            memo: r.memo,
+            isActive: r.isActive,
+            startYm: r.startYm,
+            endYm: r.endYm,
+            lastGeneratedYm: r.lastGeneratedYm,
+            createdAt: r.createdAt.toUtc(),
+            updatedAt: r.updatedAt.toUtc(),
           ),
       ],
     );
@@ -94,8 +115,9 @@ class BackupService {
       // FK検査をコミット時まで遅延する（整合性はコミット時に検証される）。
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
 
-      // FK RESTRICT を回避する順序: 取引 → カテゴリ の順に削除
+      // FK RESTRICT を回避する順序: 取引・定期ルール → カテゴリ の順に削除
       await _db.delete(_db.transactions).go();
+      await _db.delete(_db.recurringRules).go();
       await _db.delete(_db.categories).go();
 
       // カテゴリ → 取引 の順に、IDを明示して挿入（逐語保存）
@@ -136,16 +158,39 @@ class BackupService {
             ),
           );
         }
+        for (final r in payload.recurringRules) {
+          b.insert(
+            _db.recurringRules,
+            RecurringRulesCompanion(
+              id: Value(r.id),
+              type: Value(r.type),
+              amount: Value(r.amount),
+              categoryId: Value(r.categoryId),
+              dayOfMonth: Value(r.dayOfMonth),
+              storeName: Value(r.storeName),
+              memo: Value(r.memo),
+              isActive: Value(r.isActive),
+              startYm: Value(r.startYm),
+              endYm: Value(r.endYm),
+              lastGeneratedYm: Value(r.lastGeneratedYm),
+              createdAt: Value(r.createdAt),
+              updatedAt: Value(r.updatedAt),
+            ),
+          );
+        }
       });
 
       // 事後アサート（防御的・トランザクション内なので失敗すればロールバック）
       final catCount = await _count(_db.categories);
       final txCount = await _count(_db.transactions);
+      final ruleCount = await _count(_db.recurringRules);
       if (catCount != payload.categories.length ||
-          txCount != payload.transactions.length) {
+          txCount != payload.transactions.length ||
+          ruleCount != payload.recurringRules.length) {
         throw StateError(
             '復元の件数が一致しません: cats=$catCount/${payload.categories.length}, '
-            'txs=$txCount/${payload.transactions.length}');
+            'txs=$txCount/${payload.transactions.length}, '
+            'rules=$ruleCount/${payload.recurringRules.length}');
       }
     });
   }

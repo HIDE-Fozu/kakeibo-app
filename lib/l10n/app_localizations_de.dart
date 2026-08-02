@@ -657,4 +657,62 @@ class AppLocalizationsDe extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return 'Letztes Backup: vor $days Tagen';
   }
+
+  @override
+  String get recurringPageTitle => 'Monatliche Fixposten';
+
+  @override
+  String get settingsRecurringSubtitle =>
+      'Miete, Gehalt usw. jeden Monat automatisch erfassen';
+
+  @override
+  String get recurringEmptyMessage =>
+      'Noch nichts eingerichtet.\nTippe auf +, um monatliche Einträge wie Miete oder Gehalt zu automatisieren.';
+
+  @override
+  String get recurringAddTitle => 'Fixposten hinzufügen';
+
+  @override
+  String get recurringEditTitle => 'Fixposten bearbeiten';
+
+  @override
+  String get recurringAmountLabel => 'Betrag';
+
+  @override
+  String get recurringDayLabel => 'Tag im Monat';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return 'Am $day. jeden Monats';
+  }
+
+  @override
+  String get recurringDayClampNote =>
+      'In kürzeren Monaten wird am letzten Tag gebucht (z. B. 31. → 28. Februar).';
+
+  @override
+  String get recurringStartMonthLabel => 'Beginn';
+
+  @override
+  String get recurringStartThisMonth => 'Diesen Monat';
+
+  @override
+  String get recurringStartNextMonth => 'Nächsten Monat';
+
+  @override
+  String get recurringActiveTitle => 'Aktiv';
+
+  @override
+  String get recurringActiveSubtitle =>
+      'Zum Pausieren der automatischen Buchung ausschalten';
+
+  @override
+  String get recurringPausedLabel => 'Pausiert';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'Löschen?';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      'Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten.';
 }

@@ -67,4 +67,32 @@ void main() {
     final row = (await db.select(db.transactions).get()).single;
     expect(decoded.transactions.single.createdAt, row.createdAt.toUtc());
   });
+
+  test('定期ルールがバックアップに載り、復元先で状態ごと引き継がれる', () async {
+    final all = await db.categoryDao.allCategories();
+    final foodId = all.firstWhere((c) => c.name == '食費').id;
+    await db.recurringRuleDao.insertRule(RecurringRulesCompanion.insert(
+      type: TxnType.expense,
+      amount: 80000,
+      categoryId: foodId,
+      dayOfMonth: 27,
+      storeName: const Value('大家さん'),
+      startYm: 202608,
+      lastGeneratedYm: const Value(202608),
+    ));
+
+    final p = await service.exportPayload();
+    final rule = p.recurringRules.single;
+    expect(rule.amount, 80000);
+    expect(rule.lastGeneratedYm, 202608); // 起票済み位置も引き継ぐ
+
+    // 別DBへ復元 → ルールが同IDで再現される
+    final db2 = newMemoryDb();
+    addTearDown(db2.close);
+    await BackupService(db2).applyRestore(p);
+    final restored = await db2.recurringRuleDao.allRules();
+    expect(restored.single.id, rule.id);
+    expect(restored.single.storeName, '大家さん');
+    expect(restored.single.lastGeneratedYm, 202608);
+  });
 }

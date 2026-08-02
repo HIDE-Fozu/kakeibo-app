@@ -437,5 +437,78 @@
         "type": "int"
       }
     }
+  },
+  "recurringPageTitle": "Recurring transactions",
+  "@recurringPageTitle": {
+    "description": "Title of the monthly recurring transactions page and its settings tile"
+  },
+  "settingsRecurringSubtitle": "Auto-record monthly fixed costs like rent or salary",
+  "@settingsRecurringSubtitle": {
+    "description": "Settings tile subtitle for recurring transactions"
+  },
+  "recurringEmptyMessage": "Nothing here yet.\nTap + to automate monthly entries like rent or salary.",
+  "@recurringEmptyMessage": {
+    "description": "Empty state on the recurring list page"
+  },
+  "recurringAddTitle": "Add recurring transaction",
+  "@recurringAddTitle": {
+    "description": "Title when adding a recurring transaction"
+  },
+  "recurringEditTitle": "Edit recurring transaction",
+  "@recurringEditTitle": {
+    "description": "Title when editing a recurring transaction"
+  },
+  "recurringAmountLabel": "Amount",
+  "@recurringAmountLabel": {
+    "description": "Label of the amount field"
+  },
+  "recurringDayLabel": "Day of month",
+  "@recurringDayLabel": {
+    "description": "Label of the day-of-month picker"
+  },
+  "recurringEveryMonthDay": "Day {day} every month",
+  "@recurringEveryMonthDay": {
+    "description": "Recurrence description, e.g. 'Day 5 every month'",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "recurringDayClampNote": "In shorter months it falls on the last day (e.g. the 31st → Feb 28).",
+  "@recurringDayClampNote": {
+    "description": "Helper text: days beyond a month's end clamp to the last day"
+  },
+  "recurringStartMonthLabel": "Starts",
+  "@recurringStartMonthLabel": {
+    "description": "Label of the start month picker (new rules only)"
+  },
+  "recurringStartThisMonth": "This month",
+  "@recurringStartThisMonth": {
+    "description": "Start month option: current month"
+  },
+  "recurringStartNextMonth": "Next month",
+  "@recurringStartNextMonth": {
+    "description": "Start month option: next month"
+  },
+  "recurringActiveTitle": "Active",
+  "@recurringActiveTitle": {
+    "description": "Active/paused switch title on the edit page"
+  },
+  "recurringActiveSubtitle": "Turn off to pause automatic entries",
+  "@recurringActiveSubtitle": {
+    "description": "Active/paused switch subtitle"
+  },
+  "recurringPausedLabel": "Paused",
+  "@recurringPausedLabel": {
+    "description": "Shown in the list when a rule is paused"
+  },
+  "recurringDeleteConfirmTitle": "Delete?",
+  "@recurringDeleteConfirmTitle": {
+    "description": "Delete confirmation dialog title"
+  },
+  "recurringDeleteConfirmContent": "This recurring transaction will be deleted. Entries already recorded will remain.",
+  "@recurringDeleteConfirmContent": {
+    "description": "Delete confirmation dialog body"
   }
 }

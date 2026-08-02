@@ -634,4 +634,59 @@ class AppLocalizationsJa extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return '前回バックアップ: $days日前';
   }
+
+  @override
+  String get recurringPageTitle => '毎月の固定費・収入';
+
+  @override
+  String get settingsRecurringSubtitle => '家賃や給料などを毎月自動で記録';
+
+  @override
+  String get recurringEmptyMessage =>
+      'まだ登録がありません。\n右上の＋から、家賃や給料など毎月の記録を自動化できます';
+
+  @override
+  String get recurringAddTitle => '固定費・収入を追加';
+
+  @override
+  String get recurringEditTitle => '固定費・収入を編集';
+
+  @override
+  String get recurringAmountLabel => '金額';
+
+  @override
+  String get recurringDayLabel => '記録する日';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return '毎月$day日';
+  }
+
+  @override
+  String get recurringDayClampNote => 'その日がない月は月末に記録します（例: 31日→2月は28日）';
+
+  @override
+  String get recurringStartMonthLabel => '開始';
+
+  @override
+  String get recurringStartThisMonth => '今月から';
+
+  @override
+  String get recurringStartNextMonth => '来月から';
+
+  @override
+  String get recurringActiveTitle => '有効';
+
+  @override
+  String get recurringActiveSubtitle => 'オフにすると自動記録を一時停止します';
+
+  @override
+  String get recurringPausedLabel => '停止中';
+
+  @override
+  String get recurringDeleteConfirmTitle => '削除しますか？';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      'この固定費・収入を削除します。作成済みの取引はそのまま残ります。';
 }

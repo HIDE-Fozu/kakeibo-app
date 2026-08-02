@@ -637,4 +637,59 @@ class AppLocalizationsKo extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return '마지막 백업: $days일 전';
   }
+
+  @override
+  String get recurringPageTitle => '매월 고정 지출·수입';
+
+  @override
+  String get settingsRecurringSubtitle => '월세, 급여 등을 매월 자동으로 기록';
+
+  @override
+  String get recurringEmptyMessage =>
+      '아직 등록된 항목이 없습니다.\n오른쪽 위 ＋로 월세, 급여 등 매월 기록을 자동화할 수 있습니다';
+
+  @override
+  String get recurringAddTitle => '고정 지출·수입 추가';
+
+  @override
+  String get recurringEditTitle => '고정 지출·수입 편집';
+
+  @override
+  String get recurringAmountLabel => '금액';
+
+  @override
+  String get recurringDayLabel => '기록일';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return '매월 $day일';
+  }
+
+  @override
+  String get recurringDayClampNote => '해당 날짜가 없는 달은 말일에 기록됩니다(예: 31일→2월은 28일)';
+
+  @override
+  String get recurringStartMonthLabel => '시작';
+
+  @override
+  String get recurringStartThisMonth => '이번 달부터';
+
+  @override
+  String get recurringStartNextMonth => '다음 달부터';
+
+  @override
+  String get recurringActiveTitle => '사용';
+
+  @override
+  String get recurringActiveSubtitle => '끄면 자동 기록을 일시 중지합니다';
+
+  @override
+  String get recurringPausedLabel => '중지됨';
+
+  @override
+  String get recurringDeleteConfirmTitle => '삭제할까요?';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      '이 고정 지출·수입을 삭제합니다. 이미 기록된 거래는 남습니다.';
 }

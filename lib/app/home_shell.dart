@@ -22,10 +22,12 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 初回のみ: オフライン方針とバックアップ責任の軽量オンボーディング（spec §5.5）
       if (!ref.read(appSettingsProvider).onboardingDone && mounted) {
@@ -40,6 +42,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           .read(backupControllerProvider.notifier)
           .runStartupBackupIfStale()
           .catchError((_) => false);
+      // 定期ルール（毎月の固定費・収入）の期日到来分を起票。
+      _applyRecurringDue();
       // 【テスト期間限定・オプトイン】未送信の収集データを再送
       if (kCollectReceiptPhotosDuringTest &&
           ref.read(appSettingsProvider).autoUploadTestData) {
@@ -49,6 +53,26 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             .catchError((_) => 0);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // iOSはアプリが数日メモリに残る。起動時だけだと月をまたいでも起票されない
+    // ため、フォアグラウンド復帰でも期日到来分を確認する（冪等なので安全）。
+    if (state == AppLifecycleState.resumed) _applyRecurringDue();
+  }
+
+  void _applyRecurringDue() {
+    ref
+        .read(recurringRuleRepositoryProvider)
+        .applyDue(ref.read(clockProvider)())
+        .catchError((_) => 0);
   }
 
   /// ボトムタブに出す並び → IndexedStack の index。

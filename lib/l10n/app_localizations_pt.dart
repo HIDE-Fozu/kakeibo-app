@@ -657,4 +657,62 @@ class AppLocalizationsPt extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return 'Último backup: há $days dias';
   }
+
+  @override
+  String get recurringPageTitle => 'Lançamentos fixos mensais';
+
+  @override
+  String get settingsRecurringSubtitle =>
+      'Registre aluguel, salário etc. automaticamente todo mês';
+
+  @override
+  String get recurringEmptyMessage =>
+      'Nada por aqui ainda.\nToque em + para automatizar lançamentos mensais como aluguel ou salário.';
+
+  @override
+  String get recurringAddTitle => 'Adicionar lançamento fixo';
+
+  @override
+  String get recurringEditTitle => 'Editar lançamento fixo';
+
+  @override
+  String get recurringAmountLabel => 'Valor';
+
+  @override
+  String get recurringDayLabel => 'Dia do mês';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return 'Dia $day de cada mês';
+  }
+
+  @override
+  String get recurringDayClampNote =>
+      'Em meses mais curtos, é registrado no último dia (ex.: dia 31 → 28 de fevereiro).';
+
+  @override
+  String get recurringStartMonthLabel => 'Início';
+
+  @override
+  String get recurringStartThisMonth => 'Este mês';
+
+  @override
+  String get recurringStartNextMonth => 'Mês que vem';
+
+  @override
+  String get recurringActiveTitle => 'Ativo';
+
+  @override
+  String get recurringActiveSubtitle =>
+      'Desative para pausar o registro automático';
+
+  @override
+  String get recurringPausedLabel => 'Pausado';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'Excluir?';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      'Este lançamento fixo será excluído. Os registros já criados serão mantidos.';
 }

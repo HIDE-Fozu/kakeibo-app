@@ -32,6 +32,15 @@ BackupPayload samplePayload() => BackupPayload(
           updatedAt: DateTime.utc(2026, 7, 3, 1, 2, 3),
         ),
       ],
+      recurringRules: [
+        BackupRecurringRule(
+          id: 1, type: TxnType.expense, amount: 80000, categoryId: 1,
+          dayOfMonth: 27, storeName: '大家さん', memo: '家賃',
+          isActive: true, startYm: 202608, endYm: null, lastGeneratedYm: 202608,
+          createdAt: DateTime.utc(2026, 8, 1, 0, 0, 0),
+          updatedAt: DateTime.utc(2026, 8, 1, 0, 0, 0),
+        ),
+      ],
     );
 
 void main() {
@@ -47,7 +56,7 @@ void main() {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 3);
+    expect(root['formatVersion'], 4);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -195,7 +204,7 @@ void main() {
 
     test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
       final payload = codec.decode(validV1Json());
-      expect(payload.formatVersion, 3); // decodeはマイグレーション後に現行版を返す
+      expect(payload.formatVersion, 4); // decodeはマイグレーション後に現行版を返す
       expect(payload.categories.every((c) => c.parentId == null), isTrue);
     });
 
@@ -234,6 +243,71 @@ void main() {
       expect(payload.categories.firstWhere((c) => c.id == 2).parentId, 1);
       final reencoded = codec.decode(codec.encode(payload));
       expect(reencoded.categories.firstWhere((c) => c.id == 2).parentId, 1);
+    });
+  });
+
+  group('formatVersion 4（定期ルール）', () {
+    test('v3 JSON（recurringRulesなし）はmigrateされ空ルールで復元', () {
+      final json = mutate((r) {
+        r['formatVersion'] = 3;
+        r.remove('recurringRules');
+      });
+      final payload = codec.decode(json);
+      expect(payload.formatVersion, 4);
+      expect(payload.recurringRules, isEmpty);
+    });
+
+    test('roundtripで定期ルールの全フィールドが保存される', () {
+      final decoded = codec.decode(codec.encode(samplePayload()));
+      final r = decoded.recurringRules.single;
+      expect(r.amount, 80000);
+      expect(r.dayOfMonth, 27);
+      expect(r.storeName, '大家さん');
+      expect(r.startYm, 202608);
+      expect(r.endYm, isNull);
+      expect(r.lastGeneratedYm, 202608);
+      expect(r.isActive, isTrue);
+    });
+
+    test('ルールのcategoryIdが同梱カテゴリに解決できないと拒否', () {
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['recurringRules'] as List).first as Map)['categoryId'] = 99)),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('dayOfMonth範囲外・不正なYYYYMM・負の金額は拒否', () {
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['recurringRules'] as List).first as Map)['dayOfMonth'] = 0)),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['recurringRules'] as List).first as Map)['dayOfMonth'] = 32)),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['recurringRules'] as List).first as Map)['startYm'] = 202613)),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) =>
+            ((r['recurringRules'] as List).first as Map)['amount'] = -1)),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('ルールID重複は拒否', () {
+      expect(
+        () => codec.decode(mutate((r) {
+          final rules = r['recurringRules'] as List;
+          rules.add(Map<String, dynamic>.from(rules.first as Map));
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
     });
   });
 }

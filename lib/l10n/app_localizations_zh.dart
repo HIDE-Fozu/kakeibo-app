@@ -633,4 +633,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return '上次备份：$days 天前';
   }
+
+  @override
+  String get recurringPageTitle => '每月固定收支';
+
+  @override
+  String get settingsRecurringSubtitle => '自动记录房租、工资等每月固定项目';
+
+  @override
+  String get recurringEmptyMessage => '还没有登记。\n点右上角的＋，即可自动记录房租、工资等每月项目';
+
+  @override
+  String get recurringAddTitle => '添加固定收支';
+
+  @override
+  String get recurringEditTitle => '编辑固定收支';
+
+  @override
+  String get recurringAmountLabel => '金额';
+
+  @override
+  String get recurringDayLabel => '记录日期';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return '每月$day日';
+  }
+
+  @override
+  String get recurringDayClampNote => '没有该日期的月份将记在月末（例如31日→2月记在28日）';
+
+  @override
+  String get recurringStartMonthLabel => '开始';
+
+  @override
+  String get recurringStartThisMonth => '本月开始';
+
+  @override
+  String get recurringStartNextMonth => '下月开始';
+
+  @override
+  String get recurringActiveTitle => '启用';
+
+  @override
+  String get recurringActiveSubtitle => '关闭后暂停自动记录';
+
+  @override
+  String get recurringPausedLabel => '已暂停';
+
+  @override
+  String get recurringDeleteConfirmTitle => '要删除吗？';
+
+  @override
+  String get recurringDeleteConfirmContent => '将删除此固定收支。已记录的交易会保留。';
 }

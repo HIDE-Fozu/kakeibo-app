@@ -664,4 +664,62 @@ class AppLocalizationsFr extends AppLocalizations {
   String settingsBackupDaysAgo(int days) {
     return 'Dernière sauvegarde : il y a $days jours';
   }
+
+  @override
+  String get recurringPageTitle => 'Opérations fixes mensuelles';
+
+  @override
+  String get settingsRecurringSubtitle =>
+      'Enregistre chaque mois le loyer, le salaire, etc. automatiquement';
+
+  @override
+  String get recurringEmptyMessage =>
+      'Rien pour l\'instant.\nTouchez + pour automatiser les écritures mensuelles comme le loyer ou le salaire.';
+
+  @override
+  String get recurringAddTitle => 'Ajouter une opération fixe';
+
+  @override
+  String get recurringEditTitle => 'Modifier l\'opération fixe';
+
+  @override
+  String get recurringAmountLabel => 'Montant';
+
+  @override
+  String get recurringDayLabel => 'Jour du mois';
+
+  @override
+  String recurringEveryMonthDay(int day) {
+    return 'Le $day de chaque mois';
+  }
+
+  @override
+  String get recurringDayClampNote =>
+      'Les mois plus courts, l\'écriture est datée du dernier jour (ex. : le 31 → 28 février).';
+
+  @override
+  String get recurringStartMonthLabel => 'Début';
+
+  @override
+  String get recurringStartThisMonth => 'Ce mois-ci';
+
+  @override
+  String get recurringStartNextMonth => 'Le mois prochain';
+
+  @override
+  String get recurringActiveTitle => 'Actif';
+
+  @override
+  String get recurringActiveSubtitle =>
+      'Désactivez pour suspendre l\'enregistrement automatique';
+
+  @override
+  String get recurringPausedLabel => 'En pause';
+
+  @override
+  String get recurringDeleteConfirmTitle => 'Supprimer ?';
+
+  @override
+  String get recurringDeleteConfirmContent =>
+      'Cette opération fixe sera supprimée. Les écritures déjà créées seront conservées.';
 }

@@ -21,6 +21,38 @@ class Categories extends Table {
   IntColumn get parentId => integer().nullable().references(Categories, #id)();
 }
 
+/// 毎月の固定費・収入のルール。期日が来ると transactions へ通常の取引として
+/// 起票される（source=recurring）。起票後の取引は普通の取引と同じに編集・削除でき、
+/// 削除しても再起票されない（lastGeneratedYm が前進済みのため）。v6で追加。
+@DataClassName('RecurringRuleRow')
+class RecurringRules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get type => textEnum<TxnType>()();
+  IntColumn get amount => integer()(); // 整数minor unit・非負（アプリ側で保証）
+  IntColumn get categoryId =>
+      integer().references(Categories, #id, onDelete: KeyAction.restrict)();
+
+  /// 毎月の起票日 1..31。短い月は末日に丸める（31日→2月は28/29日）。
+  IntColumn get dayOfMonth => integer()();
+  TextColumn get storeName => text().nullable()();
+  TextColumn get memo => text().nullable()();
+
+  /// false=一時停止（起票しない）。停止中も lastGeneratedYm は進めず、
+  /// 再開時に停止期間分をさかのぼって起票しない（applyDue 参照）。
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  /// 起票を開始する月（YYYY*100+MM。例: 2026年8月=202608）。
+  IntColumn get startYm => integer()();
+
+  /// 起票する最後の月（両端含む）。null=無期限。
+  IntColumn get endYm => integer().nullable()();
+
+  /// 最後に起票した月。null=まだ一度も起票していない。
+  IntColumn get lastGeneratedYm => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 @DataClassName('TransactionRow')
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();

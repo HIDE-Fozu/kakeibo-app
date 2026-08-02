@@ -1341,13 +1341,786 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   }
 }
 
+class $RecurringRulesTable extends RecurringRules
+    with TableInfo<$RecurringRulesTable, RecurringRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecurringRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TxnType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TxnType>($RecurringRulesTable.$convertertype);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _dayOfMonthMeta = const VerificationMeta(
+    'dayOfMonth',
+  );
+  @override
+  late final GeneratedColumn<int> dayOfMonth = GeneratedColumn<int>(
+    'day_of_month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _storeNameMeta = const VerificationMeta(
+    'storeName',
+  );
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+    'store_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _memoMeta = const VerificationMeta('memo');
+  @override
+  late final GeneratedColumn<String> memo = GeneratedColumn<String>(
+    'memo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _startYmMeta = const VerificationMeta(
+    'startYm',
+  );
+  @override
+  late final GeneratedColumn<int> startYm = GeneratedColumn<int>(
+    'start_ym',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endYmMeta = const VerificationMeta('endYm');
+  @override
+  late final GeneratedColumn<int> endYm = GeneratedColumn<int>(
+    'end_ym',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastGeneratedYmMeta = const VerificationMeta(
+    'lastGeneratedYm',
+  );
+  @override
+  late final GeneratedColumn<int> lastGeneratedYm = GeneratedColumn<int>(
+    'last_generated_ym',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    amount,
+    categoryId,
+    dayOfMonth,
+    storeName,
+    memo,
+    isActive,
+    startYm,
+    endYm,
+    lastGeneratedYm,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recurring_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecurringRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('day_of_month')) {
+      context.handle(
+        _dayOfMonthMeta,
+        dayOfMonth.isAcceptableOrUnknown(
+          data['day_of_month']!,
+          _dayOfMonthMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dayOfMonthMeta);
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(
+        _storeNameMeta,
+        storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta),
+      );
+    }
+    if (data.containsKey('memo')) {
+      context.handle(
+        _memoMeta,
+        memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('start_ym')) {
+      context.handle(
+        _startYmMeta,
+        startYm.isAcceptableOrUnknown(data['start_ym']!, _startYmMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startYmMeta);
+    }
+    if (data.containsKey('end_ym')) {
+      context.handle(
+        _endYmMeta,
+        endYm.isAcceptableOrUnknown(data['end_ym']!, _endYmMeta),
+      );
+    }
+    if (data.containsKey('last_generated_ym')) {
+      context.handle(
+        _lastGeneratedYmMeta,
+        lastGeneratedYm.isAcceptableOrUnknown(
+          data['last_generated_ym']!,
+          _lastGeneratedYmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecurringRuleRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecurringRuleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      type: $RecurringRulesTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      dayOfMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}day_of_month'],
+      )!,
+      storeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}store_name'],
+      ),
+      memo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memo'],
+      ),
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      startYm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_ym'],
+      )!,
+      endYm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_ym'],
+      ),
+      lastGeneratedYm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_generated_ym'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecurringRulesTable createAlias(String alias) {
+    return $RecurringRulesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<TxnType, String, String> $convertertype =
+      const EnumNameConverter<TxnType>(TxnType.values);
+}
+
+class RecurringRuleRow extends DataClass
+    implements Insertable<RecurringRuleRow> {
+  final int id;
+  final TxnType type;
+  final int amount;
+  final int categoryId;
+
+  /// 毎月の起票日 1..31。短い月は末日に丸める（31日→2月は28/29日）。
+  final int dayOfMonth;
+  final String? storeName;
+  final String? memo;
+
+  /// false=一時停止（起票しない）。停止中も lastGeneratedYm は進めず、
+  /// 再開時に停止期間分をさかのぼって起票しない（applyDue 参照）。
+  final bool isActive;
+
+  /// 起票を開始する月（YYYY*100+MM。例: 2026年8月=202608）。
+  final int startYm;
+
+  /// 起票する最後の月（両端含む）。null=無期限。
+  final int? endYm;
+
+  /// 最後に起票した月。null=まだ一度も起票していない。
+  final int? lastGeneratedYm;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const RecurringRuleRow({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.categoryId,
+    required this.dayOfMonth,
+    this.storeName,
+    this.memo,
+    required this.isActive,
+    required this.startYm,
+    this.endYm,
+    this.lastGeneratedYm,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['type'] = Variable<String>(
+        $RecurringRulesTable.$convertertype.toSql(type),
+      );
+    }
+    map['amount'] = Variable<int>(amount);
+    map['category_id'] = Variable<int>(categoryId);
+    map['day_of_month'] = Variable<int>(dayOfMonth);
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
+    }
+    if (!nullToAbsent || memo != null) {
+      map['memo'] = Variable<String>(memo);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    map['start_ym'] = Variable<int>(startYm);
+    if (!nullToAbsent || endYm != null) {
+      map['end_ym'] = Variable<int>(endYm);
+    }
+    if (!nullToAbsent || lastGeneratedYm != null) {
+      map['last_generated_ym'] = Variable<int>(lastGeneratedYm);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RecurringRulesCompanion toCompanion(bool nullToAbsent) {
+    return RecurringRulesCompanion(
+      id: Value(id),
+      type: Value(type),
+      amount: Value(amount),
+      categoryId: Value(categoryId),
+      dayOfMonth: Value(dayOfMonth),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
+      memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
+      isActive: Value(isActive),
+      startYm: Value(startYm),
+      endYm: endYm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endYm),
+      lastGeneratedYm: lastGeneratedYm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedYm),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RecurringRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecurringRuleRow(
+      id: serializer.fromJson<int>(json['id']),
+      type: $RecurringRulesTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      amount: serializer.fromJson<int>(json['amount']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      dayOfMonth: serializer.fromJson<int>(json['dayOfMonth']),
+      storeName: serializer.fromJson<String?>(json['storeName']),
+      memo: serializer.fromJson<String?>(json['memo']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      startYm: serializer.fromJson<int>(json['startYm']),
+      endYm: serializer.fromJson<int?>(json['endYm']),
+      lastGeneratedYm: serializer.fromJson<int?>(json['lastGeneratedYm']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'type': serializer.toJson<String>(
+        $RecurringRulesTable.$convertertype.toJson(type),
+      ),
+      'amount': serializer.toJson<int>(amount),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'dayOfMonth': serializer.toJson<int>(dayOfMonth),
+      'storeName': serializer.toJson<String?>(storeName),
+      'memo': serializer.toJson<String?>(memo),
+      'isActive': serializer.toJson<bool>(isActive),
+      'startYm': serializer.toJson<int>(startYm),
+      'endYm': serializer.toJson<int?>(endYm),
+      'lastGeneratedYm': serializer.toJson<int?>(lastGeneratedYm),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RecurringRuleRow copyWith({
+    int? id,
+    TxnType? type,
+    int? amount,
+    int? categoryId,
+    int? dayOfMonth,
+    Value<String?> storeName = const Value.absent(),
+    Value<String?> memo = const Value.absent(),
+    bool? isActive,
+    int? startYm,
+    Value<int?> endYm = const Value.absent(),
+    Value<int?> lastGeneratedYm = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => RecurringRuleRow(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    amount: amount ?? this.amount,
+    categoryId: categoryId ?? this.categoryId,
+    dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+    storeName: storeName.present ? storeName.value : this.storeName,
+    memo: memo.present ? memo.value : this.memo,
+    isActive: isActive ?? this.isActive,
+    startYm: startYm ?? this.startYm,
+    endYm: endYm.present ? endYm.value : this.endYm,
+    lastGeneratedYm: lastGeneratedYm.present
+        ? lastGeneratedYm.value
+        : this.lastGeneratedYm,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RecurringRuleRow copyWithCompanion(RecurringRulesCompanion data) {
+    return RecurringRuleRow(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      dayOfMonth: data.dayOfMonth.present
+          ? data.dayOfMonth.value
+          : this.dayOfMonth,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      memo: data.memo.present ? data.memo.value : this.memo,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      startYm: data.startYm.present ? data.startYm.value : this.startYm,
+      endYm: data.endYm.present ? data.endYm.value : this.endYm,
+      lastGeneratedYm: data.lastGeneratedYm.present
+          ? data.lastGeneratedYm.value
+          : this.lastGeneratedYm,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringRuleRow(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('storeName: $storeName, ')
+          ..write('memo: $memo, ')
+          ..write('isActive: $isActive, ')
+          ..write('startYm: $startYm, ')
+          ..write('endYm: $endYm, ')
+          ..write('lastGeneratedYm: $lastGeneratedYm, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    amount,
+    categoryId,
+    dayOfMonth,
+    storeName,
+    memo,
+    isActive,
+    startYm,
+    endYm,
+    lastGeneratedYm,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecurringRuleRow &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.amount == this.amount &&
+          other.categoryId == this.categoryId &&
+          other.dayOfMonth == this.dayOfMonth &&
+          other.storeName == this.storeName &&
+          other.memo == this.memo &&
+          other.isActive == this.isActive &&
+          other.startYm == this.startYm &&
+          other.endYm == this.endYm &&
+          other.lastGeneratedYm == this.lastGeneratedYm &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
+  final Value<int> id;
+  final Value<TxnType> type;
+  final Value<int> amount;
+  final Value<int> categoryId;
+  final Value<int> dayOfMonth;
+  final Value<String?> storeName;
+  final Value<String?> memo;
+  final Value<bool> isActive;
+  final Value<int> startYm;
+  final Value<int?> endYm;
+  final Value<int?> lastGeneratedYm;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const RecurringRulesCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.dayOfMonth = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.memo = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.startYm = const Value.absent(),
+    this.endYm = const Value.absent(),
+    this.lastGeneratedYm = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  RecurringRulesCompanion.insert({
+    this.id = const Value.absent(),
+    required TxnType type,
+    required int amount,
+    required int categoryId,
+    required int dayOfMonth,
+    this.storeName = const Value.absent(),
+    this.memo = const Value.absent(),
+    this.isActive = const Value.absent(),
+    required int startYm,
+    this.endYm = const Value.absent(),
+    this.lastGeneratedYm = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : type = Value(type),
+       amount = Value(amount),
+       categoryId = Value(categoryId),
+       dayOfMonth = Value(dayOfMonth),
+       startYm = Value(startYm);
+  static Insertable<RecurringRuleRow> custom({
+    Expression<int>? id,
+    Expression<String>? type,
+    Expression<int>? amount,
+    Expression<int>? categoryId,
+    Expression<int>? dayOfMonth,
+    Expression<String>? storeName,
+    Expression<String>? memo,
+    Expression<bool>? isActive,
+    Expression<int>? startYm,
+    Expression<int>? endYm,
+    Expression<int>? lastGeneratedYm,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (amount != null) 'amount': amount,
+      if (categoryId != null) 'category_id': categoryId,
+      if (dayOfMonth != null) 'day_of_month': dayOfMonth,
+      if (storeName != null) 'store_name': storeName,
+      if (memo != null) 'memo': memo,
+      if (isActive != null) 'is_active': isActive,
+      if (startYm != null) 'start_ym': startYm,
+      if (endYm != null) 'end_ym': endYm,
+      if (lastGeneratedYm != null) 'last_generated_ym': lastGeneratedYm,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  RecurringRulesCompanion copyWith({
+    Value<int>? id,
+    Value<TxnType>? type,
+    Value<int>? amount,
+    Value<int>? categoryId,
+    Value<int>? dayOfMonth,
+    Value<String?>? storeName,
+    Value<String?>? memo,
+    Value<bool>? isActive,
+    Value<int>? startYm,
+    Value<int?>? endYm,
+    Value<int?>? lastGeneratedYm,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return RecurringRulesCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      categoryId: categoryId ?? this.categoryId,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      storeName: storeName ?? this.storeName,
+      memo: memo ?? this.memo,
+      isActive: isActive ?? this.isActive,
+      startYm: startYm ?? this.startYm,
+      endYm: endYm ?? this.endYm,
+      lastGeneratedYm: lastGeneratedYm ?? this.lastGeneratedYm,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $RecurringRulesTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (dayOfMonth.present) {
+      map['day_of_month'] = Variable<int>(dayOfMonth.value);
+    }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
+    if (memo.present) {
+      map['memo'] = Variable<String>(memo.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (startYm.present) {
+      map['start_ym'] = Variable<int>(startYm.value);
+    }
+    if (endYm.present) {
+      map['end_ym'] = Variable<int>(endYm.value);
+    }
+    if (lastGeneratedYm.present) {
+      map['last_generated_ym'] = Variable<int>(lastGeneratedYm.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('storeName: $storeName, ')
+          ..write('memo: $memo, ')
+          ..write('isActive: $isActive, ')
+          ..write('startYm: $startYm, ')
+          ..write('endYm: $endYm, ')
+          ..write('lastGeneratedYm: $lastGeneratedYm, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
+  late final $RecurringRulesTable recurringRules = $RecurringRulesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
+    this as AppDatabase,
+  );
+  late final RecurringRuleDao recurringRuleDao = RecurringRuleDao(
     this as AppDatabase,
   );
   @override
@@ -1357,6 +2130,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     categories,
     transactions,
+    recurringRules,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -1422,6 +2196,24 @@ final class $$CategoriesTableReferences
     ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$RecurringRulesTable, List<RecurringRuleRow>>
+  _recurringRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.recurringRules,
+    aliasName: 'categories__id__recurring_rules__category_id',
+  );
+
+  $$RecurringRulesTableProcessedTableManager get recurringRulesRefs {
+    final manager = $$RecurringRulesTableTableManager(
+      $_db,
+      $_db.recurringRules,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_recurringRulesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1517,6 +2309,31 @@ class $$CategoriesTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> recurringRulesRefs(
+    Expression<bool> Function($$RecurringRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recurringRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecurringRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.recurringRules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1682,6 +2499,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> recurringRulesRefs<T extends Object>(
+    Expression<T> Function($$RecurringRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recurringRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecurringRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.recurringRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -1697,7 +2539,11 @@ class $$CategoriesTableTableManager
           $$CategoriesTableUpdateCompanionBuilder,
           (CategoryRow, $$CategoriesTableReferences),
           CategoryRow,
-          PrefetchHooks Function({bool parentId, bool transactionsRefs})
+          PrefetchHooks Function({
+            bool parentId,
+            bool transactionsRefs,
+            bool recurringRulesRefs,
+          })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
     : super(
@@ -1763,11 +2609,16 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({parentId = false, transactionsRefs = false}) {
+              ({
+                parentId = false,
+                transactionsRefs = false,
+                recurringRulesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionsRefs) db.transactions,
+                    if (recurringRulesRefs) db.recurringRules,
                   ],
                   addJoins:
                       <
@@ -1825,6 +2676,27 @@ class $$CategoriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (recurringRulesRefs)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          RecurringRuleRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._recurringRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringRulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -1845,7 +2717,11 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (CategoryRow, $$CategoriesTableReferences),
       CategoryRow,
-      PrefetchHooks Function({bool parentId, bool transactionsRefs})
+      PrefetchHooks Function({
+        bool parentId,
+        bool transactionsRefs,
+        bool recurringRulesRefs,
+      })
     >;
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
@@ -2319,6 +3195,482 @@ typedef $$TransactionsTableProcessedTableManager =
       TransactionRow,
       PrefetchHooks Function({bool categoryId})
     >;
+typedef $$RecurringRulesTableCreateCompanionBuilder =
+    RecurringRulesCompanion Function({
+      Value<int> id,
+      required TxnType type,
+      required int amount,
+      required int categoryId,
+      required int dayOfMonth,
+      Value<String?> storeName,
+      Value<String?> memo,
+      Value<bool> isActive,
+      required int startYm,
+      Value<int?> endYm,
+      Value<int?> lastGeneratedYm,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$RecurringRulesTableUpdateCompanionBuilder =
+    RecurringRulesCompanion Function({
+      Value<int> id,
+      Value<TxnType> type,
+      Value<int> amount,
+      Value<int> categoryId,
+      Value<int> dayOfMonth,
+      Value<String?> storeName,
+      Value<String?> memo,
+      Value<bool> isActive,
+      Value<int> startYm,
+      Value<int?> endYm,
+      Value<int?> lastGeneratedYm,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$RecurringRulesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $RecurringRulesTable, RecurringRuleRow> {
+  $$RecurringRulesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias('recurring_rules__category_id__categories__id');
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<int>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RecurringRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $RecurringRulesTable> {
+  $$RecurringRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TxnType, TxnType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startYm => $composableBuilder(
+    column: $table.startYm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endYm => $composableBuilder(
+    column: $table.endYm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastGeneratedYm => $composableBuilder(
+    column: $table.lastGeneratedYm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecurringRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecurringRulesTable> {
+  $$RecurringRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startYm => $composableBuilder(
+    column: $table.startYm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endYm => $composableBuilder(
+    column: $table.endYm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastGeneratedYm => $composableBuilder(
+    column: $table.lastGeneratedYm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecurringRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecurringRulesTable> {
+  $$RecurringRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TxnType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get storeName =>
+      $composableBuilder(column: $table.storeName, builder: (column) => column);
+
+  GeneratedColumn<String> get memo =>
+      $composableBuilder(column: $table.memo, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<int> get startYm =>
+      $composableBuilder(column: $table.startYm, builder: (column) => column);
+
+  GeneratedColumn<int> get endYm =>
+      $composableBuilder(column: $table.endYm, builder: (column) => column);
+
+  GeneratedColumn<int> get lastGeneratedYm => $composableBuilder(
+    column: $table.lastGeneratedYm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecurringRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecurringRulesTable,
+          RecurringRuleRow,
+          $$RecurringRulesTableFilterComposer,
+          $$RecurringRulesTableOrderingComposer,
+          $$RecurringRulesTableAnnotationComposer,
+          $$RecurringRulesTableCreateCompanionBuilder,
+          $$RecurringRulesTableUpdateCompanionBuilder,
+          (RecurringRuleRow, $$RecurringRulesTableReferences),
+          RecurringRuleRow,
+          PrefetchHooks Function({bool categoryId})
+        > {
+  $$RecurringRulesTableTableManager(
+    _$AppDatabase db,
+    $RecurringRulesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecurringRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecurringRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecurringRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<TxnType> type = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<int> dayOfMonth = const Value.absent(),
+                Value<String?> storeName = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> startYm = const Value.absent(),
+                Value<int?> endYm = const Value.absent(),
+                Value<int?> lastGeneratedYm = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => RecurringRulesCompanion(
+                id: id,
+                type: type,
+                amount: amount,
+                categoryId: categoryId,
+                dayOfMonth: dayOfMonth,
+                storeName: storeName,
+                memo: memo,
+                isActive: isActive,
+                startYm: startYm,
+                endYm: endYm,
+                lastGeneratedYm: lastGeneratedYm,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required TxnType type,
+                required int amount,
+                required int categoryId,
+                required int dayOfMonth,
+                Value<String?> storeName = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                required int startYm,
+                Value<int?> endYm = const Value.absent(),
+                Value<int?> lastGeneratedYm = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => RecurringRulesCompanion.insert(
+                id: id,
+                type: type,
+                amount: amount,
+                categoryId: categoryId,
+                dayOfMonth: dayOfMonth,
+                storeName: storeName,
+                memo: memo,
+                isActive: isActive,
+                startYm: startYm,
+                endYm: endYm,
+                lastGeneratedYm: lastGeneratedYm,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RecurringRulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (categoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.categoryId,
+                                referencedTable: $$RecurringRulesTableReferences
+                                    ._categoryIdTable(db),
+                                referencedColumn:
+                                    $$RecurringRulesTableReferences
+                                        ._categoryIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RecurringRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecurringRulesTable,
+      RecurringRuleRow,
+      $$RecurringRulesTableFilterComposer,
+      $$RecurringRulesTableOrderingComposer,
+      $$RecurringRulesTableAnnotationComposer,
+      $$RecurringRulesTableCreateCompanionBuilder,
+      $$RecurringRulesTableUpdateCompanionBuilder,
+      (RecurringRuleRow, $$RecurringRulesTableReferences),
+      RecurringRuleRow,
+      PrefetchHooks Function({bool categoryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2327,4 +3679,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db, _db.transactions);
+  $$RecurringRulesTableTableManager get recurringRules =>
+      $$RecurringRulesTableTableManager(_db, _db.recurringRules);
 }

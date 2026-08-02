@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "Introduce también el importe restante",
   "settingsBackupNever": "Sin copias todavía",
   "settingsBackupToday": "Última copia: hoy",
-  "settingsBackupDaysAgo": "Última copia: hace {days} días"
+  "settingsBackupDaysAgo": "Última copia: hace {days} días",
+  "recurringPageTitle": "Movimientos fijos mensuales",
+  "settingsRecurringSubtitle": "Registra automáticamente cada mes el alquiler, el sueldo, etc.",
+  "recurringEmptyMessage": "Aún no hay nada.\nToca + para automatizar registros mensuales como el alquiler o el sueldo.",
+  "recurringAddTitle": "Añadir movimiento fijo",
+  "recurringEditTitle": "Editar movimiento fijo",
+  "recurringAmountLabel": "Importe",
+  "recurringDayLabel": "Día del mes",
+  "recurringEveryMonthDay": "El día {day} de cada mes",
+  "recurringDayClampNote": "En los meses más cortos se registra el último día (p. ej., el 31 → 28 de febrero).",
+  "recurringStartMonthLabel": "Empieza",
+  "recurringStartThisMonth": "Este mes",
+  "recurringStartNextMonth": "El mes que viene",
+  "recurringActiveTitle": "Activo",
+  "recurringActiveSubtitle": "Desactívalo para pausar el registro automático",
+  "recurringPausedLabel": "En pausa",
+  "recurringDeleteConfirmTitle": "¿Eliminar?",
+  "recurringDeleteConfirmContent": "Se eliminará este movimiento fijo. Los registros ya creados se conservarán."
 }

@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "请也输入剩余金额",
   "settingsBackupNever": "尚未创建备份",
   "settingsBackupToday": "上次备份：今天",
-  "settingsBackupDaysAgo": "上次备份：{days} 天前"
+  "settingsBackupDaysAgo": "上次备份：{days} 天前",
+  "recurringPageTitle": "每月固定收支",
+  "settingsRecurringSubtitle": "自动记录房租、工资等每月固定项目",
+  "recurringEmptyMessage": "还没有登记。\n点右上角的＋，即可自动记录房租、工资等每月项目",
+  "recurringAddTitle": "添加固定收支",
+  "recurringEditTitle": "编辑固定收支",
+  "recurringAmountLabel": "金额",
+  "recurringDayLabel": "记录日期",
+  "recurringEveryMonthDay": "每月{day}日",
+  "recurringDayClampNote": "没有该日期的月份将记在月末（例如31日→2月记在28日）",
+  "recurringStartMonthLabel": "开始",
+  "recurringStartThisMonth": "本月开始",
+  "recurringStartNextMonth": "下月开始",
+  "recurringActiveTitle": "启用",
+  "recurringActiveSubtitle": "关闭后暂停自动记录",
+  "recurringPausedLabel": "已暂停",
+  "recurringDeleteConfirmTitle": "要删除吗？",
+  "recurringDeleteConfirmContent": "将删除此固定收支。已记录的交易会保留。"
 }

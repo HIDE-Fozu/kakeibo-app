@@ -29,6 +29,37 @@ class TransactionEntity {
   });
 }
 
+/// 毎月の固定費・収入のルール。期日が来ると通常の取引として起票される。
+/// 月（startYm/endYm/lastGeneratedYm）は YYYY*100+MM の整数
+/// （recurring_schedule.dart の ymOf と同形式）。
+class RecurringRuleEntity {
+  final int? id;
+  final TxnType type;
+  final int amountMinor; // 整数minor unit・非負
+  final int categoryId;
+  final int dayOfMonth; // 1..31（短い月は末日に丸めて起票）
+  final String? storeName;
+  final String? memo;
+  final bool isActive; // false=一時停止（起票しない）
+  final int startYm;
+  final int? endYm; // 両端含む。null=無期限
+  final int? lastGeneratedYm; // null=未起票
+
+  const RecurringRuleEntity({
+    this.id,
+    required this.type,
+    required this.amountMinor,
+    required this.categoryId,
+    required this.dayOfMonth,
+    this.storeName,
+    this.memo,
+    this.isActive = true,
+    required this.startYm,
+    this.endYm,
+    this.lastGeneratedYm,
+  });
+}
+
 class MonthlySummary {
   final int income;
   final int expense;

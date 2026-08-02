@@ -8,7 +8,9 @@ class BackupCodec {
   /// バックアップ形式のバージョン。DBのschemaVersionとは独立に管理する。
   /// v2: categories[].parentId（内訳）を追加。
   /// v3: categories[].slug（安定キー）を追加。旧バックアップはnull復元。
-  static const int formatVersion = 3;
+  /// v4: recurringRules（定期ルール）と TxnSource.recurring を追加。
+  ///     旧バックアップはルール空で復元。
+  static const int formatVersion = 4;
 
   const BackupCodec();
 
@@ -46,6 +48,24 @@ class BackupCodec {
             'splitGroupId': t.splitGroupId,
             'createdAt': t.createdAt.toUtc().toIso8601String(),
             'updatedAt': t.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'recurringRules': [
+        for (final r in p.recurringRules)
+          {
+            'id': r.id,
+            'type': r.type.name,
+            'amount': r.amount,
+            'categoryId': r.categoryId,
+            'dayOfMonth': r.dayOfMonth,
+            'storeName': r.storeName,
+            'memo': r.memo,
+            'isActive': r.isActive,
+            'startYm': r.startYm,
+            'endYm': r.endYm,
+            'lastGeneratedYm': r.lastGeneratedYm,
+            'createdAt': r.createdAt.toUtc().toIso8601String(),
+            'updatedAt': r.updatedAt.toUtc().toIso8601String(),
           },
       ],
     };
@@ -233,11 +253,72 @@ class BackupCodec {
       transactions.add(t);
     }
 
+    // --- recurringRules（v4） ---
+    final rulesRaw = req<List<dynamic>>(root, 'recurringRules', 'root');
+    final recurringRules = <BackupRecurringRule>[];
+    final ruleIds = <int>{};
+    bool validYm(int ym) {
+      final m = ym % 100;
+      return m >= 1 && m <= 12 && ym >= 100;
+    }
+
+    for (final (i, raw) in rulesRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('recurringRules[$i] がオブジェクトではありません');
+      }
+      final ctx = 'recurringRules[$i]';
+      final amount = req<int>(raw, 'amount', ctx);
+      if (amount < 0) {
+        throw BackupValidationError('$ctx.amount が負です: $amount');
+      }
+      final dayOfMonth = req<int>(raw, 'dayOfMonth', ctx);
+      if (dayOfMonth < 1 || dayOfMonth > 31) {
+        throw BackupValidationError('$ctx.dayOfMonth が範囲外です: $dayOfMonth');
+      }
+      final startYm = req<int>(raw, 'startYm', ctx);
+      final endYm = opt<int>(raw, 'endYm', ctx);
+      final lastYm = opt<int>(raw, 'lastGeneratedYm', ctx);
+      for (final (name, ym) in [
+        ('startYm', startYm),
+        ('endYm', endYm),
+        ('lastGeneratedYm', lastYm)
+      ]) {
+        if (ym != null && !validYm(ym)) {
+          throw BackupValidationError('$ctx.$name が YYYYMM ではありません: $ym');
+        }
+      }
+      final r = BackupRecurringRule(
+        id: req<int>(raw, 'id', ctx),
+        type: enumByName(
+            TxnType.values, req<String>(raw, 'type', ctx), '$ctx.type'),
+        amount: amount,
+        categoryId: req<int>(raw, 'categoryId', ctx),
+        dayOfMonth: dayOfMonth,
+        storeName: opt<String>(raw, 'storeName', ctx),
+        memo: opt<String>(raw, 'memo', ctx),
+        isActive: req<bool>(raw, 'isActive', ctx),
+        startYm: startYm,
+        endYm: endYm,
+        lastGeneratedYm: lastYm,
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+        updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
+      );
+      if (!ruleIds.add(r.id)) {
+        throw BackupValidationError('定期ルールID ${r.id} が重複しています');
+      }
+      if (!catIds.contains(r.categoryId)) {
+        throw BackupValidationError(
+            '$ctx.categoryId ${r.categoryId} が同梱カテゴリに解決できません');
+      }
+      recurringRules.add(r);
+    }
+
     return BackupPayload(
       formatVersion: formatVersion, // マイグレーション後は常に現行
       exportedAt: exportedAt,
       categories: categories,
       transactions: transactions,
+      recurringRules: recurringRules,
     );
   }
 
@@ -251,6 +332,8 @@ class BackupCodec {
           m = _migrateV1toV2(m);
         case 2:
           m = _migrateV2toV3(m);
+        case 3:
+          m = _migrateV3toV4(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -279,6 +362,12 @@ class BackupCodec {
         if (c is Map<String, dynamic>) c.putIfAbsent('slug', () => null);
       }
     }
+    return root;
+  }
+
+  /// v3→v4: recurringRules を空で補完（旧バックアップに定期ルールは無い）。
+  Map<String, dynamic> _migrateV3toV4(Map<String, dynamic> root) {
+    root.putIfAbsent('recurringRules', () => <dynamic>[]);
     return root;
   }
 }

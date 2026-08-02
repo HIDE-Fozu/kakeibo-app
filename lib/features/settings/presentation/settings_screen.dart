@@ -15,6 +15,7 @@ import '../../../data/ocr/ocr_fixture_share.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
+import '../../recurring/presentation/recurring_rules_page.dart';
 import 'category_manage_page.dart';
 import 'color_picker_dialog.dart';
 import 'restore_picker_page.dart';
@@ -100,6 +101,16 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
           const Divider(),
+          ListTile(
+            key: const Key('recurring-tile'),
+            leading: const Icon(Icons.event_repeat),
+            title: Text(l.recurringPageTitle),
+            subtitle: Text(l.settingsRecurringSubtitle),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RecurringRulesPage()),
+            ),
+          ),
           SwitchListTile(
             key: const Key('retain-images-switch'),
             title: Text(l.settingsRetainImagesTitle),

@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "Inserisci anche l'importo rimanente",
   "settingsBackupNever": "Nessun backup",
   "settingsBackupToday": "Ultimo backup: oggi",
-  "settingsBackupDaysAgo": "Ultimo backup: {days} giorni fa"
+  "settingsBackupDaysAgo": "Ultimo backup: {days} giorni fa",
+  "recurringPageTitle": "Movimenti fissi mensili",
+  "settingsRecurringSubtitle": "Registra automaticamente ogni mese affitto, stipendio ecc.",
+  "recurringEmptyMessage": "Ancora nessun elemento.\nTocca + per automatizzare le registrazioni mensili come affitto o stipendio.",
+  "recurringAddTitle": "Aggiungi movimento fisso",
+  "recurringEditTitle": "Modifica movimento fisso",
+  "recurringAmountLabel": "Importo",
+  "recurringDayLabel": "Giorno del mese",
+  "recurringEveryMonthDay": "Il giorno {day} di ogni mese",
+  "recurringDayClampNote": "Nei mesi più corti viene registrato l'ultimo giorno (es. il 31 → 28 febbraio).",
+  "recurringStartMonthLabel": "Inizio",
+  "recurringStartThisMonth": "Questo mese",
+  "recurringStartNextMonth": "Il mese prossimo",
+  "recurringActiveTitle": "Attivo",
+  "recurringActiveSubtitle": "Disattiva per sospendere la registrazione automatica",
+  "recurringPausedLabel": "In pausa",
+  "recurringDeleteConfirmTitle": "Eliminare?",
+  "recurringDeleteConfirmContent": "Questo movimento fisso verrà eliminato. Le registrazioni già create saranno conservate."
 }

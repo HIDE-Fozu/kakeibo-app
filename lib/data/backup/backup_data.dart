@@ -107,15 +107,51 @@ class BackupTxn {
   });
 }
 
+/// 行と1:1のバックアップ用定期ルール（formatVersion 4で追加）。
+class BackupRecurringRule {
+  final int id;
+  final TxnType type;
+  final int amount;
+  final int categoryId;
+  final int dayOfMonth;
+  final String? storeName;
+  final String? memo;
+  final bool isActive;
+  final int startYm;
+  final int? endYm;
+  final int? lastGeneratedYm;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const BackupRecurringRule({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.categoryId,
+    required this.dayOfMonth,
+    required this.storeName,
+    required this.memo,
+    required this.isActive,
+    required this.startYm,
+    required this.endYm,
+    required this.lastGeneratedYm,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
 class BackupPayload {
   final int formatVersion;
   final DateTime? exportedAt;
   final List<BackupCategory> categories;
   final List<BackupTxn> transactions;
+
+  /// 定期ルール（formatVersion 4で追加。旧バックアップは空で復元）。
+  final List<BackupRecurringRule> recurringRules;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
     required this.categories,
     required this.transactions,
+    this.recurringRules = const [],
   });
 }

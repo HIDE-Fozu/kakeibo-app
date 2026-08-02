@@ -9,8 +9,8 @@ import '../../domain/money/civil_date.dart';
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Categories, Transactions],
-  daos: [CategoryDao, TransactionDao],
+  tables: [Categories, Transactions, RecurringRules],
+  daos: [CategoryDao, TransactionDao, RecurringRuleDao],
 )
 class AppDatabase extends _$AppDatabase {
   /// 新規インストール時にシードするカテゴリ名の言語（BCP-47のlanguageCode）。
@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -47,6 +47,10 @@ class AppDatabase extends _$AppDatabase {
             // バックフィルし、絵文字・自動税率がローカライズ後も壊れないようにする。
             await m.addColumn(categories, categories.slug);
             await _backfillSlugs();
+          }
+          if (from < 6) {
+            // v6: 毎月の固定費・収入（定期取引ルール）。既存データは無関係。
+            await m.createTable(recurringRules);
           }
         },
         beforeOpen: (details) async {

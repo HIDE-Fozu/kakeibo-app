@@ -188,5 +188,22 @@
   "entryHintEnterRemainingAmount": "Digite também o valor restante",
   "settingsBackupNever": "Nenhum backup ainda",
   "settingsBackupToday": "Último backup: hoje",
-  "settingsBackupDaysAgo": "Último backup: há {days} dias"
+  "settingsBackupDaysAgo": "Último backup: há {days} dias",
+  "recurringPageTitle": "Lançamentos fixos mensais",
+  "settingsRecurringSubtitle": "Registre aluguel, salário etc. automaticamente todo mês",
+  "recurringEmptyMessage": "Nada por aqui ainda.\nToque em + para automatizar lançamentos mensais como aluguel ou salário.",
+  "recurringAddTitle": "Adicionar lançamento fixo",
+  "recurringEditTitle": "Editar lançamento fixo",
+  "recurringAmountLabel": "Valor",
+  "recurringDayLabel": "Dia do mês",
+  "recurringEveryMonthDay": "Dia {day} de cada mês",
+  "recurringDayClampNote": "Em meses mais curtos, é registrado no último dia (ex.: dia 31 → 28 de fevereiro).",
+  "recurringStartMonthLabel": "Início",
+  "recurringStartThisMonth": "Este mês",
+  "recurringStartNextMonth": "Mês que vem",
+  "recurringActiveTitle": "Ativo",
+  "recurringActiveSubtitle": "Desative para pausar o registro automático",
+  "recurringPausedLabel": "Pausado",
+  "recurringDeleteConfirmTitle": "Excluir?",
+  "recurringDeleteConfirmContent": "Este lançamento fixo será excluído. Os registros já criados serão mantidos."
 }
