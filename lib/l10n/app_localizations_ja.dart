@@ -697,4 +697,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entryHintPickCategoryRemainder => '「残り」の行のカテゴリを選んでください';
+
+  @override
+  String get splitMemoDialogTitle => 'メモを入力';
 }

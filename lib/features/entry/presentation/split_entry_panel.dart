@@ -393,21 +393,44 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               ),
               const SizedBox(width: 7),
               if (line.categoryId != null)
+                // メモはインライン入力ではなくボタン→ダイアログ入力に。
+                // 未入力: アイコン＋「メモ」/ 入力済み: 本文を1行表示（タップで編集）。
                 Expanded(
-                  child: TextFormField(
-                    key: ValueKey('split-linememo-$i-${state.formSeq}'),
-                    initialValue: line.memo,
-                    style: const TextStyle(fontSize: 12),
-                    decoration: InputDecoration(
-                      hintText: l.splitMemoHint,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 2),
-                      border: const UnderlineInputBorder(),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      key: Key('split-memo-btn-$i'),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        ctrl.setActiveSplit(i);
+                        _editSplitMemo(context, i, line.memo);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 4),
+                        child: line.memo.isEmpty
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.edit_note,
+                                      size: 16, color: scheme.outline),
+                                  const SizedBox(width: 2),
+                                  Text(l.splitMemoHint,
+                                      style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: scheme.outline)),
+                                ],
+                              )
+                            : Text(
+                                line.memo,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: scheme.onSurfaceVariant),
+                              ),
+                      ),
                     ),
-                    // メモ欄が行の大半を占めるため、ここのタップでも行を
-                    // アクティブにする（「行のどこを押しても選択」の体感を守る）。
-                    onTap: () => ctrl.setActiveSplit(i),
-                    onChanged: (v) => ctrl.setSplitMemo(i, v),
                   ),
                 )
               else
@@ -452,6 +475,21 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         ),
       ),
     );
+  }
+
+  /// 行メモの入力ダイアログ。保存でその行（＝そのカテゴリの取引）のメモになる。
+  Future<void> _editSplitMemo(
+      BuildContext context, int i, String current) async {
+    final l = AppLocalizations.of(context);
+    final ctrl = ref.read(entryFormControllerProvider.notifier);
+    final title =
+        '${l.splitItemNumberLabel(i + 1)} — ${l.splitMemoDialogTitle}';
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => _SplitMemoDialog(title: title, initial: current),
+    );
+    if (result == null) return; // キャンセル
+    ctrl.setSplitMemo(i, result.trim());
   }
 
   /// 残額行（最下段固定・差分表示）。カテゴリを付けるだけで最後の1品になる。
@@ -584,6 +622,54 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 行メモの入力ダイアログ。controllerの寿命をダイアログ自身に閉じ込める
+/// （popアニメーション中のdispose事故防止・_CategoryEditDialogと同じ流儀）。
+class _SplitMemoDialog extends StatefulWidget {
+  final String title;
+  final String initial;
+  const _SplitMemoDialog({required this.title, required this.initial});
+
+  @override
+  State<_SplitMemoDialog> createState() => _SplitMemoDialogState();
+}
+
+class _SplitMemoDialogState extends State<_SplitMemoDialog> {
+  late final _text = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        key: const Key('split-memo-field'),
+        controller: _text,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: l.splitMemoHint,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (v) => Navigator.pop(context, v),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.commonCancel)),
+        FilledButton(
+            key: const Key('split-memo-save'),
+            onPressed: () => Navigator.pop(context, _text.text),
+            child: Text(l.commonSave)),
+      ],
     );
   }
 }

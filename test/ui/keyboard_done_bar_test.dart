@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kakeibo_app/app/home_shell.dart';
+import 'package:kakeibo_app/app/navigation.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
-import 'package:kakeibo_app/features/entry/presentation/entry_screen.dart';
 import 'package:kakeibo_app/features/recurring/presentation/recurring_rules_page.dart';
 
 import '../support/test_app.dart';
@@ -11,36 +12,35 @@ import '../support/test_app.dart';
 const day = CivilDate(2026, 7, 15);
 
 void main() {
-  testWidgets('入力画面: キーボードが開くと「完了」バーが出て、タップで閉じる（unfocus）',
+  testWidgets('入力画面(HomeShell内): メモ欄フォーカスで「完了」バーが出て、タップで閉じる',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
-    await pumpApp(tester, h, home: const EntryScreen());
+    // 実機と同じネスト（HomeShellのScaffold内のEntryScreen）で検証する。
+    // viewInsets方式は外側Scaffoldがinsetを消費して実機で出なかった（回帰確認）。
+    await pumpApp(tester, h, home: const HomeShell());
     final c = ProviderScope.containerOf(
         tester.element(find.byType(MaterialApp).first),
         listen: false);
     c.read(entryFormControllerProvider.notifier).startCreate(day);
+    c.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
     await tester.pumpAndSettle();
 
-    // キーボード閉: バーなし
+    // フォーカスなし: バーなし
     expect(find.byKey(const Key('kb-done')), findsNothing);
 
-    // メモ欄にフォーカス＋キーボードのinsetを疑似発生
-    await tester.ensureVisible(find.byKey(ValueKey(
-        'memo-field-${c.read(entryFormControllerProvider)!.formSeq}')));
-    await tester.tap(find.byKey(ValueKey(
-        'memo-field-${c.read(entryFormControllerProvider)!.formSeq}')));
-    tester.view.viewInsets = FakeViewPadding(
-        bottom: 300 * tester.view.devicePixelRatio);
-    addTearDown(tester.view.resetViewInsets);
+    // メモ欄にフォーカス → バー表示
+    final memoField = find.byKey(ValueKey(
+        'memo-field-${c.read(entryFormControllerProvider)!.formSeq}'));
+    await tester.ensureVisible(memoField);
+    await tester.pumpAndSettle();
+    await tester.tap(memoField);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kb-done')), findsOneWidget);
-    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
 
-    // 完了 → unfocus（実機はこれでキーボードが閉じる）
+    // 完了 → unfocus（実機はこれでキーボードが閉じる）→ バーが消える
     await tester.tap(find.byKey(const Key('kb-done')));
-    tester.view.viewInsets = FakeViewPadding.zero;
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kb-done')), findsNothing);
     final focused = FocusManager.instance.primaryFocus;
@@ -53,10 +53,8 @@ void main() {
     addTearDown(h.dispose);
     await pumpApp(tester, h, home: const RecurringRuleEditPage(rule: null));
 
+    expect(find.byKey(const Key('kb-done')), findsNothing);
     await tester.tap(find.byKey(const Key('recurring-amount')));
-    tester.view.viewInsets = FakeViewPadding(
-        bottom: 300 * tester.view.devicePixelRatio);
-    addTearDown(tester.view.resetViewInsets);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kb-done')), findsOneWidget);
   });

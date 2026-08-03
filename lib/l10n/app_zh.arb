@@ -207,5 +207,6 @@
   "recurringDeleteConfirmTitle": "要删除吗？",
   "recurringDeleteConfirmContent": "将删除此固定收支。已记录的交易会保留。",
   "entryHintPickCategoryForItem": "请为项目{n}选择分类",
-  "entryHintPickCategoryRemainder": "请为“剩余”行选择分类"
+  "entryHintPickCategoryRemainder": "请为“剩余”行选择分类",
+  "splitMemoDialogTitle": "输入备注"
 }

@@ -724,4 +724,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get entryHintPickCategoryRemainder =>
       'Wähle eine Kategorie für die Zeile „Rest“';
+
+  @override
+  String get splitMemoDialogTitle => 'Notiz eingeben';
 }

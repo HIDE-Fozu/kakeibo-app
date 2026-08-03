@@ -169,8 +169,6 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
     final amountMinor = parseAmountMinor(_amount.text, currency);
     final canSave =
         amountMinor != null && amountMinor > 0 && _categoryId != null;
-    // キーボードが開いているか（Scaffold より上の context で判定）。
-    final kbOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -325,7 +323,7 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
               ),
             ),
             // キーボード直上の「完了」バー（金額のテンキーには確定キーが無い）。
-            if (kbOpen) const KeyboardDoneBar(),
+            const KeyboardDoneBar(),
           ],
         ),
       ),

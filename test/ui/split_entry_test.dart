@@ -193,4 +193,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(st().splits!.length, before + 1);
   });
+
+  testWidgets('内訳: 行メモはボタン→ダイアログで入力し、行に本文が表示される',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h, home: const EntryScreen());
+    final c = containerOf(tester);
+    final ctrl = c.read(entryFormControllerProvider.notifier);
+    EntryFormState st() => c.read(entryFormControllerProvider)!;
+    ctrl.startCreate(day);
+    await tester.pumpAndSettle();
+
+    ctrl.tapDigit(1);
+    ctrl.tapDoubleZero();
+    ctrl.tapDigit(0);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('start-split')));
+    await tester.tap(find.byKey(const Key('start-split')));
+    await tester.pumpAndSettle();
+
+    // 行0: 300＋日用品 → メモボタンが出る（カテゴリ未選択の行には出ない）
+    ctrl.splitTapDigit(3);
+    ctrl.splitTapDoubleZero();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-memo-btn-0')), findsNothing);
+    await tester.tap(find.textContaining('日用品'));
+    await tester.pumpAndSettle();
+    final memoBtn = find.byKey(const Key('split-memo-btn-0'));
+    expect(memoBtn, findsOneWidget);
+
+    // ボタン → ダイアログで入力・保存 → 行に本文表示＆stateに反映
+    await tester.tap(memoBtn, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-memo-field')), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('split-memo-field')), '洗剤');
+    await tester.tap(find.byKey(const Key('split-memo-save')));
+    await tester.pumpAndSettle();
+    expect(st().splits![0].memo, '洗剤');
+    expect(find.text('洗剤'), findsOneWidget);
+
+    // 再度開くと現在値が入っている（編集）
+    await tester.tap(memoBtn, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('洗剤'), findsNWidgets(2)); // ダイアログ内+行表示
+    await tester.tap(find.text('キャンセル'));
+    await tester.pumpAndSettle();
+    expect(st().splits![0].memo, '洗剤'); // キャンセルは変更なし
+  });
 }

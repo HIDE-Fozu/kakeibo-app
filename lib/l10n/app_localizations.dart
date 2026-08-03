@@ -1359,6 +1359,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a category for the “Remaining” row'**
   String get entryHintPickCategoryRemainder;
+
+  /// Title of the per-item memo input dialog in split mode
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a memo'**
+  String get splitMemoDialogTitle;
 }
 
 class _AppLocalizationsDelegate

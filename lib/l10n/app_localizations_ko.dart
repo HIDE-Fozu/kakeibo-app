@@ -700,4 +700,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entryHintPickCategoryRemainder => '\'남음\' 행의 카테고리를 선택하세요';
+
+  @override
+  String get splitMemoDialogTitle => '메모 입력';
 }

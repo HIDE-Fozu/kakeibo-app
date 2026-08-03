@@ -724,4 +724,7 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get entryHintPickCategoryRemainder =>
       'Escolha uma categoria para a linha “Restante”';
+
+  @override
+  String get splitMemoDialogTitle => 'Digite uma nota';
 }

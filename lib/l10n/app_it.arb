@@ -207,5 +207,6 @@
   "recurringDeleteConfirmTitle": "Eliminare?",
   "recurringDeleteConfirmContent": "Questo movimento fisso verrà eliminato. Le registrazioni già create saranno conservate.",
   "entryHintPickCategoryForItem": "Scegli una categoria per la voce {n}",
-  "entryHintPickCategoryRemainder": "Scegli una categoria per la riga “Rimanente”"
+  "entryHintPickCategoryRemainder": "Scegli una categoria per la riga “Rimanente”",
+  "splitMemoDialogTitle": "Inserisci una nota"
 }

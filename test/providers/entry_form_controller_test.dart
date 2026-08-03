@@ -307,6 +307,21 @@ void main() {
       expect(st().saveHint(jaL), isNull);
     });
 
+    test('行切替でサブカテゴリ表示（expandedParentId）は親一覧に戻る', () {
+      ctrl().startCreate(day);
+      ctrl().tapDigit(1);
+      ctrl().tapDoubleZero();
+      ctrl().tapDigit(0);
+      ctrl().startSplit();
+      ctrl().splitTapDigit(3);
+      // 食費（内訳あり親）を行0に割当 → 帯は内訳チップ表示
+      ctrl().tapCategory(categoryId: foodId, hasSubs: true, isSameGroup: false);
+      expect(st().expandedParentId, foodId);
+      // 残額行へ切替 → 前の行の内訳表示が残らない（開きっぱなしバグの回帰）
+      ctrl().setActiveSplit(1);
+      expect(st().expandedParentId, isNull);
+    });
+
     test('＋品目は残額行の直前に挿入・残額行への打鍵は新しい行で受ける', () {
       ctrl().startCreate(day);
       ctrl().tapDigit(1);

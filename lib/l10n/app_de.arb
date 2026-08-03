@@ -207,5 +207,6 @@
   "recurringDeleteConfirmTitle": "Löschen?",
   "recurringDeleteConfirmContent": "Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten.",
   "entryHintPickCategoryForItem": "Wähle eine Kategorie für Posten {n}",
-  "entryHintPickCategoryRemainder": "Wähle eine Kategorie für die Zeile „Rest“"
+  "entryHintPickCategoryRemainder": "Wähle eine Kategorie für die Zeile „Rest“",
+  "splitMemoDialogTitle": "Notiz eingeben"
 }

@@ -717,4 +717,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get entryHintPickCategoryRemainder =>
       'Pick a category for the “Remaining” row';
+
+  @override
+  String get splitMemoDialogTitle => 'Enter a memo';
 }

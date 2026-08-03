@@ -523,5 +523,9 @@
   "entryHintPickCategoryRemainder": "Pick a category for the “Remaining” row",
   "@entryHintPickCategoryRemainder": {
     "description": "Save hint in split mode when the Remaining row lacks a category"
+  },
+  "splitMemoDialogTitle": "Enter a memo",
+  "@splitMemoDialogTitle": {
+    "description": "Title of the per-item memo input dialog in split mode"
   }
 }

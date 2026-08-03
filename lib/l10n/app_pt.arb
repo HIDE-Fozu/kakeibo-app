@@ -207,5 +207,6 @@
   "recurringDeleteConfirmTitle": "Excluir?",
   "recurringDeleteConfirmContent": "Este lançamento fixo será excluído. Os registros já criados serão mantidos.",
   "entryHintPickCategoryForItem": "Escolha uma categoria para o item {n}",
-  "entryHintPickCategoryRemainder": "Escolha uma categoria para a linha “Restante”"
+  "entryHintPickCategoryRemainder": "Escolha uma categoria para a linha “Restante”",
+  "splitMemoDialogTitle": "Digite uma nota"
 }

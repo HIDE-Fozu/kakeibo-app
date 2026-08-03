@@ -694,4 +694,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get entryHintPickCategoryRemainder => '请为“剩余”行选择分类';
+
+  @override
+  String get splitMemoDialogTitle => '输入备注';
 }

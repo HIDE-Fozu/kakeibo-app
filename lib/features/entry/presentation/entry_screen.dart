@@ -63,8 +63,6 @@ class EntryScreen extends ConsumerWidget {
       for (final c in allCats)
         c.id: '${categoryEmoji(c.icon, c.slug)} ${c.name}'
     };
-    // キーボードが開いているか（この context は Scaffold より上なので inset が見える）。
-    final kbOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     // グリッドの選択表示: batch=塗るカテゴリ / split=アクティブ行 / 通常=state
     final gridSelectedId = batchMode
         ? (state.batchPaintMode ? state.batchPaintCategoryId : null)
@@ -448,8 +446,8 @@ class EntryScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            // キーボード直上の「完了」バー（テキスト入力中だけ・タップで閉じる）。
-            if (kbOpen) const KeyboardDoneBar(),
+            // キーボード直上の「完了」バー（テキスト入力中だけ自分で表示される）。
+            const KeyboardDoneBar(),
           ],
         ),
       ),

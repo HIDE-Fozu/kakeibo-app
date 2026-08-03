@@ -771,7 +771,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
               taxIncluded: last.taxIncluded,
               rate: last.rate,
               decimals: _decimals));
-    state = _s.copyWith(splits: next, activeSplitIndex: i);
+    // 新しい行がアクティブになるのでカテゴリ帯は親一覧に戻す。
+    state = _s.copyWith(
+        splits: next, activeSplitIndex: i, expandedParentId: null);
   }
 
   /// 残額行(末尾・expr空)がアクティブなまま打鍵したら、直前に入力行を挿して
@@ -791,7 +793,10 @@ class EntryFormController extends Notifier<EntryFormState?> {
   void setActiveSplit(int i) {
     final lines = _s.splits;
     if (lines == null || i < 0 || i >= lines.length) return;
-    state = _s.copyWith(activeSplitIndex: i);
+    if (i == _s.activeSplitIndex) return;
+    // 行が変わったらカテゴリ帯はその行の文脈（親一覧）に戻す。
+    // 前の行で開いた内訳（外食等）が次の行の選択に残らないように。
+    state = _s.copyWith(activeSplitIndex: i, expandedParentId: null);
   }
 
   void removeSplitLine(int i) {
@@ -802,6 +807,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     state = _s.copyWith(
       splits: lines,
       activeSplitIndex: _s.activeSplitIndex.clamp(0, lines.length - 1),
+      expandedParentId: null, // 行構成が変わるので帯は親一覧に戻す
     );
   }
 
