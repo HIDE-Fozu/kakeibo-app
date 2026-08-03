@@ -102,8 +102,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               key: const Key('cancel-split'),
               onPressed: ctrl.cancelSplit,
               style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(0, 32)),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(0, 32),
+              ),
               child: Text(l.splitCancel),
             ),
           ],
@@ -113,79 +114,98 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         // ＋品目は残額行の右端へ移動。「品目を追加」等の独立行は置かない（3行を保つ）。
         Row(
           children: [
-            Text(l.splitBreakdownLabel,
-                style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                    color: scheme.primary)),
+            Text(
+              l.splitBreakdownLabel,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+                color: scheme.primary,
+              ),
+            ),
             const Spacer(),
             // 消費税グループ: 内税トグルと8/10%は分離。個別も含め同じ薄緑背景でまとめる。
             // 非JP（税プロファイル無効）では丸ごと非表示（入力額=税込扱い）。
             if (taxEnabled)
               Container(
-              padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l.splitTaxLabel,
+                padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l.splitTaxLabel,
                       style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: scheme.primary)),
-                  const SizedBox(width: 5),
-                  // 内税⇄外税トグル（単独・全行に即適用。外すと表記が「外税」に）
-                  InkWell(
-                    key: const Key('split-tax-mode'),
-                    onTap: () => ctrl.setSplitBulkIncluded(!incAll),
-                    borderRadius: BorderRadius.circular(7),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(7),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.primary,
                       ),
-                      child: Text(
+                    ),
+                    const SizedBox(width: 5),
+                    // 内税⇄外税トグル（単独・全行に即適用。外すと表記が「外税」に）
+                    InkWell(
+                      key: const Key('split-tax-mode'),
+                      onTap: () => ctrl.setSplitBulkIncluded(!incAll),
+                      borderRadius: BorderRadius.circular(7),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Text(
                           incAll
                               ? l.splitTaxIncludedToggle
                               : l.splitTaxExcludedToggle,
                           style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: scheme.primary)),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: scheme.primary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 5),
-                  // 8%/10%（内税のときは淡色＝適用なし。タップで外税へ切替）
-                  Opacity(
-                    opacity: incAll ? 0.4 : 1,
-                    child: _seg(scheme, [
-                      _SegItem('8%', excAll && bulkRate == 8, () {
-                        ctrl.setSplitBulkIncluded(false);
-                        ctrl.setSplitBulkRate(8);
-                      }, key: const Key('split-tax-8')),
-                      _SegItem('10%', excAll && bulkRate == 10, () {
-                        ctrl.setSplitBulkIncluded(false);
-                        ctrl.setSplitBulkRate(10);
-                      }, key: const Key('split-tax-10')),
-                    ]),
-                  ),
-                  const SizedBox(width: 5),
-                  _chipButton(scheme, l.splitTaxIndividual,
-                      key: const Key('split-tax-per'), onTap: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (_) =>
-                          SplitTaxDialog(categoryLabels: categoryNames),
-                    );
-                  }),
-                ],
+                    const SizedBox(width: 5),
+                    // 8%/10%（内税のときは淡色＝適用なし。タップで外税へ切替）
+                    Opacity(
+                      opacity: incAll ? 0.4 : 1,
+                      child: _seg(scheme, [
+                        _SegItem('8%', excAll && bulkRate == 8, () {
+                          ctrl.setSplitBulkIncluded(false);
+                          ctrl.setSplitBulkRate(8);
+                        }, key: const Key('split-tax-8')),
+                        _SegItem(
+                          '10%',
+                          excAll && bulkRate == 10,
+                          () {
+                            ctrl.setSplitBulkIncluded(false);
+                            ctrl.setSplitBulkRate(10);
+                          },
+                          key: const Key('split-tax-10'),
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(width: 5),
+                    _chipButton(
+                      scheme,
+                      l.splitTaxIndividual,
+                      key: const Key('split-tax-per'),
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) =>
+                              SplitTaxDialog(categoryLabels: categoryNames),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -209,8 +229,12 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 
   /// 消費税グループ内の「個別」ボタン（白ピルで背景から浮かせる）。
-  Widget _chipButton(ColorScheme scheme, String label,
-      {required Key key, required VoidCallback onTap}) {
+  Widget _chipButton(
+    ColorScheme scheme,
+    String label, {
+    required Key key,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       key: key,
       onTap: onTap,
@@ -222,11 +246,14 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           border: Border.all(color: scheme.outlineVariant),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: scheme.primary)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: scheme.primary,
+          ),
+        ),
       ),
     );
   }
@@ -256,14 +283,18 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                       : null,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(it.label,
-                    style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight:
-                            it.selected ? FontWeight.w700 : FontWeight.normal,
-                        color: it.selected
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant)),
+                child: Text(
+                  it.label,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: it.selected
+                        ? FontWeight.w700
+                        : FontWeight.normal,
+                    color: it.selected
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
         ],
@@ -279,8 +310,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
     final active = i == state.activeSplitIndex;
-    final catLabel =
-        line.categoryId == null ? null : categoryNames[line.categoryId];
+    final catLabel = line.categoryId == null
+        ? null
+        : categoryNames[line.categoryId];
     final net = state.splitLineAmount(i);
     final entered = line.enteredYen;
     final hasOp = RegExp(r'[+\-×÷]').hasMatch(line.expr);
@@ -305,11 +337,13 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
           decoration: BoxDecoration(
-            color:
-                active ? scheme.primaryContainer.withValues(alpha: 0.35) : null,
+            color: active
+                ? scheme.primaryContainer.withValues(alpha: 0.35)
+                : null,
             border: Border.all(
-                color: active ? scheme.primary : scheme.outlineVariant,
-                width: active ? 1.4 : 1),
+              color: active ? scheme.primary : scheme.outlineVariant,
+              width: active ? 1.4 : 1,
+            ),
             borderRadius: BorderRadius.circular(9),
           ),
           child: Row(
@@ -321,8 +355,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 onTap: () => ctrl.openSplitCatPicker(i),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: catLabel == null
                         ? scheme.primary
@@ -354,6 +390,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                       contentPadding: const EdgeInsets.symmetric(vertical: 2),
                       border: const UnderlineInputBorder(),
                     ),
+                    // メモ欄が行の大半を占めるため、ここのタップでも行を
+                    // アクティブにする（「行のどこを押しても選択」の体感を守る）。
+                    onTap: () => ctrl.setActiveSplit(i),
                     onChanged: (v) => ctrl.setSplitMemo(i, v),
                   ),
                 )
@@ -363,17 +402,23 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(mainLabel,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: kTabularFigures)),
+                  Text(
+                    mainLabel,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: kTabularFigures,
+                    ),
+                  ),
                   if (subLabel != null)
-                    Text(subLabel,
-                        style: TextStyle(
-                            fontSize: 10.5,
-                            color: scheme.onSurfaceVariant,
-                            fontFeatures: kTabularFigures)),
+                    Text(
+                      subLabel,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: scheme.onSurfaceVariant,
+                        fontFeatures: kTabularFigures,
+                      ),
+                    ),
                 ],
               ),
               if (lines.length > 2) ...[
@@ -406,93 +451,123 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final active = i == state.activeSplitIndex;
     final rem = state.splitRemainder;
     final over = rem < 0;
-    final catLabel =
-        line.categoryId == null ? null : categoryNames[line.categoryId];
+    final catLabel = line.categoryId == null
+        ? null
+        : categoryNames[line.categoryId];
     final fg = over ? scheme.error : scheme.primary;
 
-    // 行全体は1つのタップにせず、左=カテゴリ追加/右=＋品目 を別々のInkWellに分ける
-    // （入れ子だと親の行タップが＋を横取りしてしまうため）。
+    // 行のどこをタップしてもアクティブ行になる（背面のGestureDetector）。
+    // カテゴリ追加/＋品目のInkWellは前面の子なのでタップはそちらが勝つ
+    // （7月の「入れ子InkWellで＋が死ぬ」事故はInkWell同士の入れ子が原因。
+    //  背面をGestureDetectorにすれば競合しない）。
     return Padding(
       padding: const EdgeInsets.only(left: 2, right: 2),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-        decoration: BoxDecoration(
-          color: over
-              ? scheme.errorContainer
-              : scheme.primaryContainer.withValues(alpha: 0.45),
-          border: Border.all(
+      child: GestureDetector(
+        key: const Key('split-line-remainder'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => ctrl.setActiveSplit(i),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+          decoration: BoxDecoration(
+            color: over
+                ? scheme.errorContainer
+                : scheme.primaryContainer.withValues(alpha: 0.45),
+            border: Border.all(
               color: active ? scheme.primary : scheme.outlineVariant,
-              width: active ? 1.4 : 1),
-          borderRadius: BorderRadius.circular(9),
-        ),
-        child: Row(
-          children: [
-            // 左: カテゴリを追加（未選択）or 選択済みチップ。タップで割当先にする。
-            InkWell(
-              key: const Key('split-remainder'),
-              onTap: () => ctrl.openSplitCatPicker(i),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: catLabel == null
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add, size: 15, color: scheme.primary),
-                          Text(l.splitAddCategoryLabel,
+              width: active ? 1.4 : 1,
+            ),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            children: [
+              // 左: カテゴリを追加（未選択）or 選択済みチップ。タップで割当先にする。
+              InkWell(
+                key: const Key('split-remainder'),
+                onTap: () => ctrl.openSplitCatPicker(i),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: catLabel == null
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, size: 15, color: scheme.primary),
+                            Text(
+                              l.splitAddCategoryLabel,
                               style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: scheme.primary)),
-                          Icon(Icons.chevron_right,
-                              size: 15, color: scheme.primary),
-                        ],
-                      )
-                    : Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: scheme.primaryContainer.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(catLabel,
-                            style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
-                                color: scheme.primary)),
-                      ),
-              ),
-            ),
-            const Spacer(),
-            // 右: 残り（差分・非タップ）
-            Text(over ? l.splitOverLabel : l.splitRemainingLabel,
-                style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w800, color: fg)),
-            const SizedBox(width: 6),
-            Text(mf.format(over ? -rem : rem),
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: fg,
-                    fontFeatures: kTabularFigures)),
-            const SizedBox(width: 9),
-            // 右端: ＋品目（残額行の直前に入力行を挿す・独立タップ）。
-            InkWell(
-              key: const Key('split-add'),
-              onTap: ctrl.addSplitLine,
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 27,
-                height: 27,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primary,
-                  borderRadius: BorderRadius.circular(8),
+                                color: scheme.primary,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 15,
+                              color: scheme.primary,
+                            ),
+                          ],
+                        )
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer.withValues(
+                              alpha: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            catLabel,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: scheme.primary,
+                            ),
+                          ),
+                        ),
                 ),
-                child: Icon(Icons.add, size: 18, color: scheme.onPrimary),
               ),
-            ),
-          ],
+              const Spacer(),
+              // 右: 残り（差分・非タップ）
+              Text(
+                over ? l.splitOverLabel : l.splitRemainingLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: fg,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                mf.format(over ? -rem : rem),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: fg,
+                  fontFeatures: kTabularFigures,
+                ),
+              ),
+              const SizedBox(width: 9),
+              // 右端: ＋品目（残額行の直前に入力行を挿す・独立タップ）。
+              InkWell(
+                key: const Key('split-add'),
+                onTap: ctrl.addSplitLine,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 27,
+                  height: 27,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.add, size: 18, color: scheme.onPrimary),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

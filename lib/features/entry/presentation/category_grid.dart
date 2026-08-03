@@ -441,17 +441,49 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
     required bool hasSubs,
     required String? selectedSubName,
     bool elevated = false,
-  }) {
-    final label = selectedSubName ?? c.name;
+  }) =>
+      CategoryTileBox(
+        emoji: categoryEmoji(c.icon, c.slug),
+        label: selectedSubName ?? c.name,
+        selected: isSelectedGroup,
+        hasSubs: hasSubs,
+        elevated: elevated,
+      );
+
+  bool _sameIds(List<CategoryEntity> a, List<CategoryEntity> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
+  }
+}
+
+/// カテゴリタイルの見た目（絵文字＋名前・56高想定）。
+/// 通常グリッドと内訳の1行帯（split_category_strip）で共用し、サイズ・配色を揃える。
+class CategoryTileBox extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final bool selected;
+  final bool hasSubs;
+  final bool elevated;
+  const CategoryTileBox({
+    super.key,
+    required this.emoji,
+    required this.label,
+    required this.selected,
+    this.hasSubs = false,
+    this.elevated = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: isSelectedGroup
-            ? scheme.primaryContainer
-            : scheme.surfaceContainerHighest,
-        border: isSelectedGroup
-            ? Border.all(color: scheme.primary, width: 2)
-            : null,
+        color: selected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+        border: selected ? Border.all(color: scheme.primary, width: 2) : null,
         boxShadow: elevated
             ? [
                 BoxShadow(
@@ -465,10 +497,7 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            categoryEmoji(c.icon, c.slug),
-            style: const TextStyle(fontSize: 18),
-          ),
+          Text(emoji, style: const TextStyle(fontSize: 18)),
           Text(
             hasSubs ? '$label ▾' : label,
             style: const TextStyle(fontSize: 11),
@@ -478,14 +507,6 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
         ],
       ),
     );
-  }
-
-  bool _sameIds(List<CategoryEntity> a, List<CategoryEntity> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i].id != b[i].id) return false;
-    }
-    return true;
   }
 }
 

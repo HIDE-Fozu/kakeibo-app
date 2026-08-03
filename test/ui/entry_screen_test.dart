@@ -7,6 +7,7 @@ import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/entry/application/entry_category_providers.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
+import 'package:kakeibo_app/features/entry/presentation/category_grid.dart';
 import 'package:kakeibo_app/features/entry/presentation/entry_screen.dart';
 import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
@@ -248,7 +249,8 @@ void main() {
     expect(txs.single.amountYen, 500);
   });
 
-  testWidgets('内訳チップの有無でメモ欄・保存ボタンが動かない（枠を予約）', (tester) async {
+  testWidgets('内訳チップはグリッドのタイルに被せず下に出る・保存ボタンは動かない',
+      (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -263,15 +265,17 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // チップが出ていない状態のメモ欄（詳細メモ=最下段の欄）・保存ボタン位置
-    final memoBefore = tester.getRect(find.byType(TextFormField).last);
     final saveBefore = tester.getRect(find.byKey(const Key('save-btn')));
 
-    // 食費タップでチップが固定枠に出る → メモ・保存は1pxも動かない
+    // 食費タップ → チップパネルはグリッドの下（どのタイル行にも重ならない）
     await tester.tap(find.byKey(Key('cat-tile-$foodId')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('subcategory-chips')), findsOneWidget);
-    expect(tester.getRect(find.byType(TextFormField).last), memoBefore);
+    final gridRect = tester.getRect(find.byType(CategoryGrid));
+    final chipsRect =
+        tester.getRect(find.byKey(const Key('subcategory-chips')));
+    expect(chipsRect.top, greaterThanOrEqualTo(gridRect.bottom));
+    // 保存ボタン（固定フッター）は動かない
     expect(tester.getRect(find.byKey(const Key('save-btn'))), saveBefore);
   });
 

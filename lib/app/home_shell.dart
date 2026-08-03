@@ -89,9 +89,6 @@ class _HomeShellState extends ConsumerState<HomeShell>
     final index = ref.watch(homeTabIndexProvider);
     // 入力画面(1)表示中はタブ選択なし → カレンダーを選択表示にしておく。
     final navSelected = _navToShell.indexOf(index);
-    // 内訳入力（分割）中かどうか。コンパクト化で隙間ができたためタブを出す。
-    final splitActive = ref.watch(
-        entryFormControllerProvider.select((s) => s?.splits != null));
     return Scaffold(
       body: IndexedStack(
         index: index,
@@ -116,9 +113,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
               label: Text(l.homeFabEntryLabel),
             )
           : null,
-      // 入力画面表示中は下部タブを隠して縦スペースを空ける（戻るは入力画面の「←」）。
-      // ただし内訳入力（分割）中はレイアウトがコンパクトなのでタブを出す（モックv4）。
-      bottomNavigationBar: index == kInputTabIndex && !splitActive
+      // 入力画面表示中は内訳入力中も含め下部タブを隠して縦スペースを空ける
+      // （戻るは入力画面の「←」。常設カテゴリ帯の分、内訳中も縦が要る）。
+      bottomNavigationBar: index == kInputTabIndex
           ? null
           : NavigationBar(
               selectedIndex: navSelected < 0 ? 0 : navSelected,

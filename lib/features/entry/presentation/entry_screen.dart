@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/keyboard_done_bar.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
@@ -45,16 +46,8 @@ class EntryScreen extends ConsumerWidget {
       EntryMode.edit => l.commonEdit,
     };
 
-    // グリッドは2行横スクロール（偶数index=上段 / 奇数index=下段）。
-    // 内訳ありカテゴリが下段なら上段側に、上段なら下段側にオーバーレイを出す
-    // （＝押した行を隠さず、押したカテゴリの隣に必ず出す）。
     final entryCats =
         ref.watch(entryCategoriesProvider(state.type)).valueOrNull ?? const [];
-    final expandedIdx = state.expandedParentId == null
-        ? -1
-        : entryCats.indexWhere((c) => c.id == state.expandedParentId);
-    // 押したカテゴリが下段なら内訳オーバーレイを上段側に出す（押した行を隠さない）。
-    final overlayAbove = expandedIdx >= 0 && catIsBottomRow(expandedIdx);
 
     // 詳細入力（分割）モード: テンキー/グリッドはアクティブ行に入る
     final splitMode = state.splits != null;
@@ -70,6 +63,8 @@ class EntryScreen extends ConsumerWidget {
       for (final c in allCats)
         c.id: '${categoryEmoji(c.icon, c.slug)} ${c.name}'
     };
+    // キーボードが開いているか（この context は Scaffold より上なので inset が見える）。
+    final kbOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     // グリッドの選択表示: batch=塗るカテゴリ / split=アクティブ行 / 通常=state
     final gridSelectedId = batchMode
         ? (state.batchPaintMode ? state.batchPaintCategoryId : null)
@@ -308,43 +303,33 @@ class EntryScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      // 内訳チップは押したカテゴリの真下（グリッド下段＝日用品の位置）に
-                      // 薄緑パネルで重ねる。背景と別色なので気づきやすい。高さは取らない。
-                      Stack(
-                        children: [
-                          CategoryGrid(
-                            type: state.type,
-                            selectedId: gridSelectedId,
-                            onTapCategory: ctrl.tapCategory,
-                          ),
-                          if (state.expandedParentId != null)
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              top: overlayAbove ? 0 : null,
-                              bottom: overlayAbove ? null : 0,
-                              height: 66,
-                              child: Container(
-                                key: const Key('subcategory-chips'),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠
-                                  color: const Color(0xFFEAF4EF),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFFCFE4DB),
-                                  ),
-                                ),
-                                child: SubcategoryChips(
-                                  parentId: state.expandedParentId!,
-                                  selectedId: gridSelectedId,
-                                  onToggle: ctrl.toggleSubcategory,
-                                ),
-                              ),
-                            ),
-                        ],
+                      CategoryGrid(
+                        type: state.type,
+                        selectedId: gridSelectedId,
+                        onTapCategory: ctrl.tapCategory,
                       ),
+                      // 内訳チップはグリッドの下に独立パネルで出す
+                      // （タイルのどの行にも被せない）。薄緑で気づきやすく。
+                      if (state.expandedParentId != null)
+                        Container(
+                          key: const Key('subcategory-chips'),
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 66,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠
+                            color: const Color(0xFFEAF4EF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFFCFE4DB),
+                            ),
+                          ),
+                          child: SubcategoryChips(
+                            parentId: state.expandedParentId!,
+                            selectedId: gridSelectedId,
+                            onToggle: ctrl.toggleSubcategory,
+                          ),
+                        ),
                       ],
                       // 詳細入力/一括内訳中は店舗名/詳細メモを隠して場所を空ける
                       // （取引全体の項目。保存前に通常画面で入力できる）。
@@ -453,6 +438,8 @@ class EntryScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            // キーボード直上の「完了」バー（テキスト入力中だけ・タップで閉じる）。
+            if (kbOpen) const KeyboardDoneBar(),
           ],
         ),
       ),

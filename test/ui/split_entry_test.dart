@@ -148,4 +148,49 @@ void main() {
     expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
     expect(st().canSave, isTrue);
   });
+
+  testWidgets('内訳: 残額行はどこをタップしてもアクティブに・「＋」の行追加は生きている',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h, home: const EntryScreen());
+    final c = containerOf(tester);
+    final ctrl = c.read(entryFormControllerProvider.notifier);
+    EntryFormState st() => c.read(entryFormControllerProvider)!;
+    ctrl.startCreate(day);
+    await tester.pumpAndSettle();
+
+    ctrl.tapDigit(1);
+    ctrl.tapDoubleZero();
+    ctrl.tapDigit(0);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('start-split')));
+    await tester.tap(find.byKey(const Key('start-split')));
+    await tester.pumpAndSettle();
+
+    // 行0に300を入れ、残額行の「余白」（残り表示のあたり）をタップ
+    ctrl.splitTapDigit(3);
+    ctrl.splitTapDoubleZero();
+    await tester.pumpAndSettle();
+    expect(st().activeSplitIndex, 0);
+    await tester.tap(find.byKey(const Key('split-line-remainder')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(st().activeSplitIndex, st().splits!.length - 1);
+
+    // 行0のメモ欄タップでも行0がアクティブに戻る（メモ欄が行の大半を占めるため）
+    await tester.tap(find.textContaining('日用品').first);
+    await tester.pumpAndSettle(); // まず行末尾にカテゴリ… ではなく帯→残額行へ割当
+    // ↑残額行に日用品が付いた。行0へ戻すためメモ欄をタップ
+    await tester.tap(find.byKey(const Key('split-line-0')));
+    await tester.pumpAndSettle();
+    expect(st().activeSplitIndex, 0);
+
+    // 「＋」ボタンは背面の行タップに奪われず行を追加する（アリーナ検証）
+    final before = st().splits!.length;
+    await tester.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(st().splits!.length, before + 1);
+  });
 }
