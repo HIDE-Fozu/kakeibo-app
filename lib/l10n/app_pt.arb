@@ -205,5 +205,7 @@
   "recurringActiveSubtitle": "Desative para pausar o registro automático",
   "recurringPausedLabel": "Pausado",
   "recurringDeleteConfirmTitle": "Excluir?",
-  "recurringDeleteConfirmContent": "Este lançamento fixo será excluído. Os registros já criados serão mantidos."
+  "recurringDeleteConfirmContent": "Este lançamento fixo será excluído. Os registros já criados serão mantidos.",
+  "entryHintPickCategoryForItem": "Escolha uma categoria para o item {n}",
+  "entryHintPickCategoryRemainder": "Escolha uma categoria para a linha “Restante”"
 }

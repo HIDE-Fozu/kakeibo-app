@@ -692,4 +692,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       '이 고정 지출·수입을 삭제합니다. 이미 기록된 거래는 남습니다.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return '품목 $n의 카테고리를 선택하세요';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder => '\'남음\' 행의 카테고리를 선택하세요';
 }

@@ -205,5 +205,7 @@
   "recurringActiveSubtitle": "Zum Pausieren der automatischen Buchung ausschalten",
   "recurringPausedLabel": "Pausiert",
   "recurringDeleteConfirmTitle": "Löschen?",
-  "recurringDeleteConfirmContent": "Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten."
+  "recurringDeleteConfirmContent": "Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten.",
+  "entryHintPickCategoryForItem": "Wähle eine Kategorie für Posten {n}",
+  "entryHintPickCategoryRemainder": "Wähle eine Kategorie für die Zeile „Rest“"
 }

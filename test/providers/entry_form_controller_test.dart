@@ -293,10 +293,12 @@ void main() {
 
       ctrl().setSplitBulkIncluded(true);
       ctrl().splitTapDigit(3);
-      ctrl().splitTapDoubleZero(); // 300 → 残額行700が未カテゴリ
+      ctrl().splitTapDoubleZero(); // 300（品目1が未カテゴリ）
+      expect(st().saveHint(jaL), '品目1のカテゴリを選んでください');
       ctrl().tapCategory(categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      // 品目1に割当済み → 今度は残額行700が未カテゴリ
       expect(st().canSave, isFalse);
-      expect(st().saveHint(jaL), 'カテゴリを選んでください');
+      expect(st().saveHint(jaL), '「残り」の行のカテゴリを選んでください');
 
       // 残額行にカテゴリ → 保存可・ヒント消える
       ctrl().setActiveSplit(1);

@@ -717,4 +717,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'Se eliminará este movimiento fijo. Los registros ya creados se conservarán.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Elige una categoría para el artículo $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Elige una categoría para la fila «Restante»';
 }

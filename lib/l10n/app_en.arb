@@ -510,5 +510,18 @@
   "recurringDeleteConfirmContent": "This recurring transaction will be deleted. Entries already recorded will remain.",
   "@recurringDeleteConfirmContent": {
     "description": "Delete confirmation dialog body"
+  },
+  "entryHintPickCategoryForItem": "Pick a category for item {n}",
+  "@entryHintPickCategoryForItem": {
+    "description": "Save hint in split mode pointing at the numbered item row that lacks a category",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "entryHintPickCategoryRemainder": "Pick a category for the “Remaining” row",
+  "@entryHintPickCategoryRemainder": {
+    "description": "Save hint in split mode when the Remaining row lacks a category"
   }
 }

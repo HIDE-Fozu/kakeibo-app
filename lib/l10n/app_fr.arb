@@ -205,5 +205,7 @@
   "recurringActiveSubtitle": "Désactivez pour suspendre l'enregistrement automatique",
   "recurringPausedLabel": "En pause",
   "recurringDeleteConfirmTitle": "Supprimer ?",
-  "recurringDeleteConfirmContent": "Cette opération fixe sera supprimée. Les écritures déjà créées seront conservées."
+  "recurringDeleteConfirmContent": "Cette opération fixe sera supprimée. Les écritures déjà créées seront conservées.",
+  "entryHintPickCategoryForItem": "Choisissez une catégorie pour l'article {n}",
+  "entryHintPickCategoryRemainder": "Choisissez une catégorie pour la ligne « Reste »"
 }

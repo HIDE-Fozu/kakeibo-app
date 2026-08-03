@@ -708,4 +708,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'This recurring transaction will be deleted. Entries already recorded will remain.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Pick a category for item $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Pick a category for the “Remaining” row';
 }

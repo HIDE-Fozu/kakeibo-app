@@ -195,7 +195,11 @@ class EntryFormState {
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {
-          return l.entryHintPickCategory;
+          // どの行のことか指せるように番号で言う（行側にも同じ番号バッジ）。
+          // 末尾は「残り」行なので番号ではなく名前で指す。
+          return i == splits!.length - 1
+              ? l.entryHintPickCategoryRemainder
+              : l.entryHintPickCategoryForItem(i + 1);
         }
       }
       if (splitFixedSum <= 0) return l.entryHintEnterAmountAndCategory;

@@ -689,4 +689,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'この固定費・収入を削除します。作成済みの取引はそのまま残ります。';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return '品目$nのカテゴリを選んでください';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder => '「残り」の行のカテゴリを選んでください';
 }

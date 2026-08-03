@@ -722,4 +722,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'Cette opération fixe sera supprimée. Les écritures déjà créées seront conservées.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Choisissez une catégorie pour l\'article $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Choisissez une catégorie pour la ligne « Reste »';
 }

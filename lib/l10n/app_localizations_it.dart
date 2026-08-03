@@ -718,4 +718,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'Questo movimento fisso verrà eliminato. Le registrazioni già create saranno conservate.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Scegli una categoria per la voce $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Scegli una categoria per la riga “Rimanente”';
 }

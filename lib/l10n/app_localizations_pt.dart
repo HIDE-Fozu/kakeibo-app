@@ -715,4 +715,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'Este lançamento fixo será excluído. Os registros já criados serão mantidos.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Escolha uma categoria para o item $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Escolha uma categoria para a linha “Restante”';
 }

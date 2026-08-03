@@ -1347,6 +1347,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This recurring transaction will be deleted. Entries already recorded will remain.'**
   String get recurringDeleteConfirmContent;
+
+  /// Save hint in split mode pointing at the numbered item row that lacks a category
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category for item {n}'**
+  String entryHintPickCategoryForItem(int n);
+
+  /// Save hint in split mode when the Remaining row lacks a category
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category for the “Remaining” row'**
+  String get entryHintPickCategoryRemainder;
 }
 
 class _AppLocalizationsDelegate

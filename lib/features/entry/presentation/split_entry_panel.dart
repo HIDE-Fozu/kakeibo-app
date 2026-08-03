@@ -348,8 +348,22 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
           child: Row(
             children: [
+              // 行番号バッジ。保存ヒント「品目Nのカテゴリを…」と対応させる。
+              Padding(
+                padding: const EdgeInsets.only(right: 5),
+                child: Text(
+                  '${i + 1}',
+                  key: Key('split-lineno-$i'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: active ? scheme.primary : scheme.outline,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
+              ),
               // カテゴリ: 未選択は呼びかけボタン、選択済みはチップ。
-              // どちらもタップで電卓上のカテゴリ帯を開く（選び直し可）。
+              // どちらもタップで電卓下のカテゴリ帯の割当先にする（選び直し可）。
               InkWell(
                 key: Key('split-pickcat-$i'),
                 onTap: () => ctrl.openSplitCatPicker(i),

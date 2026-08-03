@@ -686,4 +686,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recurringDeleteConfirmContent => '将删除此固定收支。已记录的交易会保留。';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return '请为项目$n选择分类';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder => '请为“剩余”行选择分类';
 }

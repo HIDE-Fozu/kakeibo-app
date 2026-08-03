@@ -205,5 +205,7 @@
   "recurringActiveSubtitle": "Disattiva per sospendere la registrazione automatica",
   "recurringPausedLabel": "In pausa",
   "recurringDeleteConfirmTitle": "Eliminare?",
-  "recurringDeleteConfirmContent": "Questo movimento fisso verrà eliminato. Le registrazioni già create saranno conservate."
+  "recurringDeleteConfirmContent": "Questo movimento fisso verrà eliminato. Le registrazioni già create saranno conservate.",
+  "entryHintPickCategoryForItem": "Scegli una categoria per la voce {n}",
+  "entryHintPickCategoryRemainder": "Scegli una categoria per la riga “Rimanente”"
 }

@@ -303,59 +303,69 @@ class EntryScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      CategoryGrid(
-                        type: state.type,
-                        selectedId: gridSelectedId,
-                        onTapCategory: ctrl.tapCategory,
-                      ),
-                      // 内訳チップはグリッドの下に独立パネルで出す
-                      // （タイルのどの行にも被せない）。薄緑で気づきやすく。
-                      if (state.expandedParentId != null)
-                        Container(
-                          key: const Key('subcategory-chips'),
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 66,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
-                            // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠
-                            color: const Color(0xFFEAF4EF),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFFCFE4DB),
-                            ),
-                          ),
-                          child: SubcategoryChips(
-                            parentId: state.expandedParentId!,
-                            selectedId: gridSelectedId,
-                            onToggle: ctrl.toggleSubcategory,
-                          ),
+                      if (batchMode) ...[
+                        CategoryGrid(
+                          type: state.type,
+                          selectedId: gridSelectedId,
+                          onTapCategory: ctrl.tapCategory,
                         ),
-                      ],
-                      // 詳細入力/一括内訳中は店舗名/詳細メモを隠して場所を空ける
-                      // （取引全体の項目。保存前に通常画面で入力できる）。
-                      if (!splitMode && !batchMode) ...[
-                        const SizedBox(height: 8),
-                        // レシート確認では店舗名は上のレビューパネルで扱うため詳細メモのみ。
-                        if (state.mode != EntryMode.receiptConfirm) ...[
-                          TextFormField(
-                            key: ValueKey('store-field-${state.formSeq}'),
-                            initialValue: state.storeName,
-                            decoration: InputDecoration(
-                              labelText: l.entryStoreNameLabel,
-                              border: const OutlineInputBorder(),
+                        // 一括内訳ではこの下に要素が無いので、in-flowでも何も動かさない。
+                        if (state.expandedParentId != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: _subcategoryPanel(state, ctrl, gridSelectedId),
+                          ),
+                      ] else
+                        // 通常/レシート確認: 内訳チップはグリッド直下に「浮かせて」出す。
+                        // タイルに被せず、下の店舗名/メモも動かさない
+                        // （開いている間だけ店舗名欄に一時的に重なる）。
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                CategoryGrid(
+                                  type: state.type,
+                                  selectedId: gridSelectedId,
+                                  onTapCategory: ctrl.tapCategory,
+                                ),
+                                const SizedBox(height: 8),
+                                // レシート確認では店舗名は上のレビューパネルで扱うため
+                                // 詳細メモのみ。
+                                if (state.mode != EntryMode.receiptConfirm) ...[
+                                  TextFormField(
+                                    key: ValueKey('store-field-${state.formSeq}'),
+                                    initialValue: state.storeName,
+                                    decoration: InputDecoration(
+                                      labelText: l.entryStoreNameLabel,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    onChanged: ctrl.setStoreName,
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                                TextFormField(
+                                  key: ValueKey('memo-field-${state.formSeq}'),
+                                  initialValue: state.memo,
+                                  decoration: InputDecoration(
+                                    labelText: l.entryDetailMemoLabel,
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  onChanged: ctrl.setMemo,
+                                ),
+                              ],
                             ),
-                            onChanged: ctrl.setStoreName,
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                        TextFormField(
-                          key: ValueKey('memo-field-${state.formSeq}'),
-                          initialValue: state.memo,
-                          decoration: InputDecoration(
-                            labelText: l.entryDetailMemoLabel,
-                            border: const OutlineInputBorder(),
-                          ),
-                          onChanged: ctrl.setMemo,
+                            if (state.expandedParentId != null)
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: kCatGridHeight + 4,
+                                height: 66,
+                                child: _subcategoryPanel(
+                                    state, ctrl, gridSelectedId),
+                              ),
+                          ],
                         ),
                       ],
                   ],
@@ -445,6 +455,38 @@ class EntryScreen extends ConsumerWidget {
       ),
     );
   }
+
+  /// 内訳チップのパネル（薄緑・66高）。通常モードではグリッド直下に浮かせ、
+  /// 一括内訳では in-flow で使う（見た目は共通）。
+  Widget _subcategoryPanel(
+    EntryFormState state,
+    EntryFormController ctrl,
+    int? gridSelectedId,
+  ) =>
+      Container(
+        key: const Key('subcategory-chips'),
+        height: 66,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠。
+          // 浮かせて出すので下の内容と区別できるよう軽い影を付ける。
+          color: const Color(0xFFEAF4EF),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFCFE4DB)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: SubcategoryChips(
+          parentId: state.expandedParentId!,
+          selectedId: gridSelectedId,
+          onToggle: ctrl.toggleSubcategory,
+        ),
+      );
 
   String _dateLabel(AppLocalizations l, CivilDate date) =>
       l.entryDateLabel(date.year, date.month, date.day);

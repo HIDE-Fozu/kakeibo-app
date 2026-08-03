@@ -715,4 +715,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get recurringDeleteConfirmContent =>
       'Dieser Fixposten wird gelöscht. Bereits erstellte Buchungen bleiben erhalten.';
+
+  @override
+  String entryHintPickCategoryForItem(int n) {
+    return 'Wähle eine Kategorie für Posten $n';
+  }
+
+  @override
+  String get entryHintPickCategoryRemainder =>
+      'Wähle eine Kategorie für die Zeile „Rest“';
 }
