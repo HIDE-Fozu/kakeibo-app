@@ -392,49 +392,59 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 ),
               ),
               const SizedBox(width: 7),
-              if (line.categoryId != null)
-                // メモはインライン入力ではなくボタン→ダイアログ入力に。
-                // 未入力: アイコン＋「メモ」/ 入力済み: 本文を1行表示（タップで編集）。
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: InkWell(
-                      key: Key('split-memo-btn-$i'),
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        ctrl.setActiveSplit(i);
-                        _editSplitMemo(context, i, line.memo);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 4),
-                        child: line.memo.isEmpty
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit_note,
-                                      size: 16, color: scheme.outline),
-                                  const SizedBox(width: 2),
-                                  Text(l.splitMemoHint,
-                                      style: TextStyle(
-                                          fontSize: 11.5,
-                                          color: scheme.outline)),
-                                ],
-                              )
-                            : Text(
-                                line.memo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: scheme.onSurfaceVariant),
-                              ),
-                      ),
-                    ),
+              // メモはインライン入力ではなくボタン→ダイアログ入力に。
+              // カテゴリ未選択でも常に出す。未入力は「個別」と同じ白ピルの
+              // ボタン見た目（薄いグレー文字だとボタンと気づけないため）。
+              // 入力済みは本文を1行表示（タップで編集）。
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: InkWell(
+                    key: Key('split-memo-btn-$i'),
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      ctrl.setActiveSplit(i);
+                      _editSplitMemo(context, i, line.memo);
+                    },
+                    child: line.memo.isEmpty
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: scheme.surface,
+                              border:
+                                  Border.all(color: scheme.outlineVariant),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_note,
+                                    size: 15, color: scheme.primary),
+                                const SizedBox(width: 2),
+                                Text(l.splitMemoHint,
+                                    style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: scheme.primary)),
+                              ],
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 4),
+                            child: Text(
+                              line.memo,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: scheme.onSurfaceVariant),
+                            ),
+                          ),
                   ),
-                )
-              else
-                const Spacer(),
+                ),
+              ),
               const SizedBox(width: 7),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,

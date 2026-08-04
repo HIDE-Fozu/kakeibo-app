@@ -179,12 +179,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(st().activeSplitIndex, st().splits!.length - 1);
 
-    // 行0のメモ欄タップでも行0がアクティブに戻る（メモ欄が行の大半を占めるため）
+    // 残額行に日用品を割当ててから、行0の番号バッジあたりをタップ → 行0が
+    // アクティブに戻る（行中央はメモボタンに当たりうるので端を狙う）
     await tester.tap(find.textContaining('日用品').first);
-    await tester.pumpAndSettle(); // まず行末尾にカテゴリ… ではなく帯→残額行へ割当
-    // ↑残額行に日用品が付いた。行0へ戻すためメモ欄をタップ
-    await tester.tap(find.byKey(const Key('split-line-0')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('split-lineno-0')), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('split-memo-field')), findsNothing); // ダイアログは開かない
     expect(st().activeSplitIndex, 0);
 
     // 「＋」ボタンは背面の行タップに奪われず行を追加する（アリーナ検証）
@@ -214,15 +215,14 @@ void main() {
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
 
-    // 行0: 300＋日用品 → メモボタンが出る（カテゴリ未選択の行には出ない）
+    // メモボタンはカテゴリ未選択でも最初から出ている
     ctrl.splitTapDigit(3);
     ctrl.splitTapDoubleZero();
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('split-memo-btn-0')), findsNothing);
-    await tester.tap(find.textContaining('日用品'));
-    await tester.pumpAndSettle();
     final memoBtn = find.byKey(const Key('split-memo-btn-0'));
     expect(memoBtn, findsOneWidget);
+    await tester.tap(find.textContaining('日用品'));
+    await tester.pumpAndSettle();
 
     // ボタン → ダイアログで入力・保存 → 行に本文表示＆stateに反映
     await tester.tap(memoBtn, warnIfMissed: false);
