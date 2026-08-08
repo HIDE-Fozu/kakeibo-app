@@ -147,6 +147,10 @@ class EntryFormState {
   /// 毎月ルールを作成する。内訳/一括の開始でOFFに戻り、保存後もリセットされる。
   final bool recurringOn;
 
+  /// 毎月ルールの記帳日(1..31)。null=入力日付の日に追従（既定）。
+  /// 「8/8に入力するが引き落としは毎月25日」のようなケースで上書きする。
+  final int? recurringDay;
+
   const EntryFormState({
     required this.mode,
     this.editingId,
@@ -175,7 +179,11 @@ class EntryFormState {
     this.fixturePath,
     this.formSeq = 0,
     this.recurringOn = false,
+    this.recurringDay,
   });
+
+  /// 毎月ルールの実効記帳日（上書きが無ければ入力日付の日）。
+  int get effectiveRecurringDay => recurringDay ?? date.day;
 
   bool get canSave => batchItems != null
       ? _batchValid
@@ -344,6 +352,7 @@ class EntryFormState {
     Object? fixturePath = _unset,
     int? formSeq,
     bool? recurringOn,
+    Object? recurringDay = _unset,
   }) =>
       EntryFormState(
         formSeq: formSeq ?? this.formSeq,
@@ -394,6 +403,9 @@ class EntryFormState {
             ? this.fixturePath
             : fixturePath as String?,
         recurringOn: recurringOn ?? this.recurringOn,
+        recurringDay: identical(recurringDay, _unset)
+            ? this.recurringDay
+            : recurringDay as int?,
       );
 }
 
@@ -616,6 +628,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       splits: null,
       expandedParentId: null,
       recurringOn: false, // 毎月の費用/収入は単体登録専用
+      recurringDay: null,
     );
   }
 
@@ -744,6 +757,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       batchItems: null,
       expandedParentId: null,
       recurringOn: false, // 毎月の費用/収入は単体登録専用
+      recurringDay: null,
     );
   }
 
@@ -988,6 +1002,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// 「毎月の費用/収入」トグル（単体登録専用。UI側も内訳/一括/編集/置換では出さない）。
   void toggleRecurring() => state = _s.copyWith(recurringOn: !_s.recurringOn);
 
+  /// 毎月ルールの記帳日を上書きする（null=入力日付の日に戻す）。
+  void setRecurringDay(int? day) {
+    assert(day == null || (day >= 1 && day <= 31));
+    state = _s.copyWith(recurringDay: day);
+  }
+
   void selectTotalCandidate(AmountCandidate c) => state = _s.copyWith(
       amountYen: c.yen, amountText: amountTextFromMinor(c.yen, _decimals));
 
@@ -1061,7 +1081,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
         type: s.type,
         amountMinor: s.amountYen,
         categoryId: s.categoryId!,
-        dayOfMonth: s.date.day,
+        dayOfMonth: s.effectiveRecurringDay,
         storeName: store.isEmpty ? null : store,
         memo: memo.isEmpty ? null : memo,
         startYm: ymOf(s.date),

@@ -897,4 +897,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entrySaveWithRuleIncome => '저장 (+매월 수입)';
+
+  @override
+  String get entryRecurringChangeDay => '기록일 변경';
 }

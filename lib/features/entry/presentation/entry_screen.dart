@@ -233,63 +233,64 @@ class EntryScreen extends ConsumerWidget {
                       // 分割/一括/編集中と金額0では出さない。
                       // 左隣に「毎月の費用/収入」トグル（単体登録専用。グループ
                       // 再保存=replacesTxIds中とレシート確認では出さない）。
+                      // Wrap: 幅が足りない言語では2行に折り返す（Spacer+Flexibleの
+                      // Rowはflex均等割りで右ボタンが「複数のカ…」に切れる罠がある）。
                       if (!splitMode &&
                           !batchMode &&
                           state.mode != EntryMode.edit &&
                           state.amountYen > 0)
-                        Row(
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             if (state.mode == EntryMode.create &&
                                 state.replacesTxIds == null)
-                              Flexible(
-                                child: TextButton.icon(
-                                  key: const Key('entry-recurring-btn'),
-                                  onPressed: ctrl.toggleRecurring,
-                                  style: state.recurringOn
-                                      ? TextButton.styleFrom(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          foregroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary,
-                                        )
+                              TextButton.icon(
+                                key: const Key('entry-recurring-btn'),
+                                onPressed: ctrl.toggleRecurring,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  visualDensity: VisualDensity.compact,
+                                  backgroundColor: state.recurringOn
+                                      ? Theme.of(context).colorScheme.primary
                                       : null,
-                                  icon: const Icon(Icons.event_repeat, size: 18),
-                                  label: Text(
-                                    state.type == TxnType.expense
-                                        ? l.entryRecurringExpense
-                                        : l.entryRecurringIncome,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  foregroundColor: state.recurringOn
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : null,
                                 ),
-                              ),
-                            const Spacer(),
-                            Flexible(
-                              child: TextButton.icon(
-                                key: const Key('start-split'),
-                                onPressed: () {
-                                  final hasItems =
-                                      state.receipt?.itemLines.isNotEmpty ??
-                                          false;
-                                  if (hasItems) {
-                                    ctrl.startBatchItemize();
-                                  } else {
-                                    ctrl.startSplit();
-                                  }
-                                },
-                                icon: const Icon(Icons.call_split, size: 18),
+                                icon: const Icon(Icons.event_repeat, size: 18),
                                 label: Text(
-                                  l.entryStartSplitButton,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  state.type == TxnType.expense
+                                      ? l.entryRecurringExpense
+                                      : l.entryRecurringIncome,
                                 ),
                               ),
+                            TextButton.icon(
+                              key: const Key('start-split'),
+                              onPressed: () {
+                                final hasItems =
+                                    state.receipt?.itemLines.isNotEmpty ??
+                                        false;
+                                if (hasItems) {
+                                  ctrl.startBatchItemize();
+                                } else {
+                                  ctrl.startSplit();
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              icon: const Icon(Icons.call_split, size: 18),
+                              label: Text(l.entryStartSplitButton),
                             ),
                           ],
                         ),
                       // ON時の予告帯: 「毎月N日に自動で記帳します（この入力が1回目）」
+                      // 記帳日は入力日付の日が既定。「記帳日を変更」で毎月N日を上書き
+                      // できる（8/8に入力して引き落としは毎月25日、のようなケース）。
                       if (!splitMode &&
                           !batchMode &&
                           state.recurringOn &&
@@ -297,8 +298,7 @@ class EntryScreen extends ConsumerWidget {
                         Container(
                           key: const Key('entry-recurring-note'),
                           margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.fromLTRB(12, 4, 6, 4),
                           decoration: BoxDecoration(
                             color: Theme.of(context)
                                 .colorScheme
@@ -306,13 +306,35 @@ class EntryScreen extends ConsumerWidget {
                                 .withValues(alpha: .45),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text(
-                            l.entryRecurringNote(state.date.day),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  l.entryRecurringNote(
+                                      state.effectiveRecurringDay),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                key: const Key('entry-recurring-day'),
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                ),
+                                onPressed: () =>
+                                    _pickRecurringDay(context, ref, state),
+                                child: Text(
+                                  l.entryRecurringChangeDay,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       // カテゴリ: 分割中もグリッドと同じ位置（電卓の下・見出し付き）に
@@ -569,6 +591,68 @@ class EntryScreen extends ConsumerWidget {
       ref
           .read(entryFormControllerProvider.notifier)
           .setDate(civilOfDateTime(picked));
+    }
+  }
+
+  /// 「毎月の費用/収入」の記帳日(毎月N日)を選ぶ。取引の日付は変えない。
+  Future<void> _pickRecurringDay(
+      BuildContext context, WidgetRef ref, EntryFormState state) async {
+    final l = AppLocalizations.of(context);
+    final current = state.effectiveRecurringDay;
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.recurringDayLabel),
+        contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 360,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  l.recurringDayClampNote,
+                  style: Theme.of(ctx).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: ScrollController(
+                    // 現在値の少し手前から表示（31件を先頭から探させない）
+                    initialScrollOffset: ((current - 3).clamp(0, 30)) * 48.0,
+                  ),
+                  itemExtent: 48,
+                  itemCount: 31,
+                  itemBuilder: (ctx, i) {
+                    final d = i + 1;
+                    return ListTile(
+                      key: Key('entry-recurring-day-$d'),
+                      title: Text(l.recurringEveryMonthDay(d)),
+                      selected: d == current,
+                      trailing: d == current
+                          ? Icon(Icons.check,
+                              color: Theme.of(ctx).colorScheme.primary)
+                          : null,
+                      onTap: () => Navigator.pop(ctx, d),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.commonCancel),
+          ),
+        ],
+      ),
+    );
+    if (picked != null) {
+      ref.read(entryFormControllerProvider.notifier).setRecurringDay(picked);
     }
   }
 

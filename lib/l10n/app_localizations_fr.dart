@@ -934,4 +934,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get entrySaveWithRuleIncome => 'Enregistrer (+ mensuel)';
+
+  @override
+  String get entryRecurringChangeDay => 'Changer le jour';
 }

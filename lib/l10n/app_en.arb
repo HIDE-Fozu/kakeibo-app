@@ -809,5 +809,9 @@
   "entrySaveWithRuleIncome": "Save + monthly income",
   "@entrySaveWithRuleIncome": {
     "description": "Save button label while the monthly income toggle is on"
+  },
+  "entryRecurringChangeDay": "Change day",
+  "@entryRecurringChangeDay": {
+    "description": "Button in the monthly-toggle note strip to override the rule's day of month"
   }
 }

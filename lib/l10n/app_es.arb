@@ -266,5 +266,6 @@
   "entryRecurringIncome": "Ingreso mensual",
   "entryRecurringNote": "Se registrará automáticamente el día {day} de cada mes (esta entrada es la primera)",
   "entrySaveWithRuleExpense": "Guardar (+ mensual)",
-  "entrySaveWithRuleIncome": "Guardar (+ mensual)"
+  "entrySaveWithRuleIncome": "Guardar (+ mensual)",
+  "entryRecurringChangeDay": "Cambiar día"
 }

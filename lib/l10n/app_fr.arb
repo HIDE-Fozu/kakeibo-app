@@ -266,5 +266,6 @@
   "entryRecurringIncome": "Revenu mensuel",
   "entryRecurringNote": "Sera enregistré automatiquement le {day} de chaque mois (cette saisie est la première)",
   "entrySaveWithRuleExpense": "Enregistrer (+ mensuel)",
-  "entrySaveWithRuleIncome": "Enregistrer (+ mensuel)"
+  "entrySaveWithRuleIncome": "Enregistrer (+ mensuel)",
+  "entryRecurringChangeDay": "Changer le jour"
 }

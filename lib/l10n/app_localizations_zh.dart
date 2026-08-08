@@ -891,4 +891,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get entrySaveWithRuleIncome => '保存（+每月收入）';
+
+  @override
+  String get entryRecurringChangeDay => '更改记账日';
 }

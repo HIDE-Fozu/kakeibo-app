@@ -1713,6 +1713,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save + monthly income'**
   String get entrySaveWithRuleIncome;
+
+  /// Button in the monthly-toggle note strip to override the rule's day of month
+  ///
+  /// In en, this message translates to:
+  /// **'Change day'**
+  String get entryRecurringChangeDay;
 }
 
 class _AppLocalizationsDelegate

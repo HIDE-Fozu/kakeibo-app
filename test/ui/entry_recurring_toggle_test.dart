@@ -153,6 +153,53 @@ void main() {
     expect(rules.single.lastGeneratedYm, 202607);
   });
 
+  testWidgets('記帳日を変更: 取引日は8/8のままルールは毎月25日になる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h,
+        home: Host(
+            onOpen: (ref) => ref
+                .read(entryFormControllerProvider.notifier)
+                .startCreate(const CivilDate(2026, 7, 8))));
+    final c = containerOf(tester);
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('8'));
+    await tester.tap(find.byKey(const Key('np-00')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('entry-recurring-btn')));
+    await tester.pump();
+
+    // 既定は入力日付の日（毎月8日）→「記帳日を変更」で毎月25日へ
+    expect(find.textContaining('毎月8日に自動で記帳します'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('entry-recurring-day')));
+    await tester.pumpAndSettle();
+    // ダイアログのリストは遅延構築なので25日までスクロールしてからタップ
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('entry-recurring-day-25')), 96,
+        scrollable: find.byType(Scrollable).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('entry-recurring-day-25')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('毎月25日に自動で記帳します'), findsOneWidget);
+
+    await tester.tap(find.textContaining('食費'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('save-btn')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('save-btn')));
+    await tester.pumpAndSettle();
+
+    // 取引は入力日(7/8)のまま・ルールは毎月25日・当月分は手入力扱いで未起票
+    final txs = await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+    expect(txs.single.date, const CivilDate(2026, 7, 8));
+    final rules = await c.read(appDatabaseProvider).recurringRuleDao.allRules();
+    expect(rules.single.dayOfMonth, 25);
+    expect(rules.single.lastGeneratedYm, 202607); // 7/25(未来)は起票されない
+  });
+
   testWidgets('内訳開始でOFF+非表示・編集モードでは出ない', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
