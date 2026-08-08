@@ -706,200 +706,195 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String choreNotificationBody(int days) {
-    return 'It\'s been $days days since last time';
+    return '지난번부터 $days일 지났어요';
   }
 
   @override
-  String get homeNavMonthly => 'Monthly';
+  String get homeNavMonthly => '매월';
 
   @override
-  String get hubUpcomingSection => 'Coming up this month';
+  String get hubUpcomingSection => '이번 달 예정';
 
   @override
-  String get hubUpcomingEmpty => 'Nothing scheduled for the rest of this month';
+  String get hubUpcomingEmpty => '이번 달 남은 예정이 없습니다';
 
   @override
-  String get hubRulesSection => 'Fixed costs & income';
+  String get hubRulesSection => '고정 지출·수입';
 
   @override
-  String get hubRulesEmpty =>
-      'Tap + to automate monthly entries like rent or salary';
+  String get hubRulesEmpty => '+로 월세나 급여 같은 매월 기록을 자동화할 수 있어요';
 
   @override
-  String get hubChoresSection => 'Recurring chores';
+  String get hubChoresSection => '주기적 집안일';
 
   @override
-  String get hubChoresEmpty =>
-      'Tap + to add chores like replacing your toothbrush';
+  String get hubChoresEmpty => '+로 칫솔 교체 같은 집안일을 등록할 수 있어요';
 
   @override
-  String get hubChoreTimelineLabel => 'Chore';
+  String get hubChoreTimelineLabel => '집안일';
 
   @override
-  String get ghostBadgeLabel => 'Planned';
+  String get ghostBadgeLabel => '예정';
 
   @override
-  String get forecastLabelMonthEnd => 'Projected balance (end of month)';
+  String get forecastLabelMonthEnd => '예상 수지(월말)';
 
   @override
   String forecastLabelAtDate(String date) {
-    return 'Projected balance (as of $date)';
+    return '예상 수지($date 기준)';
   }
 
   @override
   String choreIntervalEvery(int days) {
-    return 'Every $days days';
+    return '$days일마다';
   }
 
   @override
   String choreOverdueDays(int days) {
-    return '${days}d overdue';
+    return '$days일 지남';
   }
 
   @override
-  String get choreDueToday => 'Today';
+  String get choreDueToday => '오늘';
 
   @override
   String choreDaysLeft(int days) {
-    return 'in $days days';
+    return '$days일 남음';
   }
 
   @override
   String choreNextDate(String date) {
-    return 'Next: $date';
+    return '다음: $date';
   }
 
   @override
-  String get choreDoneButton => 'Done';
+  String get choreDoneButton => '했어요';
 
   @override
   String choreDoneSnackbar(String date) {
-    return '✓ Recorded. Next: $date';
+    return '✓ 기록했어요. 다음은 $date';
   }
 
   @override
-  String get choreDupConfirmTitle => 'Already recorded';
+  String get choreDupConfirmTitle => '확인';
 
   @override
   String choreDupConfirmBody(String name) {
-    return '\"$name\" already has a record on this day. Add another?';
+    return '\"$name\"은(는) 이 날 이미 기록이 있어요. 추가할까요?';
   }
 
   @override
-  String get choreDupConfirmAdd => 'Add';
+  String get choreDupConfirmAdd => '추가';
 
   @override
-  String get choreFormNewTitle => 'New chore';
+  String get choreFormNewTitle => '새 항목';
 
   @override
-  String get choreFormEditTitle => 'Edit chore';
+  String get choreFormEditTitle => '항목 편집';
 
   @override
-  String get choreFormNameLabel => 'Name';
+  String get choreFormNameLabel => '항목 이름';
 
   @override
-  String get choreFormIntervalLabel => 'Interval in days (1–999)';
+  String get choreFormIntervalLabel => '간격 일수 (1–999)';
 
   @override
-  String get choreFormEmojiLabel => 'Emoji (📌 if empty)';
+  String get choreFormEmojiLabel => '이모지 (비우면 📌)';
 
   @override
-  String get choreFormArchiveButton => 'Archive';
+  String get choreFormArchiveButton => '보관하기';
 
   @override
-  String get choreFormDeleteButton => 'Delete this chore';
+  String get choreFormDeleteButton => '이 항목 삭제';
 
   @override
   String choreDeleteConfirmBody(int count) {
-    return '$count history records will also be deleted';
+    return '기록 $count건도 모두 삭제됩니다';
   }
 
   @override
-  String get choreHistoryTitle => 'History';
+  String get choreHistoryTitle => '기록';
 
   @override
-  String get choreHistoryEmpty => 'No records yet';
+  String get choreHistoryEmpty => '아직 기록이 없습니다';
 
   @override
-  String get choreRecordEditTitle => 'Edit record';
+  String get choreRecordEditTitle => '기록 편집';
 
   @override
-  String get choreRecordDeleteConfirm => 'Delete this record?';
+  String get choreRecordDeleteConfirm => '기록을 삭제할까요?';
 
   @override
-  String get choreMemoLabel => 'Memo';
+  String get choreMemoLabel => '메모';
 
   @override
-  String get settingsChoresTitle => 'Recurring chores';
+  String get settingsChoresTitle => '주기적 집안일';
 
   @override
-  String get settingsChoresSubtitle => 'Notification time and archived chores';
+  String get settingsChoresSubtitle => '알림 시각과 보관된 항목 관리';
 
   @override
-  String get choreNotifyTimeLabel => 'Notification time';
+  String get choreNotifyTimeLabel => '알림 시각';
 
   @override
-  String get chorePermissionChecking => 'Checking notification permission…';
+  String get chorePermissionChecking => '알림 권한 확인 중…';
 
   @override
-  String get chorePermissionNotAsked =>
-      'You\'ll be asked to allow notifications after your first record';
+  String get chorePermissionNotAsked => '알림 권한은 첫 기록 때 요청됩니다';
 
   @override
-  String get chorePermissionGranted => 'Notifications are enabled';
+  String get chorePermissionGranted => '알림이 켜져 있어요';
 
   @override
-  String get chorePermissionDenied => 'Notifications are not allowed';
+  String get chorePermissionDenied => '알림이 허용되지 않았어요';
 
   @override
-  String get chorePermissionOpenSettings => 'Open Settings';
+  String get chorePermissionOpenSettings => '설정 열기';
 
   @override
-  String get choreArchivedSection => 'Archived chores';
+  String get choreArchivedSection => '보관된 항목';
 
   @override
-  String get choreArchivedEmpty => 'No archived chores';
+  String get choreArchivedEmpty => '보관된 항목이 없습니다';
 
   @override
-  String get choreUnarchiveButton => 'Restore';
+  String get choreUnarchiveButton => '되돌리기';
 
   @override
-  String get forecastAnchorSheetTitle =>
-      'Anchor date for the projected balance';
+  String get forecastAnchorSheetTitle => '예상 수지 기준일';
 
   @override
-  String get forecastAnchorSheetNote =>
-      'Planned amounts up to and including the anchor date are added to the actual balance.';
+  String get forecastAnchorSheetNote => '오늘부터 기준일까지의 예정을 실적에 더해 표시합니다(기준일 포함)';
 
   @override
-  String get forecastAnchorMonthEnd => 'End of month';
+  String get forecastAnchorMonthEnd => '월말';
 
   @override
-  String get calendarLegendChoreDone => 'chore done';
+  String get calendarLegendChoreDone => '했어요';
 
   @override
-  String get calendarLegendChoreDue => 'chore due';
+  String get calendarLegendChoreDue => '집안일 예정일';
 
   @override
-  String get calendarLegendChoreOverdue => 'overdue';
+  String get calendarLegendChoreOverdue => '기한 지남';
 
   @override
-  String get calendarLegendGhost => 'planned fixed cost';
+  String get calendarLegendGhost => '고정비 예정';
 
   @override
-  String get entryRecurringExpense => 'Monthly expense';
+  String get entryRecurringExpense => '매월 지출';
 
   @override
-  String get entryRecurringIncome => 'Monthly income';
+  String get entryRecurringIncome => '매월 수입';
 
   @override
   String entryRecurringNote(int day) {
-    return 'Will be recorded automatically on day $day every month (this entry is the first)';
+    return '매월 $day일에 자동으로 기록됩니다 (이번 입력이 첫 회)';
   }
 
   @override
-  String get entrySaveWithRuleExpense => 'Save + monthly expense';
+  String get entrySaveWithRuleExpense => '저장 (+매월 지출)';
 
   @override
-  String get entrySaveWithRuleIncome => 'Save + monthly income';
+  String get entrySaveWithRuleIncome => '저장 (+매월 수입)';
 }

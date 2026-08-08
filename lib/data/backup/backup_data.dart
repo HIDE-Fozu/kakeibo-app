@@ -139,6 +139,42 @@ class BackupRecurringRule {
   });
 }
 
+/// 行と1:1のバックアップ用つきいちタスク（formatVersion 5で追加）。
+class BackupChoreTask {
+  final int id;
+  final String name;
+  final String emoji;
+  final int intervalDays;
+  final CivilDate anchorDate;
+  final bool archived;
+  final DateTime createdAt;
+  const BackupChoreTask({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.intervalDays,
+    required this.anchorDate,
+    required this.archived,
+    required this.createdAt,
+  });
+}
+
+/// 行と1:1のバックアップ用つきいち実施記録（formatVersion 5で追加）。
+class BackupChoreRecord {
+  final int id;
+  final int taskId;
+  final CivilDate doneDate;
+  final String memo;
+  final DateTime createdAt;
+  const BackupChoreRecord({
+    required this.id,
+    required this.taskId,
+    required this.doneDate,
+    required this.memo,
+    required this.createdAt,
+  });
+}
+
 class BackupPayload {
   final int formatVersion;
   final DateTime? exportedAt;
@@ -147,11 +183,17 @@ class BackupPayload {
 
   /// 定期ルール（formatVersion 4で追加。旧バックアップは空で復元）。
   final List<BackupRecurringRule> recurringRules;
+
+  /// つきいちタスクと実施記録（formatVersion 5で追加。旧バックアップは空で復元）。
+  final List<BackupChoreTask> choreTasks;
+  final List<BackupChoreRecord> choreRecords;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
     required this.categories,
     required this.transactions,
     this.recurringRules = const [],
+    this.choreTasks = const [],
+    this.choreRecords = const [],
   });
 }

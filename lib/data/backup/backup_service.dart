@@ -25,6 +25,12 @@ class BackupService {
     final rules = await (_db.select(_db.recurringRules)
           ..orderBy([(r) => OrderingTerm.asc(r.id)]))
         .get();
+    final choreTasks = await (_db.select(_db.choreTasks)
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
+    final choreRecords = await (_db.select(_db.choreRecords)
+          ..orderBy([(r) => OrderingTerm.asc(r.id)]))
+        .get();
     return BackupPayload(
       formatVersion: BackupCodec.formatVersion,
       exportedAt: DateTime.now().toUtc(),
@@ -78,6 +84,28 @@ class BackupService {
             updatedAt: r.updatedAt.toUtc(),
           ),
       ],
+      choreTasks: [
+        for (final t in choreTasks)
+          BackupChoreTask(
+            id: t.id,
+            name: t.name,
+            emoji: t.emoji,
+            intervalDays: t.intervalDays,
+            anchorDate: t.anchorDate,
+            archived: t.archived,
+            createdAt: t.createdAt.toUtc(),
+          ),
+      ],
+      choreRecords: [
+        for (final r in choreRecords)
+          BackupChoreRecord(
+            id: r.id,
+            taskId: r.taskId,
+            doneDate: r.doneDate,
+            memo: r.memo,
+            createdAt: r.createdAt.toUtc(),
+          ),
+      ],
     );
   }
 
@@ -115,9 +143,12 @@ class BackupService {
       // FK検査をコミット時まで遅延する（整合性はコミット時に検証される）。
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
 
-      // FK RESTRICT を回避する順序: 取引・定期ルール → カテゴリ の順に削除
+      // FK RESTRICT を回避する順序: 取引・定期ルール → カテゴリ の順に削除。
+      // つきいちは記録 → タスク の順（カスケードに頼らず明示削除）。
       await _db.delete(_db.transactions).go();
       await _db.delete(_db.recurringRules).go();
+      await _db.delete(_db.choreRecords).go();
+      await _db.delete(_db.choreTasks).go();
       await _db.delete(_db.categories).go();
 
       // カテゴリ → 取引 の順に、IDを明示して挿入（逐語保存）
@@ -178,19 +209,51 @@ class BackupService {
             ),
           );
         }
+        for (final t in payload.choreTasks) {
+          b.insert(
+            _db.choreTasks,
+            ChoreTasksCompanion(
+              id: Value(t.id),
+              name: Value(t.name),
+              emoji: Value(t.emoji),
+              intervalDays: Value(t.intervalDays),
+              anchorDate: Value(t.anchorDate),
+              archived: Value(t.archived),
+              createdAt: Value(t.createdAt),
+            ),
+          );
+        }
+        for (final r in payload.choreRecords) {
+          b.insert(
+            _db.choreRecords,
+            ChoreRecordsCompanion(
+              id: Value(r.id),
+              taskId: Value(r.taskId),
+              doneDate: Value(r.doneDate),
+              memo: Value(r.memo),
+              createdAt: Value(r.createdAt),
+            ),
+          );
+        }
       });
 
       // 事後アサート（防御的・トランザクション内なので失敗すればロールバック）
       final catCount = await _count(_db.categories);
       final txCount = await _count(_db.transactions);
       final ruleCount = await _count(_db.recurringRules);
+      final choreTaskCount = await _count(_db.choreTasks);
+      final choreRecordCount = await _count(_db.choreRecords);
       if (catCount != payload.categories.length ||
           txCount != payload.transactions.length ||
-          ruleCount != payload.recurringRules.length) {
+          ruleCount != payload.recurringRules.length ||
+          choreTaskCount != payload.choreTasks.length ||
+          choreRecordCount != payload.choreRecords.length) {
         throw StateError(
             '復元の件数が一致しません: cats=$catCount/${payload.categories.length}, '
             'txs=$txCount/${payload.transactions.length}, '
-            'rules=$ruleCount/${payload.recurringRules.length}');
+            'rules=$ruleCount/${payload.recurringRules.length}, '
+            'choreTasks=$choreTaskCount/${payload.choreTasks.length}, '
+            'choreRecords=$choreRecordCount/${payload.choreRecords.length}');
       }
     });
   }

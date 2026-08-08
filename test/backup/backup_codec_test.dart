@@ -41,6 +41,19 @@ BackupPayload samplePayload() => BackupPayload(
           updatedAt: DateTime.utc(2026, 8, 1, 0, 0, 0),
         ),
       ],
+      choreTasks: [
+        BackupChoreTask(
+          id: 1, name: 'ハブラシ交換', emoji: '🪥', intervalDays: 30,
+          anchorDate: const CivilDate(2026, 7, 1), archived: false,
+          createdAt: DateTime.utc(2026, 7, 1, 0, 0, 0),
+        ),
+      ],
+      choreRecords: [
+        BackupChoreRecord(
+          id: 1, taskId: 1, doneDate: const CivilDate(2026, 7, 10), memo: '新品',
+          createdAt: DateTime.utc(2026, 7, 10, 0, 0, 0),
+        ),
+      ],
     );
 
 void main() {
@@ -56,7 +69,7 @@ void main() {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 4);
+    expect(root['formatVersion'], 5);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -204,7 +217,7 @@ void main() {
 
     test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
       final payload = codec.decode(validV1Json());
-      expect(payload.formatVersion, 4); // decodeはマイグレーション後に現行版を返す
+      expect(payload.formatVersion, 5); // decodeはマイグレーション後に現行版を返す
       expect(payload.categories.every((c) => c.parentId == null), isTrue);
     });
 
@@ -253,7 +266,7 @@ void main() {
         r.remove('recurringRules');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 4);
+      expect(payload.formatVersion, 5);
       expect(payload.recurringRules, isEmpty);
     });
 
@@ -305,6 +318,73 @@ void main() {
         () => codec.decode(mutate((r) {
           final rules = r['recurringRules'] as List;
           rules.add(Map<String, dynamic>.from(rules.first as Map));
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+  });
+
+  group('formatVersion 5（つきいちタスク）', () {
+    test('v4 JSON（choreTasks/choreRecordsなし）はmigrateされ空で復元', () {
+      final json = mutate((r) {
+        r['formatVersion'] = 4;
+        r.remove('choreTasks');
+        r.remove('choreRecords');
+      });
+      final payload = codec.decode(json);
+      expect(payload.formatVersion, 5);
+      expect(payload.choreTasks, isEmpty);
+      expect(payload.choreRecords, isEmpty);
+    });
+
+    test('roundtripでタスク・記録の全フィールドが保存される', () {
+      final payload = codec.decode(codec.encode(samplePayload()));
+      final t = payload.choreTasks.single;
+      expect(t.id, 1);
+      expect(t.name, 'ハブラシ交換');
+      expect(t.emoji, '🪥');
+      expect(t.intervalDays, 30);
+      expect(t.anchorDate, const CivilDate(2026, 7, 1));
+      expect(t.archived, isFalse);
+      expect(t.createdAt, DateTime.utc(2026, 7, 1));
+      final rec = payload.choreRecords.single;
+      expect(rec.taskId, 1);
+      expect(rec.doneDate, const CivilDate(2026, 7, 10));
+      expect(rec.memo, '新品');
+    });
+
+    test('記録のtaskIdが同梱タスクに解決できないと拒否', () {
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreRecords'] as List).first as Map)['taskId'] = 999;
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('不正なintervalDays・空name・不正日付・ID重複は拒否', () {
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreTasks'] as List).first as Map)['intervalDays'] = 0;
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreTasks'] as List).first as Map)['name'] = '';
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreRecords'] as List).first as Map)['doneDate'] = '2026-13-99';
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          final tasks = r['choreTasks'] as List;
+          tasks.add(Map<String, dynamic>.from(tasks.first as Map));
         })),
         throwsA(isA<BackupValidationError>()),
       );

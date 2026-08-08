@@ -151,4 +151,45 @@ void main() {
     final cats = await db.categoryDao.allCategories();
     expect(cats.length, 3);
   });
+
+  test('restore: つきいちタスク・記録（v5）が置換復元される', () async {
+    // 復元前の既存chore（置換で消えるべき）
+    await db.choreDao.insertTask(ChoreTasksCompanion.insert(
+        name: '消えるタスク',
+        intervalDays: 7,
+        anchorDate: const CivilDate(2026, 7, 1)));
+
+    final payload = BackupPayload(
+      formatVersion: BackupCodec.formatVersion,
+      exportedAt: DateTime.utc(2026, 7, 3),
+      categories: minimalPayload().categories,
+      transactions: minimalPayload().transactions,
+      choreTasks: [
+        BackupChoreTask(
+          id: 7, name: 'ハブラシ交換', emoji: '🪥', intervalDays: 30,
+          anchorDate: const CivilDate(2026, 6, 1), archived: false,
+          createdAt: DateTime.utc(2026, 6, 1),
+        ),
+      ],
+      choreRecords: [
+        BackupChoreRecord(
+          id: 3, taskId: 7, doneDate: const CivilDate(2026, 6, 20), memo: '',
+          createdAt: DateTime.utc(2026, 6, 20),
+        ),
+      ],
+    );
+    await service.applyRestore(payload);
+
+    final tasks = await db.choreDao.allTasks();
+    expect(tasks.single.id, 7); // IDまで逐語復元・既存は消えた
+    expect(tasks.single.name, 'ハブラシ交換');
+    final records = await db.choreDao.allRecords();
+    expect(records.single.taskId, 7);
+    expect(records.single.doneDate, const CivilDate(2026, 6, 20));
+
+    // export→decode roundtrip にも chores が乗る
+    final decoded = const BackupCodec().decode(await service.exportJson());
+    expect(decoded.choreTasks.single.id, 7);
+    expect(decoded.choreRecords.single.id, 3);
+  });
 }

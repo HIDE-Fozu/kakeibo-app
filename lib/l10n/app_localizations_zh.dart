@@ -700,200 +700,195 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String choreNotificationBody(int days) {
-    return 'It\'s been $days days since last time';
+    return '距上次已过去$days天';
   }
 
   @override
-  String get homeNavMonthly => 'Monthly';
+  String get homeNavMonthly => '每月';
 
   @override
-  String get hubUpcomingSection => 'Coming up this month';
+  String get hubUpcomingSection => '本月接下来';
 
   @override
-  String get hubUpcomingEmpty => 'Nothing scheduled for the rest of this month';
+  String get hubUpcomingEmpty => '本月没有更多安排';
 
   @override
-  String get hubRulesSection => 'Fixed costs & income';
+  String get hubRulesSection => '固定支出·收入';
 
   @override
-  String get hubRulesEmpty =>
-      'Tap + to automate monthly entries like rent or salary';
+  String get hubRulesEmpty => '点＋可自动记录房租、工资等每月固定项目';
 
   @override
-  String get hubChoresSection => 'Recurring chores';
+  String get hubChoresSection => '定期家务';
 
   @override
-  String get hubChoresEmpty =>
-      'Tap + to add chores like replacing your toothbrush';
+  String get hubChoresEmpty => '点＋可添加换牙刷等家务提醒';
 
   @override
-  String get hubChoreTimelineLabel => 'Chore';
+  String get hubChoreTimelineLabel => '家务';
 
   @override
-  String get ghostBadgeLabel => 'Planned';
+  String get ghostBadgeLabel => '预定';
 
   @override
-  String get forecastLabelMonthEnd => 'Projected balance (end of month)';
+  String get forecastLabelMonthEnd => '预计结余（月末）';
 
   @override
   String forecastLabelAtDate(String date) {
-    return 'Projected balance (as of $date)';
+    return '预计结余（截至$date）';
   }
 
   @override
   String choreIntervalEvery(int days) {
-    return 'Every $days days';
+    return '每$days天';
   }
 
   @override
   String choreOverdueDays(int days) {
-    return '${days}d overdue';
+    return '已超期$days天';
   }
 
   @override
-  String get choreDueToday => 'Today';
+  String get choreDueToday => '今天';
 
   @override
   String choreDaysLeft(int days) {
-    return 'in $days days';
+    return '还有$days天';
   }
 
   @override
   String choreNextDate(String date) {
-    return 'Next: $date';
+    return '下次：$date';
   }
 
   @override
-  String get choreDoneButton => 'Done';
+  String get choreDoneButton => '完成';
 
   @override
   String choreDoneSnackbar(String date) {
-    return '✓ Recorded. Next: $date';
+    return '✓ 已记录。下次：$date';
   }
 
   @override
-  String get choreDupConfirmTitle => 'Already recorded';
+  String get choreDupConfirmTitle => '确认';
 
   @override
   String choreDupConfirmBody(String name) {
-    return '\"$name\" already has a record on this day. Add another?';
+    return '“$name”当天已有记录，仍要添加吗？';
   }
 
   @override
-  String get choreDupConfirmAdd => 'Add';
+  String get choreDupConfirmAdd => '添加';
 
   @override
-  String get choreFormNewTitle => 'New chore';
+  String get choreFormNewTitle => '新项目';
 
   @override
-  String get choreFormEditTitle => 'Edit chore';
+  String get choreFormEditTitle => '编辑项目';
 
   @override
-  String get choreFormNameLabel => 'Name';
+  String get choreFormNameLabel => '项目名称';
 
   @override
-  String get choreFormIntervalLabel => 'Interval in days (1–999)';
+  String get choreFormIntervalLabel => '间隔天数（1–999）';
 
   @override
-  String get choreFormEmojiLabel => 'Emoji (📌 if empty)';
+  String get choreFormEmojiLabel => '表情（留空则为📌）';
 
   @override
-  String get choreFormArchiveButton => 'Archive';
+  String get choreFormArchiveButton => '归档';
 
   @override
-  String get choreFormDeleteButton => 'Delete this chore';
+  String get choreFormDeleteButton => '删除此项目';
 
   @override
   String choreDeleteConfirmBody(int count) {
-    return '$count history records will also be deleted';
+    return '$count条历史记录也将一并删除';
   }
 
   @override
-  String get choreHistoryTitle => 'History';
+  String get choreHistoryTitle => '历史';
 
   @override
-  String get choreHistoryEmpty => 'No records yet';
+  String get choreHistoryEmpty => '还没有记录';
 
   @override
-  String get choreRecordEditTitle => 'Edit record';
+  String get choreRecordEditTitle => '编辑记录';
 
   @override
-  String get choreRecordDeleteConfirm => 'Delete this record?';
+  String get choreRecordDeleteConfirm => '要删除这条记录吗？';
 
   @override
-  String get choreMemoLabel => 'Memo';
+  String get choreMemoLabel => '备注';
 
   @override
-  String get settingsChoresTitle => 'Recurring chores';
+  String get settingsChoresTitle => '定期家务';
 
   @override
-  String get settingsChoresSubtitle => 'Notification time and archived chores';
+  String get settingsChoresSubtitle => '提醒时间与已归档项目';
 
   @override
-  String get choreNotifyTimeLabel => 'Notification time';
+  String get choreNotifyTimeLabel => '提醒时间';
 
   @override
-  String get chorePermissionChecking => 'Checking notification permission…';
+  String get chorePermissionChecking => '正在检查通知权限…';
 
   @override
-  String get chorePermissionNotAsked =>
-      'You\'ll be asked to allow notifications after your first record';
+  String get chorePermissionNotAsked => '首次记录后会请求通知权限';
 
   @override
-  String get chorePermissionGranted => 'Notifications are enabled';
+  String get chorePermissionGranted => '通知已开启';
 
   @override
-  String get chorePermissionDenied => 'Notifications are not allowed';
+  String get chorePermissionDenied => '通知未被允许';
 
   @override
-  String get chorePermissionOpenSettings => 'Open Settings';
+  String get chorePermissionOpenSettings => '打开设置';
 
   @override
-  String get choreArchivedSection => 'Archived chores';
+  String get choreArchivedSection => '已归档项目';
 
   @override
-  String get choreArchivedEmpty => 'No archived chores';
+  String get choreArchivedEmpty => '没有已归档的项目';
 
   @override
-  String get choreUnarchiveButton => 'Restore';
+  String get choreUnarchiveButton => '恢复';
 
   @override
-  String get forecastAnchorSheetTitle =>
-      'Anchor date for the projected balance';
+  String get forecastAnchorSheetTitle => '预计结余的基准日';
 
   @override
-  String get forecastAnchorSheetNote =>
-      'Planned amounts up to and including the anchor date are added to the actual balance.';
+  String get forecastAnchorSheetNote => '将今天到基准日（含当天）的预定金额计入实际结余显示';
 
   @override
-  String get forecastAnchorMonthEnd => 'End of month';
+  String get forecastAnchorMonthEnd => '月末';
 
   @override
-  String get calendarLegendChoreDone => 'chore done';
+  String get calendarLegendChoreDone => '已完成';
 
   @override
-  String get calendarLegendChoreDue => 'chore due';
+  String get calendarLegendChoreDue => '家务到期';
 
   @override
-  String get calendarLegendChoreOverdue => 'overdue';
+  String get calendarLegendChoreOverdue => '已超期';
 
   @override
-  String get calendarLegendGhost => 'planned fixed cost';
+  String get calendarLegendGhost => '固定支出预定';
 
   @override
-  String get entryRecurringExpense => 'Monthly expense';
+  String get entryRecurringExpense => '每月支出';
 
   @override
-  String get entryRecurringIncome => 'Monthly income';
+  String get entryRecurringIncome => '每月收入';
 
   @override
   String entryRecurringNote(int day) {
-    return 'Will be recorded automatically on day $day every month (this entry is the first)';
+    return '将于每月$day日自动记录（本次输入为第一笔）';
   }
 
   @override
-  String get entrySaveWithRuleExpense => 'Save + monthly expense';
+  String get entrySaveWithRuleExpense => '保存（+每月支出）';
 
   @override
-  String get entrySaveWithRuleIncome => 'Save + monthly income';
+  String get entrySaveWithRuleIncome => '保存（+每月收入）';
 }

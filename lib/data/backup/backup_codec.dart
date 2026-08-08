@@ -10,7 +10,9 @@ class BackupCodec {
   /// v3: categories[].slug（安定キー）を追加。旧バックアップはnull復元。
   /// v4: recurringRules（定期ルール）と TxnSource.recurring を追加。
   ///     旧バックアップはルール空で復元。
-  static const int formatVersion = 4;
+  /// v5: choreTasks / choreRecords（つきいちタスク）を追加。
+  ///     旧バックアップは空で復元。
+  static const int formatVersion = 5;
 
   const BackupCodec();
 
@@ -66,6 +68,28 @@ class BackupCodec {
             'lastGeneratedYm': r.lastGeneratedYm,
             'createdAt': r.createdAt.toUtc().toIso8601String(),
             'updatedAt': r.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'choreTasks': [
+        for (final t in p.choreTasks)
+          {
+            'id': t.id,
+            'name': t.name,
+            'emoji': t.emoji,
+            'intervalDays': t.intervalDays,
+            'anchorDate': t.anchorDate.toIso(),
+            'archived': t.archived,
+            'createdAt': t.createdAt.toUtc().toIso8601String(),
+          },
+      ],
+      'choreRecords': [
+        for (final r in p.choreRecords)
+          {
+            'id': r.id,
+            'taskId': r.taskId,
+            'doneDate': r.doneDate.toIso(),
+            'memo': r.memo,
+            'createdAt': r.createdAt.toUtc().toIso8601String(),
           },
       ],
     };
@@ -313,12 +337,85 @@ class BackupCodec {
       recurringRules.add(r);
     }
 
+    // --- choreTasks / choreRecords（v5） ---
+    final choreTasksRaw = req<List<dynamic>>(root, 'choreTasks', 'root');
+    final choreTasks = <BackupChoreTask>[];
+    final choreTaskIds = <int>{};
+    for (final (i, raw) in choreTasksRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('choreTasks[$i] がオブジェクトではありません');
+      }
+      final ctx = 'choreTasks[$i]';
+      final name = req<String>(raw, 'name', ctx);
+      if (name.isEmpty) {
+        throw BackupValidationError('$ctx.name が空です');
+      }
+      final intervalDays = req<int>(raw, 'intervalDays', ctx);
+      if (intervalDays < 1) {
+        throw BackupValidationError('$ctx.intervalDays が範囲外です: $intervalDays');
+      }
+      final anchorRaw = req<String>(raw, 'anchorDate', ctx);
+      final CivilDate anchorDate;
+      try {
+        anchorDate = CivilDate.parse(anchorRaw);
+      } on FormatException {
+        throw BackupValidationError('$ctx.anchorDate が不正な日付です: "$anchorRaw"');
+      }
+      final t = BackupChoreTask(
+        id: req<int>(raw, 'id', ctx),
+        name: name,
+        emoji: req<String>(raw, 'emoji', ctx),
+        intervalDays: intervalDays,
+        anchorDate: anchorDate,
+        archived: req<bool>(raw, 'archived', ctx),
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+      );
+      if (!choreTaskIds.add(t.id)) {
+        throw BackupValidationError('つきいちタスクID ${t.id} が重複しています');
+      }
+      choreTasks.add(t);
+    }
+
+    final choreRecordsRaw = req<List<dynamic>>(root, 'choreRecords', 'root');
+    final choreRecords = <BackupChoreRecord>[];
+    final choreRecordIds = <int>{};
+    for (final (i, raw) in choreRecordsRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('choreRecords[$i] がオブジェクトではありません');
+      }
+      final ctx = 'choreRecords[$i]';
+      final doneRaw = req<String>(raw, 'doneDate', ctx);
+      final CivilDate doneDate;
+      try {
+        doneDate = CivilDate.parse(doneRaw);
+      } on FormatException {
+        throw BackupValidationError('$ctx.doneDate が不正な日付です: "$doneRaw"');
+      }
+      final r = BackupChoreRecord(
+        id: req<int>(raw, 'id', ctx),
+        taskId: req<int>(raw, 'taskId', ctx),
+        doneDate: doneDate,
+        memo: req<String>(raw, 'memo', ctx),
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+      );
+      if (!choreRecordIds.add(r.id)) {
+        throw BackupValidationError('つきいち記録ID ${r.id} が重複しています');
+      }
+      if (!choreTaskIds.contains(r.taskId)) {
+        throw BackupValidationError(
+            '$ctx.taskId ${r.taskId} が同梱タスクに解決できません');
+      }
+      choreRecords.add(r);
+    }
+
     return BackupPayload(
       formatVersion: formatVersion, // マイグレーション後は常に現行
       exportedAt: exportedAt,
       categories: categories,
       transactions: transactions,
       recurringRules: recurringRules,
+      choreTasks: choreTasks,
+      choreRecords: choreRecords,
     );
   }
 
@@ -334,6 +431,8 @@ class BackupCodec {
           m = _migrateV2toV3(m);
         case 3:
           m = _migrateV3toV4(m);
+        case 4:
+          m = _migrateV4toV5(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -368,6 +467,14 @@ class BackupCodec {
   /// v3→v4: recurringRules を空で補完（旧バックアップに定期ルールは無い）。
   Map<String, dynamic> _migrateV3toV4(Map<String, dynamic> root) {
     root.putIfAbsent('recurringRules', () => <dynamic>[]);
+    return root;
+  }
+
+  /// v4→v5: choreTasks / choreRecords を空で補完
+  /// （旧バックアップにつきいちタスクは無い）。
+  Map<String, dynamic> _migrateV4toV5(Map<String, dynamic> root) {
+    root.putIfAbsent('choreTasks', () => <dynamic>[]);
+    root.putIfAbsent('choreRecords', () => <dynamic>[]);
     return root;
   }
 }

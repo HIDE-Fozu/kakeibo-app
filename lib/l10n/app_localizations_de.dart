@@ -730,200 +730,200 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String choreNotificationBody(int days) {
-    return 'It\'s been $days days since last time';
+    return 'Seit dem letzten Mal sind $days Tage vergangen';
   }
 
   @override
-  String get homeNavMonthly => 'Monthly';
+  String get homeNavMonthly => 'Monatlich';
 
   @override
-  String get hubUpcomingSection => 'Coming up this month';
+  String get hubUpcomingSection => 'Demnächst in diesem Monat';
 
   @override
-  String get hubUpcomingEmpty => 'Nothing scheduled for the rest of this month';
+  String get hubUpcomingEmpty => 'Für den Rest des Monats ist nichts geplant';
 
   @override
-  String get hubRulesSection => 'Fixed costs & income';
+  String get hubRulesSection => 'Fixkosten & Einkommen';
 
   @override
   String get hubRulesEmpty =>
-      'Tap + to automate monthly entries like rent or salary';
+      'Mit + automatisierst du monatliche Einträge wie Miete oder Gehalt';
 
   @override
-  String get hubChoresSection => 'Recurring chores';
+  String get hubChoresSection => 'Wiederkehrende Aufgaben';
 
   @override
   String get hubChoresEmpty =>
-      'Tap + to add chores like replacing your toothbrush';
+      'Mit + kannst du Aufgaben wie Zahnbürstenwechsel anlegen';
 
   @override
-  String get hubChoreTimelineLabel => 'Chore';
+  String get hubChoreTimelineLabel => 'Aufgabe';
 
   @override
-  String get ghostBadgeLabel => 'Planned';
+  String get ghostBadgeLabel => 'Geplant';
 
   @override
-  String get forecastLabelMonthEnd => 'Projected balance (end of month)';
+  String get forecastLabelMonthEnd => 'Prognose (Monatsende)';
 
   @override
   String forecastLabelAtDate(String date) {
-    return 'Projected balance (as of $date)';
+    return 'Prognose (zum $date)';
   }
 
   @override
   String choreIntervalEvery(int days) {
-    return 'Every $days days';
+    return 'Alle $days Tage';
   }
 
   @override
   String choreOverdueDays(int days) {
-    return '${days}d overdue';
+    return '$days T. überfällig';
   }
 
   @override
-  String get choreDueToday => 'Today';
+  String get choreDueToday => 'Heute';
 
   @override
   String choreDaysLeft(int days) {
-    return 'in $days days';
+    return 'in $days Tagen';
   }
 
   @override
   String choreNextDate(String date) {
-    return 'Next: $date';
+    return 'Nächstes Mal: $date';
   }
 
   @override
-  String get choreDoneButton => 'Done';
+  String get choreDoneButton => 'Erledigt';
 
   @override
   String choreDoneSnackbar(String date) {
-    return '✓ Recorded. Next: $date';
+    return '✓ Erfasst. Nächstes Mal: $date';
   }
 
   @override
-  String get choreDupConfirmTitle => 'Already recorded';
+  String get choreDupConfirmTitle => 'Bereits erfasst';
 
   @override
   String choreDupConfirmBody(String name) {
-    return '\"$name\" already has a record on this day. Add another?';
+    return '„$name“ hat an diesem Tag bereits einen Eintrag. Noch einen hinzufügen?';
   }
 
   @override
-  String get choreDupConfirmAdd => 'Add';
+  String get choreDupConfirmAdd => 'Hinzufügen';
 
   @override
-  String get choreFormNewTitle => 'New chore';
+  String get choreFormNewTitle => 'Neue Aufgabe';
 
   @override
-  String get choreFormEditTitle => 'Edit chore';
+  String get choreFormEditTitle => 'Aufgabe bearbeiten';
 
   @override
   String get choreFormNameLabel => 'Name';
 
   @override
-  String get choreFormIntervalLabel => 'Interval in days (1–999)';
+  String get choreFormIntervalLabel => 'Intervall in Tagen (1–999)';
 
   @override
-  String get choreFormEmojiLabel => 'Emoji (📌 if empty)';
+  String get choreFormEmojiLabel => 'Emoji (📌 wenn leer)';
 
   @override
-  String get choreFormArchiveButton => 'Archive';
+  String get choreFormArchiveButton => 'Archivieren';
 
   @override
-  String get choreFormDeleteButton => 'Delete this chore';
+  String get choreFormDeleteButton => 'Diese Aufgabe löschen';
 
   @override
   String choreDeleteConfirmBody(int count) {
-    return '$count history records will also be deleted';
+    return '$count Verlaufseinträge werden ebenfalls gelöscht';
   }
 
   @override
-  String get choreHistoryTitle => 'History';
+  String get choreHistoryTitle => 'Verlauf';
 
   @override
-  String get choreHistoryEmpty => 'No records yet';
+  String get choreHistoryEmpty => 'Noch keine Einträge';
 
   @override
-  String get choreRecordEditTitle => 'Edit record';
+  String get choreRecordEditTitle => 'Eintrag bearbeiten';
 
   @override
-  String get choreRecordDeleteConfirm => 'Delete this record?';
+  String get choreRecordDeleteConfirm => 'Diesen Eintrag löschen?';
 
   @override
-  String get choreMemoLabel => 'Memo';
+  String get choreMemoLabel => 'Notiz';
 
   @override
-  String get settingsChoresTitle => 'Recurring chores';
+  String get settingsChoresTitle => 'Wiederkehrende Aufgaben';
 
   @override
-  String get settingsChoresSubtitle => 'Notification time and archived chores';
+  String get settingsChoresSubtitle =>
+      'Erinnerungszeit und archivierte Aufgaben';
 
   @override
-  String get choreNotifyTimeLabel => 'Notification time';
+  String get choreNotifyTimeLabel => 'Erinnerungszeit';
 
   @override
-  String get chorePermissionChecking => 'Checking notification permission…';
+  String get chorePermissionChecking => 'Prüfe Benachrichtigungs-Berechtigung…';
 
   @override
   String get chorePermissionNotAsked =>
-      'You\'ll be asked to allow notifications after your first record';
+      'Die Berechtigung wird nach dem ersten Eintrag abgefragt';
 
   @override
-  String get chorePermissionGranted => 'Notifications are enabled';
+  String get chorePermissionGranted => 'Benachrichtigungen sind aktiviert';
 
   @override
-  String get chorePermissionDenied => 'Notifications are not allowed';
+  String get chorePermissionDenied => 'Benachrichtigungen sind nicht erlaubt';
 
   @override
-  String get chorePermissionOpenSettings => 'Open Settings';
+  String get chorePermissionOpenSettings => 'Einstellungen öffnen';
 
   @override
-  String get choreArchivedSection => 'Archived chores';
+  String get choreArchivedSection => 'Archivierte Aufgaben';
 
   @override
-  String get choreArchivedEmpty => 'No archived chores';
+  String get choreArchivedEmpty => 'Keine archivierten Aufgaben';
 
   @override
-  String get choreUnarchiveButton => 'Restore';
+  String get choreUnarchiveButton => 'Wiederherstellen';
 
   @override
-  String get forecastAnchorSheetTitle =>
-      'Anchor date for the projected balance';
+  String get forecastAnchorSheetTitle => 'Stichtag für die Prognose';
 
   @override
   String get forecastAnchorSheetNote =>
-      'Planned amounts up to and including the anchor date are added to the actual balance.';
+      'Geplante Beträge bis einschließlich Stichtag werden zum Ist-Saldo addiert.';
 
   @override
-  String get forecastAnchorMonthEnd => 'End of month';
+  String get forecastAnchorMonthEnd => 'Monatsende';
 
   @override
-  String get calendarLegendChoreDone => 'chore done';
+  String get calendarLegendChoreDone => 'erledigt';
 
   @override
-  String get calendarLegendChoreDue => 'chore due';
+  String get calendarLegendChoreDue => 'Aufgabe fällig';
 
   @override
-  String get calendarLegendChoreOverdue => 'overdue';
+  String get calendarLegendChoreOverdue => 'überfällig';
 
   @override
-  String get calendarLegendGhost => 'planned fixed cost';
+  String get calendarLegendGhost => 'geplante Fixkosten';
 
   @override
-  String get entryRecurringExpense => 'Monthly expense';
+  String get entryRecurringExpense => 'Monatliche Ausgabe';
 
   @override
-  String get entryRecurringIncome => 'Monthly income';
+  String get entryRecurringIncome => 'Monatliches Einkommen';
 
   @override
   String entryRecurringNote(int day) {
-    return 'Will be recorded automatically on day $day every month (this entry is the first)';
+    return 'Wird jeden Monat am $day. automatisch erfasst (dieser Eintrag ist der erste)';
   }
 
   @override
-  String get entrySaveWithRuleExpense => 'Save + monthly expense';
+  String get entrySaveWithRuleExpense => 'Speichern (+ monatlich)';
 
   @override
-  String get entrySaveWithRuleIncome => 'Save + monthly income';
+  String get entrySaveWithRuleIncome => 'Speichern (+ monatlich)';
 }
