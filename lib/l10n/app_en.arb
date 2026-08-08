@@ -756,5 +756,33 @@
   "choreUnarchiveButton": "Restore",
   "@choreUnarchiveButton": {
     "description": "Chore settings: unarchive button"
+  },
+  "forecastAnchorSheetTitle": "Anchor date for the projected balance",
+  "@forecastAnchorSheetTitle": {
+    "description": "Bottom sheet title for choosing the forecast anchor date"
+  },
+  "forecastAnchorSheetNote": "Planned amounts up to and including the anchor date are added to the actual balance.",
+  "@forecastAnchorSheetNote": {
+    "description": "Bottom sheet explanation of the forecast anchor"
+  },
+  "forecastAnchorMonthEnd": "End of month",
+  "@forecastAnchorMonthEnd": {
+    "description": "Forecast anchor option: end of month (default)"
+  },
+  "calendarLegendChoreDone": "chore done",
+  "@calendarLegendChoreDone": {
+    "description": "Calendar legend: green dot = chore recorded that day"
+  },
+  "calendarLegendChoreDue": "chore due",
+  "@calendarLegendChoreDue": {
+    "description": "Calendar legend: orange dot = chore due date"
+  },
+  "calendarLegendChoreOverdue": "overdue",
+  "@calendarLegendChoreOverdue": {
+    "description": "Calendar legend: red dot = chore overdue"
+  },
+  "calendarLegendGhost": "planned fixed cost",
+  "@calendarLegendGhost": {
+    "description": "Calendar legend: grey amount = not-yet-posted recurring transaction"
   }
 }

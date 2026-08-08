@@ -856,4 +856,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => '元に戻す';
+
+  @override
+  String get forecastAnchorSheetTitle => '見込み収支の基準日';
+
+  @override
+  String get forecastAnchorSheetNote => '今日から基準日までの予定を実績に足して表示します（基準日当日を含む）';
+
+  @override
+  String get forecastAnchorMonthEnd => '月末';
+
+  @override
+  String get calendarLegendChoreDone => 'やった';
+
+  @override
+  String get calendarLegendChoreDue => '家事の期日';
+
+  @override
+  String get calendarLegendChoreOverdue => '期日超過';
+
+  @override
+  String get calendarLegendGhost => '固定費の予定';
 }

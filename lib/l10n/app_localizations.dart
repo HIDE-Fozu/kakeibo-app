@@ -1641,6 +1641,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get choreUnarchiveButton;
+
+  /// Bottom sheet title for choosing the forecast anchor date
+  ///
+  /// In en, this message translates to:
+  /// **'Anchor date for the projected balance'**
+  String get forecastAnchorSheetTitle;
+
+  /// Bottom sheet explanation of the forecast anchor
+  ///
+  /// In en, this message translates to:
+  /// **'Planned amounts up to and including the anchor date are added to the actual balance.'**
+  String get forecastAnchorSheetNote;
+
+  /// Forecast anchor option: end of month (default)
+  ///
+  /// In en, this message translates to:
+  /// **'End of month'**
+  String get forecastAnchorMonthEnd;
+
+  /// Calendar legend: green dot = chore recorded that day
+  ///
+  /// In en, this message translates to:
+  /// **'chore done'**
+  String get calendarLegendChoreDone;
+
+  /// Calendar legend: orange dot = chore due date
+  ///
+  /// In en, this message translates to:
+  /// **'chore due'**
+  String get calendarLegendChoreDue;
+
+  /// Calendar legend: red dot = chore overdue
+  ///
+  /// In en, this message translates to:
+  /// **'overdue'**
+  String get calendarLegendChoreOverdue;
+
+  /// Calendar legend: grey amount = not-yet-posted recurring transaction
+  ///
+  /// In en, this message translates to:
+  /// **'planned fixed cost'**
+  String get calendarLegendGhost;
 }
 
 class _AppLocalizationsDelegate

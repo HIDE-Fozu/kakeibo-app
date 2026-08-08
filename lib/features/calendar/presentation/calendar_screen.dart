@@ -9,6 +9,9 @@ import '../../../core/money.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../chores/application/chore_providers.dart';
+import '../../chores/presentation/chore_ui_common.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
@@ -27,6 +30,8 @@ class CalendarScreen extends ConsumerWidget {
     final totals =
         ref.watch(dayExpenseTotalsProvider((year, month))).valueOrNull ??
         const <CivilDate, int>{};
+    final ghosts = ref.watch(dayGhostTotalsProvider((year, month)));
+    final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
 
     return SafeArea(
@@ -39,7 +44,9 @@ class CalendarScreen extends ConsumerWidget {
             lastDay: DateTime(2100, 12, 31),
             focusedDay: dateTimeOfCivil(CivilDate(year, month, 1)),
             headerVisible: false,
-            rowHeight: 58,
+            // 62 = 数字26 + 家事ドット6 + 実績額13 + 予定額13 + 余白
+            //（v2.2.0で家事ドットと予定額のレーンが増えたため58→62）。
+            rowHeight: 62,
             calendarStyle: const CalendarStyle(
               outsideDaysVisible: false,
               // 週ごとの罫線（週の間に横線）＋ヘッダ下の区切り線。
@@ -68,16 +75,63 @@ class CalendarScreen extends ConsumerWidget {
                 );
               },
               // 数字を上・金額を下に分離（選択/今日の丸は数字だけを囲む小さめの丸）。
-              defaultBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.normal, totals, mf),
-              todayBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.today, totals, mf),
-              selectedBuilder: (context, day, _) =>
-                  _dayCell(context, day, _DayStyle.selected, totals, mf),
+              defaultBuilder: (context, day, _) => _dayCell(
+                  context, day, _DayStyle.normal, totals, ghosts, choreMarks, mf),
+              todayBuilder: (context, day, _) => _dayCell(
+                  context, day, _DayStyle.today, totals, ghosts, choreMarks, mf),
+              selectedBuilder: (context, day, _) => _dayCell(context, day,
+                  _DayStyle.selected, totals, ghosts, choreMarks, mf),
             ),
           ),
+          if (choreMarks.isNotEmpty || ghosts.isNotEmpty)
+            _CalendarLegend(
+                hasChores: choreMarks.isNotEmpty, hasGhosts: ghosts.isNotEmpty),
           const Divider(height: 1),
           Expanded(child: DayTransactionList(day: selected)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 家事ドット・予定額の凡例（該当があるときだけ表示）。
+class _CalendarLegend extends StatelessWidget {
+  const _CalendarLegend({required this.hasChores, required this.hasGhosts});
+
+  final bool hasChores;
+  final bool hasGhosts;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    Widget item(Color color, String label, {bool outlined = false}) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: outlined ? null : color,
+                border: outlined ? Border.all(color: color, width: 1.2) : null,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Text(label, style: TextStyle(fontSize: 10, color: muted)),
+          ],
+        );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
+      child: Wrap(
+        spacing: 12,
+        children: [
+          if (hasChores) ...[
+            item(_kDotDue, l.calendarLegendChoreDue),
+            item(_kDotOverdue, l.calendarLegendChoreOverdue),
+            item(_kDotDone, l.calendarLegendChoreDone),
+          ],
+          if (hasGhosts) item(kMuted, l.calendarLegendGhost, outlined: true),
         ],
       ),
     );
@@ -102,15 +156,25 @@ enum _DayStyle { normal, selected, today }
 const _kSelectedRing = Color(0xFF5C6BC0);
 const _kTodayRing = Color(0xFF9FA8DA);
 
-/// カレンダーの1日セル。数字を上・支出額を下に分離して被りを解消する。
+// 家事ドットの色（やった=緑 / 期日=橙 / 超過=赤。routine-reminder踏襲）。
+const _kDotDone = Color(0xFF43A047);
+const _kDotDue = Color(0xFFFB8C00);
+const _kDotOverdue = kExpense;
+
+/// カレンダーの1日セル。数字→家事ドット→支出額→予定額（グレー）の縦積み。
 Widget _dayCell(
   BuildContext context,
   DateTime day,
   _DayStyle style,
   Map<CivilDate, int> totals,
+  Map<CivilDate, int> ghosts,
+  Map<CivilDate, ChoreDayMarks> choreMarks,
   MoneyFormatter mf,
 ) {
-  final total = totals[civilOfDateTime(day)] ?? 0;
+  final civil = civilOfDateTime(day);
+  final total = totals[civil] ?? 0;
+  final ghost = ghosts[civil] ?? 0;
+  final marks = choreMarks[civil];
   BoxDecoration? deco;
   var numColor = kInk;
   var weight = FontWeight.w400;
@@ -128,12 +192,13 @@ Widget _dayCell(
     case _DayStyle.normal:
       break;
   }
+  final iso = civil.toIso();
   return Align(
     alignment: Alignment.topCenter,
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Container(
           width: 26,
           height: 26,
@@ -144,6 +209,24 @@ Widget _dayCell(
             style: TextStyle(fontSize: 13, color: numColor, fontWeight: weight),
           ),
         ),
+        if (marks != null)
+          SizedBox(
+            height: 6,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (marks.doneTaskIds.isNotEmpty)
+                  _dot(_kDotDone, Key('chore-dot-done-$iso')),
+                if (marks.dueTaskIds.isNotEmpty)
+                  _dot(
+                    marks.hasOverdue ? _kDotOverdue : _kDotDue,
+                    Key(marks.hasOverdue
+                        ? 'chore-dot-overdue-$iso'
+                        : 'chore-dot-due-$iso'),
+                  ),
+              ],
+            ),
+          ),
         if (total > 0)
           Padding(
             padding: const EdgeInsets.only(top: 1),
@@ -156,10 +239,34 @@ Widget _dayCell(
               ),
             ),
           ),
+        // まだ起票されていない固定費・収入（予定）。グレーで実績と区別する。
+        if (ghost != 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Text(
+              mf.compact(ghost.abs()),
+              key: Key('ghost-amount-$iso'),
+              style: const TextStyle(
+                fontSize: 10,
+                fontFeatures: kTabularFigures,
+                color: kMuted,
+              ),
+            ),
+          ),
       ],
     ),
   );
 }
+
+Widget _dot(Color color, Key key) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 1),
+      child: Container(
+        key: key,
+        width: 5,
+        height: 5,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+      ),
+    );
 
 class _MonthHeader extends ConsumerWidget {
   final int year;
@@ -177,6 +284,7 @@ class _MonthHeader extends ConsumerWidget {
     final mf = ref.watch(moneyFormatterProvider);
     final net = summary.net;
     final netLabel = net >= 0 ? '+${mf.format(net)}' : mf.format(net);
+    final forecast = ref.watch(monthForecastProvider((year, month)));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
@@ -203,6 +311,32 @@ class _MonthHeader extends ConsumerWidget {
                     fontFeatures: kTabularFigures,
                   ),
                 ),
+                // 見込み収支（実績差引 + 基準日までの固定費予定）。過去月は出ない。
+                // タップで基準日（月末/毎月N日）を変更できる。
+                if (forecast != null)
+                  InkWell(
+                    key: const Key('forecast-line'),
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: () => _showAnchorSheet(context, ref),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      child: Text(
+                        '${forecast.anchorIsMonthEnd ? l.forecastLabelMonthEnd : l.forecastLabelAtDate(choreShortDate(context, forecast.anchor))}'
+                        '　${forecast.forecast >= 0 ? '+${mf.format(forecast.forecast)}' : mf.format(forecast.forecast)} ▾',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                              fontFeatures: kTabularFigures,
+                              fontWeight: FontWeight.w600,
+                              color: forecast.forecast < 0
+                                  ? context.kakeiboColors.expense
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -214,5 +348,75 @@ class _MonthHeader extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// 基準日の選択シート（月末 / 毎月N日）。ルール別ではなくアプリ設定。
+  Future<void> _showAnchorSheet(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
+    final current = ref.read(appSettingsProvider).forecastAnchorDay;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        var day = current == 0 ? 25 : current; // 日指定へ切り替えた時の初期値
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l.forecastAnchorSheetTitle,
+                      style: Theme.of(ctx).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(l.forecastAnchorSheetNote,
+                      style: Theme.of(ctx).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    key: const Key('forecast-anchor-monthend'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.forecastAnchorMonthEnd),
+                    trailing: current == 0
+                        ? Icon(Icons.check,
+                            color: Theme.of(ctx).colorScheme.primary)
+                        : null,
+                    onTap: () => Navigator.pop(ctx, 0),
+                  ),
+                  ListTile(
+                    key: const Key('forecast-anchor-day'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Row(
+                      children: [
+                        DropdownButton<int>(
+                          key: const Key('forecast-anchor-day-dropdown'),
+                          value: day,
+                          items: [
+                            for (var d = 1; d <= 31; d++)
+                              DropdownMenuItem(
+                                value: d,
+                                child: Text(l.recurringEveryMonthDay(d)),
+                              ),
+                          ],
+                          onChanged: (v) =>
+                              setSheetState(() => day = v ?? day),
+                        ),
+                      ],
+                    ),
+                    trailing: current != 0
+                        ? Icon(Icons.check,
+                            color: Theme.of(ctx).colorScheme.primary)
+                        : null,
+                    onTap: () => Navigator.pop(ctx, day),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    if (picked == null) return;
+    await ref.read(appSettingsProvider.notifier).setForecastAnchorDay(picked);
   }
 }

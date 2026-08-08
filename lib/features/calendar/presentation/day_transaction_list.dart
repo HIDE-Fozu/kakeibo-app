@@ -9,8 +9,10 @@ import '../../../app/theme.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
 import '../../entry/presentation/entry_screen.dart';
+import '../../recurring/presentation/recurring_rules_page.dart';
 import '../application/calendar_providers.dart';
 
 /// 一覧の表示ラベル: 「店舗名 - 詳細メモ」。片方だけならその片方。両方空はnull。
@@ -34,6 +36,12 @@ class DayTransactionList extends ConsumerWidget {
     final cats =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final byId = {for (final c in cats) c.id: c};
+    // その日のゴースト（まだ起票されていない固定費・収入）と家事の行。
+    final dayGhosts = ref
+        .watch(monthGhostsProvider((day.year, day.month)))
+        .where((g) => g.date == day)
+        .toList();
+    final choreRows = buildChoreDayRows(context, ref, day);
     // 月全体が空＝初回/空カレンダー状態。FABへの誘導CTAを足す（spec §5.5）
     final monthEmpty = (ref
                 .watch(monthTransactionsProvider((day.year, day.month)))
@@ -41,7 +49,9 @@ class DayTransactionList extends ConsumerWidget {
             const [])
         .isEmpty;
 
-    if (txs.isEmpty) {
+    // 空判定は取引・予定・家事の3レーンすべて空のとき（家事行が空状態の裏に
+    // 隠れる回帰を防ぐ）。
+    if (txs.isEmpty && dayGhosts.isEmpty && choreRows.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -77,15 +87,72 @@ class DayTransactionList extends ConsumerWidget {
       list.add(tx);
     }
 
-    return ListView.builder(
-      itemCount: units.length,
-      itemBuilder: (context, i) {
-        final unit = units[i];
-        if (unit is TransactionEntity) return _txTile(context, ref, byId, unit);
-        final group = grouped[unit as String]!;
-        if (group.length == 1) return _txTile(context, ref, byId, group.single);
-        return _groupCard(context, ref, byId, group);
-      },
+    return ListView(
+      children: [
+        for (final unit in units)
+          if (unit is TransactionEntity)
+            _txTile(context, ref, byId, unit)
+          else if (grouped[unit as String]!.length == 1)
+            _txTile(context, ref, byId, grouped[unit]!.single)
+          else
+            _groupCard(context, ref, byId, grouped[unit]!),
+        for (final g in dayGhosts) _ghostTile(context, ref, byId, g),
+        ...choreRows,
+      ],
+    );
+  }
+
+  /// まだ起票されていない固定費・収入の「予定」行。グレー+バッジで実績と区別。
+  /// タップでルール編集へ（起票前に金額や日を直したいケースの導線）。
+  Widget _ghostTile(
+      BuildContext context,
+      WidgetRef ref,
+      Map<int, CategoryEntity> byId,
+      ({CivilDate date, RecurringRuleEntity rule}) g) {
+    final l = AppLocalizations.of(context);
+    final mf = ref.watch(moneyFormatterProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final cat = byId[g.rule.categoryId];
+    final store = g.rule.storeName;
+    return ListTile(
+      key: ValueKey('ghost-${g.rule.id}'),
+      leading: Text(categoryEmoji(cat?.icon, cat?.slug),
+          style: const TextStyle(fontSize: 20)),
+      title: Text(
+        cat?.name ?? l.calendarCategoryUnknown,
+        style: TextStyle(color: scheme.onSurfaceVariant),
+      ),
+      subtitle:
+          store != null && store.isNotEmpty ? Text(store) : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+            decoration: BoxDecoration(
+              border: Border.all(color: scheme.outlineVariant),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              l.ghostBadgeLabel,
+              style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            mf.signed(g.rule.type, g.rule.amountMinor),
+            style: TextStyle(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              fontFeatures: kTabularFigures,
+            ),
+          ),
+        ],
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => RecurringRuleEditPage(rule: g.rule)),
+      ),
     );
   }
 

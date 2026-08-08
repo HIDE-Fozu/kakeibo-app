@@ -254,5 +254,12 @@
   "chorePermissionOpenSettings": "設定を開く",
   "choreArchivedSection": "アーカイブ済みの項目",
   "choreArchivedEmpty": "アーカイブ済みの項目はありません",
-  "choreUnarchiveButton": "元に戻す"
+  "choreUnarchiveButton": "元に戻す",
+  "forecastAnchorSheetTitle": "見込み収支の基準日",
+  "forecastAnchorSheetNote": "今日から基準日までの予定を実績に足して表示します（基準日当日を含む）",
+  "forecastAnchorMonthEnd": "月末",
+  "calendarLegendChoreDone": "やった",
+  "calendarLegendChoreDue": "家事の期日",
+  "calendarLegendChoreOverdue": "期日超過",
+  "calendarLegendGhost": "固定費の予定"
 }

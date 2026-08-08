@@ -856,4 +856,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => 'Restore';
+
+  @override
+  String get forecastAnchorSheetTitle =>
+      'Anchor date for the projected balance';
+
+  @override
+  String get forecastAnchorSheetNote =>
+      'Planned amounts up to and including the anchor date are added to the actual balance.';
+
+  @override
+  String get forecastAnchorMonthEnd => 'End of month';
+
+  @override
+  String get calendarLegendChoreDone => 'chore done';
+
+  @override
+  String get calendarLegendChoreDue => 'chore due';
+
+  @override
+  String get calendarLegendChoreOverdue => 'overdue';
+
+  @override
+  String get calendarLegendGhost => 'planned fixed cost';
 }
