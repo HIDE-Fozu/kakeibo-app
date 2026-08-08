@@ -323,25 +323,51 @@ class EntryScreen extends ConsumerWidget {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 4),
-                                  child: DropdownButton<int>(
-                                    key: const Key('entry-recurring-day'),
-                                    value: state.effectiveRecurringDay,
-                                    isDense: true,
-                                    underline: const SizedBox.shrink(),
-                                    style: noteStyle.copyWith(fontSize: 13),
-                                    iconSize: 18,
-                                    iconEnabledColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    items: [
-                                      for (var d = 1; d <= 31; d++)
-                                        DropdownMenuItem(
-                                          value: d,
-                                          child: Text('$d'),
-                                        ),
-                                    ],
-                                    onChanged: (v) {
-                                      if (v != null) ctrl.setRecurringDay(v);
-                                    },
+                                  // 白ピル（行メモ・内訳チップと同じ文法）で
+                                  // 帯から浮かせ、押せる場所だと分かるようにする。
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outlineVariant),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: DropdownButton<int>(
+                                      key: const Key('entry-recurring-day'),
+                                      value: state.effectiveRecurringDay,
+                                      isDense: true,
+                                      underline: const SizedBox.shrink(),
+                                      style: noteStyle.copyWith(fontSize: 13),
+                                      iconSize: 18,
+                                      iconEnabledColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      // 1桁/2桁とも同じ幅の箱の中央に置き、
+                                      // ▾ が数字の右に密着する。
+                                      selectedItemBuilder: (context) => [
+                                        for (var d = 1; d <= 31; d++)
+                                          SizedBox(
+                                            width: 20,
+                                            child: Center(child: Text('$d')),
+                                          ),
+                                      ],
+                                      items: [
+                                        for (var d = 1; d <= 31; d++)
+                                          DropdownMenuItem(
+                                            value: d,
+                                            alignment:
+                                                AlignmentDirectional.center,
+                                            child: Text('$d'),
+                                          ),
+                                      ],
+                                      onChanged: (v) {
+                                        if (v != null) ctrl.setRecurringDay(v);
+                                      },
+                                    ),
                                   ),
                                 ),
                                 Text(l.entryRecurringNoteSuffix,
