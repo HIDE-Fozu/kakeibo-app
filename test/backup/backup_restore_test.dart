@@ -156,7 +156,7 @@ void main() {
     // 復元前の既存chore（置換で消えるべき）
     await db.choreDao.insertTask(ChoreTasksCompanion.insert(
         name: '消えるタスク',
-        intervalDays: 7,
+        dayOfMonth: 7,
         anchorDate: const CivilDate(2026, 7, 1)));
 
     final payload = BackupPayload(
@@ -166,7 +166,7 @@ void main() {
       transactions: minimalPayload().transactions,
       choreTasks: [
         BackupChoreTask(
-          id: 7, name: 'ハブラシ交換', emoji: '🪥', intervalDays: 30,
+          id: 7, name: 'ハブラシ交換', emoji: '🪥', dayOfMonth: 30,
           anchorDate: const CivilDate(2026, 6, 1), archived: false,
           createdAt: DateTime.utc(2026, 6, 1),
         ),

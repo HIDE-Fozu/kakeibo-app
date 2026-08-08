@@ -61,20 +61,20 @@ class RecurringRuleEntity {
 }
 
 /// つきいちタスク（低頻度の家事。ハブラシ交換・マットレス干し等）。
-/// 次回期日 = 最後にやった日 + intervalDays（記録が無ければ anchorDate + intervalDays）。
+/// 次回期日 = 最後にやった月の翌月の毎月N日（記録が無ければ anchorDate 以降で最初のN日）。
 class ChoreTask {
   final int id;
   final String name;
   final String emoji;
-  final int intervalDays; // 1..999（フォームで保証）
-  final CivilDate anchorDate;
+  final int dayOfMonth; // 毎月の予定日 1..31（フォームで保証・短い月は月末丸め）
+  final CivilDate anchorDate; // 作成日。記録が無い間の初回期日の基準
   final bool archived;
 
   const ChoreTask({
     required this.id,
     required this.name,
     required this.emoji,
-    required this.intervalDays,
+    required this.dayOfMonth,
     required this.anchorDate,
     required this.archived,
   });

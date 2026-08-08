@@ -34,14 +34,14 @@ class DriftChoreRepository implements ChoreRepository {
   Future<int> addTask({
     required String name,
     required String emoji,
-    required int intervalDays,
+    required int dayOfMonth,
     required CivilDate anchorDate,
   }) {
-    assert(intervalDays >= 1, 'intervalDays must be >= 1');
+    assert(dayOfMonth >= 1 && dayOfMonth <= 31, 'dayOfMonth must be 1..31');
     return _dao.insertTask(ChoreTasksCompanion.insert(
       name: name,
       emoji: Value(emoji),
-      intervalDays: intervalDays,
+      dayOfMonth: dayOfMonth,
       anchorDate: anchorDate,
     ));
   }
@@ -52,7 +52,7 @@ class DriftChoreRepository implements ChoreRepository {
         ChoreTasksCompanion(
           name: Value(task.name),
           emoji: Value(task.emoji),
-          intervalDays: Value(task.intervalDays),
+          dayOfMonth: Value(task.dayOfMonth),
           anchorDate: Value(task.anchorDate),
           archived: Value(task.archived),
         ),
@@ -97,7 +97,7 @@ class DriftChoreRepository implements ChoreRepository {
         id: r.id,
         name: r.name,
         emoji: r.emoji,
-        intervalDays: r.intervalDays,
+        dayOfMonth: r.dayOfMonth,
         anchorDate: r.anchorDate,
         archived: r.archived,
       );

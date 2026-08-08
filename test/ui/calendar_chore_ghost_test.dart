@@ -103,11 +103,11 @@ void main() {
     await pumpApp(tester, h);
     final c = containerOf(tester);
 
-    // ハブラシ交換 14日ごと・anchor 7/1 → 期日 7/15（今日）
+    // ハブラシ交換 毎月15日・anchor 7/1 → 期日 7/15（今日）
     await c.read(choreRepositoryProvider).addTask(
         name: 'ハブラシ交換',
         emoji: '🪥',
-        intervalDays: 14,
+        dayOfMonth: 15,
         anchorDate: const CivilDate(2026, 7, 1));
     await tester.pumpAndSettle();
 
@@ -120,10 +120,11 @@ void main() {
     await tester.tap(doneBtn);
     await tester.pumpAndSettle();
 
-    // スナックバー（次回 7/29 = 7/15 + 14）と実施記録行・緑ドット
-    expect(find.textContaining('次回は7/29'), findsOneWidget);
+    // スナックバー（次回 8/15 = 翌月の毎月15日）と実施記録行・緑ドット。
+    // 次の期日は8月なので当月ビューに期日ドットは残らない。
+    expect(find.textContaining('次回は8/15'), findsOneWidget);
     expect(find.byKey(const Key('chore-dot-done-2026-07-15')), findsOneWidget);
-    expect(find.byKey(const Key('chore-dot-due-2026-07-29')), findsOneWidget);
+    expect(find.byKey(const Key('chore-dot-due-2026-07-15')), findsNothing);
     expect(find.byKey(const Key('chore-done-1')), findsOneWidget); // 記録行
     expect(find.byKey(const Key('chore-done-btn-1')), findsNothing); // 期日行は消えた
   });
@@ -135,12 +136,12 @@ void main() {
     await pumpApp(tester, h);
     final c = containerOf(tester);
 
-    // anchor 6/1・30日ごと → 期日 7/1（今日7/15 → 14日超過）
+    // anchor 7/1・毎月1日 → 期日 7/1（今日7/15 → 14日超過）
     await c.read(choreRepositoryProvider).addTask(
         name: 'フィルター掃除',
         emoji: '🧹',
-        intervalDays: 30,
-        anchorDate: const CivilDate(2026, 6, 1));
+        dayOfMonth: 1,
+        anchorDate: const CivilDate(2026, 7, 1));
     await tester.pumpAndSettle();
 
     // 期日7/1に赤ドット・今日のパネルに超過行（やった付き）

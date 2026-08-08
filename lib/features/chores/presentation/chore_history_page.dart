@@ -70,7 +70,7 @@ class ChoreHistoryPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${found.emoji} ${found.name}（${l.choreIntervalEvery(found.intervalDays)}）',
+                '${found.emoji} ${found.name}（${l.recurringEveryMonthDay(found.dayOfMonth)}）',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 4),

@@ -207,6 +207,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get entryStoreNameLabel => 'Geschäftsname';
 
   @override
+  String get entryCompanyNameLabel => 'Firmenname';
+
+  @override
   String get entrySaveContinueButton => 'Speichern & weiter';
 
   @override
@@ -687,6 +690,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dayOfMonthItem(int day) {
+    return 'Tag $day';
+  }
+
+  @override
   String get recurringDayClampNote =>
       'In kürzeren Monaten wird am letzten Tag gebucht (z. B. 31. → 28. Februar).';
 
@@ -729,8 +737,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get splitMemoDialogTitle => 'Notiz eingeben';
 
   @override
-  String choreNotificationBody(int days) {
-    return 'Seit dem letzten Mal sind $days Tage vergangen';
+  String choreNotificationBody(int day) {
+    return 'Monatliche Aufgabe am Tag $day fällig';
   }
 
   @override
@@ -768,11 +776,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String forecastLabelAtDate(String date) {
     return 'Prognose (zum $date)';
-  }
-
-  @override
-  String choreIntervalEvery(int days) {
-    return 'Alle $days Tage';
   }
 
   @override
@@ -822,7 +825,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get choreFormNameLabel => 'Name';
 
   @override
-  String get choreFormIntervalLabel => 'Intervall in Tagen (1–999)';
+  String get choreFormDayLabel => 'Tag des Monats';
 
   @override
   String get choreFormEmojiLabel => 'Emoji (📌 wenn leer)';

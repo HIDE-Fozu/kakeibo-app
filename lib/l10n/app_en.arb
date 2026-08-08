@@ -155,6 +155,7 @@
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",
+  "entryCompanyNameLabel": "Company name",
   "entrySaveContinueButton": "Save & Continue",
   "entrySavedSnackbar": "Saved",
   "entryReceiptCaptureUnavailableSnackbar": "Receipt capture isn't available on this device",
@@ -475,6 +476,15 @@
       }
     }
   },
+  "dayOfMonthItem": "Day {day}",
+  "@dayOfMonthItem": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    },
+    "description": "Short day-of-month item, e.g. 'Day 5'"
+  },
   "recurringDayClampNote": "In shorter months it falls on the last day (e.g. the 31st → Feb 28).",
   "@recurringDayClampNote": {
     "description": "Helper text: days beyond a month's end clamp to the last day"
@@ -528,14 +538,14 @@
   "@splitMemoDialogTitle": {
     "description": "Title of the per-item memo input dialog in split mode"
   },
-  "choreNotificationBody": "It's been {days} days since last time",
+  "choreNotificationBody": "Monthly task scheduled for day {day}",
   "@choreNotificationBody": {
-    "description": "Local notification body for a chore task due today",
     "placeholders": {
-      "days": {
+      "day": {
         "type": "int"
       }
-    }
+    },
+    "description": "Local notification body for a monthly chore due today"
   },
   "homeNavMonthly": "Monthly",
   "@homeNavMonthly": {
@@ -583,15 +593,6 @@
     "placeholders": {
       "date": {
         "type": "String"
-      }
-    }
-  },
-  "choreIntervalEvery": "Every {days} days",
-  "@choreIntervalEvery": {
-    "description": "Chore interval label",
-    "placeholders": {
-      "days": {
-        "type": "int"
       }
     }
   },
@@ -668,9 +669,9 @@
   "@choreFormNameLabel": {
     "description": "Chore form: name field label"
   },
-  "choreFormIntervalLabel": "Interval in days (1–999)",
-  "@choreFormIntervalLabel": {
-    "description": "Chore form: interval field label"
+  "choreFormDayLabel": "Day of the month",
+  "@choreFormDayLabel": {
+    "description": "Label for the day-of-month picker in the chore form"
   },
   "choreFormEmojiLabel": "Emoji (📌 if empty)",
   "@choreFormEmojiLabel": {

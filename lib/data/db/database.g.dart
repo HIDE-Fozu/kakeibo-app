@@ -2152,12 +2152,12 @@ class $ChoreTasksTable extends ChoreTasks
     requiredDuringInsert: false,
     defaultValue: const Constant('📌'),
   );
-  static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
-    'intervalDays',
+  static const VerificationMeta _dayOfMonthMeta = const VerificationMeta(
+    'dayOfMonth',
   );
   @override
-  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
-    'interval_days',
+  late final GeneratedColumn<int> dayOfMonth = GeneratedColumn<int>(
+    'day_of_month',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -2204,7 +2204,7 @@ class $ChoreTasksTable extends ChoreTasks
     id,
     name,
     emoji,
-    intervalDays,
+    dayOfMonth,
     anchorDate,
     archived,
     createdAt,
@@ -2238,16 +2238,16 @@ class $ChoreTasksTable extends ChoreTasks
         emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta),
       );
     }
-    if (data.containsKey('interval_days')) {
+    if (data.containsKey('day_of_month')) {
       context.handle(
-        _intervalDaysMeta,
-        intervalDays.isAcceptableOrUnknown(
-          data['interval_days']!,
-          _intervalDaysMeta,
+        _dayOfMonthMeta,
+        dayOfMonth.isAcceptableOrUnknown(
+          data['day_of_month']!,
+          _dayOfMonthMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_intervalDaysMeta);
+      context.missing(_dayOfMonthMeta);
     }
     if (data.containsKey('archived')) {
       context.handle(
@@ -2282,9 +2282,9 @@ class $ChoreTasksTable extends ChoreTasks
         DriftSqlType.string,
         data['${effectivePrefix}emoji'],
       )!,
-      intervalDays: attachedDatabase.typeMapping.read(
+      dayOfMonth: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}interval_days'],
+        data['${effectivePrefix}day_of_month'],
       )!,
       anchorDate: $ChoreTasksTable.$converteranchorDate.fromSql(
         attachedDatabase.typeMapping.read(
@@ -2316,7 +2316,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
   final int id;
   final String name;
   final String emoji;
-  final int intervalDays;
+  final int dayOfMonth;
   final CivilDate anchorDate;
   final bool archived;
   final DateTime createdAt;
@@ -2324,7 +2324,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     required this.id,
     required this.name,
     required this.emoji,
-    required this.intervalDays,
+    required this.dayOfMonth,
     required this.anchorDate,
     required this.archived,
     required this.createdAt,
@@ -2335,7 +2335,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['emoji'] = Variable<String>(emoji);
-    map['interval_days'] = Variable<int>(intervalDays);
+    map['day_of_month'] = Variable<int>(dayOfMonth);
     {
       map['anchor_date'] = Variable<String>(
         $ChoreTasksTable.$converteranchorDate.toSql(anchorDate),
@@ -2351,7 +2351,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: Value(id),
       name: Value(name),
       emoji: Value(emoji),
-      intervalDays: Value(intervalDays),
+      dayOfMonth: Value(dayOfMonth),
       anchorDate: Value(anchorDate),
       archived: Value(archived),
       createdAt: Value(createdAt),
@@ -2367,7 +2367,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       emoji: serializer.fromJson<String>(json['emoji']),
-      intervalDays: serializer.fromJson<int>(json['intervalDays']),
+      dayOfMonth: serializer.fromJson<int>(json['dayOfMonth']),
       anchorDate: serializer.fromJson<CivilDate>(json['anchorDate']),
       archived: serializer.fromJson<bool>(json['archived']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2380,7 +2380,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'emoji': serializer.toJson<String>(emoji),
-      'intervalDays': serializer.toJson<int>(intervalDays),
+      'dayOfMonth': serializer.toJson<int>(dayOfMonth),
       'anchorDate': serializer.toJson<CivilDate>(anchorDate),
       'archived': serializer.toJson<bool>(archived),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2391,7 +2391,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     int? id,
     String? name,
     String? emoji,
-    int? intervalDays,
+    int? dayOfMonth,
     CivilDate? anchorDate,
     bool? archived,
     DateTime? createdAt,
@@ -2399,7 +2399,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     id: id ?? this.id,
     name: name ?? this.name,
     emoji: emoji ?? this.emoji,
-    intervalDays: intervalDays ?? this.intervalDays,
+    dayOfMonth: dayOfMonth ?? this.dayOfMonth,
     anchorDate: anchorDate ?? this.anchorDate,
     archived: archived ?? this.archived,
     createdAt: createdAt ?? this.createdAt,
@@ -2409,9 +2409,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       emoji: data.emoji.present ? data.emoji.value : this.emoji,
-      intervalDays: data.intervalDays.present
-          ? data.intervalDays.value
-          : this.intervalDays,
+      dayOfMonth: data.dayOfMonth.present
+          ? data.dayOfMonth.value
+          : this.dayOfMonth,
       anchorDate: data.anchorDate.present
           ? data.anchorDate.value
           : this.anchorDate,
@@ -2426,7 +2426,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('emoji: $emoji, ')
-          ..write('intervalDays: $intervalDays, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
           ..write('anchorDate: $anchorDate, ')
           ..write('archived: $archived, ')
           ..write('createdAt: $createdAt')
@@ -2435,15 +2435,8 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    emoji,
-    intervalDays,
-    anchorDate,
-    archived,
-    createdAt,
-  );
+  int get hashCode =>
+      Object.hash(id, name, emoji, dayOfMonth, anchorDate, archived, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2451,7 +2444,7 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
           other.id == this.id &&
           other.name == this.name &&
           other.emoji == this.emoji &&
-          other.intervalDays == this.intervalDays &&
+          other.dayOfMonth == this.dayOfMonth &&
           other.anchorDate == this.anchorDate &&
           other.archived == this.archived &&
           other.createdAt == this.createdAt);
@@ -2461,7 +2454,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> emoji;
-  final Value<int> intervalDays;
+  final Value<int> dayOfMonth;
   final Value<CivilDate> anchorDate;
   final Value<bool> archived;
   final Value<DateTime> createdAt;
@@ -2469,7 +2462,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.emoji = const Value.absent(),
-    this.intervalDays = const Value.absent(),
+    this.dayOfMonth = const Value.absent(),
     this.anchorDate = const Value.absent(),
     this.archived = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2478,18 +2471,18 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     this.id = const Value.absent(),
     required String name,
     this.emoji = const Value.absent(),
-    required int intervalDays,
+    required int dayOfMonth,
     required CivilDate anchorDate,
     this.archived = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
-       intervalDays = Value(intervalDays),
+       dayOfMonth = Value(dayOfMonth),
        anchorDate = Value(anchorDate);
   static Insertable<ChoreTaskRow> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? emoji,
-    Expression<int>? intervalDays,
+    Expression<int>? dayOfMonth,
     Expression<String>? anchorDate,
     Expression<bool>? archived,
     Expression<DateTime>? createdAt,
@@ -2498,7 +2491,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (emoji != null) 'emoji': emoji,
-      if (intervalDays != null) 'interval_days': intervalDays,
+      if (dayOfMonth != null) 'day_of_month': dayOfMonth,
       if (anchorDate != null) 'anchor_date': anchorDate,
       if (archived != null) 'archived': archived,
       if (createdAt != null) 'created_at': createdAt,
@@ -2509,7 +2502,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     Value<int>? id,
     Value<String>? name,
     Value<String>? emoji,
-    Value<int>? intervalDays,
+    Value<int>? dayOfMonth,
     Value<CivilDate>? anchorDate,
     Value<bool>? archived,
     Value<DateTime>? createdAt,
@@ -2518,7 +2511,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
       id: id ?? this.id,
       name: name ?? this.name,
       emoji: emoji ?? this.emoji,
-      intervalDays: intervalDays ?? this.intervalDays,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       anchorDate: anchorDate ?? this.anchorDate,
       archived: archived ?? this.archived,
       createdAt: createdAt ?? this.createdAt,
@@ -2537,8 +2530,8 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     if (emoji.present) {
       map['emoji'] = Variable<String>(emoji.value);
     }
-    if (intervalDays.present) {
-      map['interval_days'] = Variable<int>(intervalDays.value);
+    if (dayOfMonth.present) {
+      map['day_of_month'] = Variable<int>(dayOfMonth.value);
     }
     if (anchorDate.present) {
       map['anchor_date'] = Variable<String>(
@@ -2560,7 +2553,7 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('emoji: $emoji, ')
-          ..write('intervalDays: $intervalDays, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
           ..write('anchorDate: $anchorDate, ')
           ..write('archived: $archived, ')
           ..write('createdAt: $createdAt')
@@ -4492,7 +4485,7 @@ typedef $$ChoreTasksTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       Value<String> emoji,
-      required int intervalDays,
+      required int dayOfMonth,
       required CivilDate anchorDate,
       Value<bool> archived,
       Value<DateTime> createdAt,
@@ -4502,7 +4495,7 @@ typedef $$ChoreTasksTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String> emoji,
-      Value<int> intervalDays,
+      Value<int> dayOfMonth,
       Value<CivilDate> anchorDate,
       Value<bool> archived,
       Value<DateTime> createdAt,
@@ -4555,8 +4548,8 @@ class $$ChoreTasksTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get intervalDays => $composableBuilder(
-    column: $table.intervalDays,
+  ColumnFilters<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4626,8 +4619,8 @@ class $$ChoreTasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get intervalDays => $composableBuilder(
-    column: $table.intervalDays,
+  ColumnOrderings<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4665,8 +4658,8 @@ class $$ChoreTasksTableAnnotationComposer
   GeneratedColumn<String> get emoji =>
       $composableBuilder(column: $table.emoji, builder: (column) => column);
 
-  GeneratedColumn<int> get intervalDays => $composableBuilder(
-    column: $table.intervalDays,
+  GeneratedColumn<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
     builder: (column) => column,
   );
 
@@ -4739,7 +4732,7 @@ class $$ChoreTasksTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> emoji = const Value.absent(),
-                Value<int> intervalDays = const Value.absent(),
+                Value<int> dayOfMonth = const Value.absent(),
                 Value<CivilDate> anchorDate = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4747,7 +4740,7 @@ class $$ChoreTasksTableTableManager
                 id: id,
                 name: name,
                 emoji: emoji,
-                intervalDays: intervalDays,
+                dayOfMonth: dayOfMonth,
                 anchorDate: anchorDate,
                 archived: archived,
                 createdAt: createdAt,
@@ -4757,7 +4750,7 @@ class $$ChoreTasksTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 Value<String> emoji = const Value.absent(),
-                required int intervalDays,
+                required int dayOfMonth,
                 required CivilDate anchorDate,
                 Value<bool> archived = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4765,7 +4758,7 @@ class $$ChoreTasksTableTableManager
                 id: id,
                 name: name,
                 emoji: emoji,
-                intervalDays: intervalDays,
+                dayOfMonth: dayOfMonth,
                 anchorDate: anchorDate,
                 archived: archived,
                 createdAt: createdAt,

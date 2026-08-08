@@ -86,16 +86,16 @@ class ChoreActions {
     await resync();
   }
 
-  /// 新規タスクの作成。anchorDate=today で、次回期日は today + intervalDays。
+  /// 新規タスクの作成。anchorDate=today で、初回期日は today 以降で最初の毎月N日。
   Future<int> createTask({
     required String name,
     required String emoji,
-    required int intervalDays,
+    required int dayOfMonth,
   }) async {
     final taskId = await _repo.addTask(
       name: name,
       emoji: emoji,
-      intervalDays: intervalDays,
+      dayOfMonth: dayOfMonth,
       anchorDate: _today(),
     );
     await _maybeRequestPermission();
@@ -103,7 +103,7 @@ class ChoreActions {
     return taskId;
   }
 
-  /// タスクの名前・間隔・絵文字・anchorDate・archivedを更新する。
+  /// タスクの名前・毎月の予定日・絵文字・anchorDate・archivedを更新する。
   Future<void> updateTaskInfo(ChoreTask task) async {
     await _repo.updateTask(task);
     await resync();
@@ -142,7 +142,7 @@ class ChoreActions {
         .map((p) => ScheduledNotification(
               id: p.taskId,
               title: '${p.emoji} ${p.name}',
-              body: l.choreNotificationBody(p.intervalDays),
+              body: l.choreNotificationBody(p.dayOfMonth),
               date: p.date,
               badge: p.badge,
             ))

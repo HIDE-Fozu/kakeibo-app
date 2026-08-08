@@ -13,6 +13,7 @@ import 'support/test_db.dart';
 
 /// routine-reminder の record_actions_test.dart を移植。
 /// 変更点: DB直依存→ChoreRepository / 固定Clock→ラムダ / 文言はl10n(ja)で検証。
+/// v2.2.0で「毎月N日」方式（期日=記録した月の翌月N日・記録なしはanchor基準）。
 void main() {
   late DriftChoreRepository repo;
   late FakeNotificationService notif;
@@ -46,15 +47,15 @@ void main() {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
+      dayOfMonth: 14,
       anchorDate: CivilDate.parse('2026-06-10'),
     );
     final r = await actions.recordDone(tid, CivilDate.parse('2026-07-15'));
     expect(r.outcome, ChoreRecordOutcome.done);
     final plans = notif.rescheduleCalls.single;
-    expect(plans.single.date, CivilDate.parse('2026-08-14')); // 7/15+30
+    expect(plans.single.date, CivilDate.parse('2026-08-14')); // 7月に実施→8/14
     expect(plans.single.title, '🪥 ハブラシ交換');
-    expect(plans.single.body, '前回から30日たちました'); // l10n(ja)で組み立て
+    expect(plans.single.body, '毎月14日の予定です'); // l10n(ja)で組み立て
     expect(notif.lastHour, 9); // 既定の通知時刻
     expect(badge.setCalls.single, 0); // 超過なし
   });
@@ -64,21 +65,23 @@ void main() {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
-      anchorDate: CivilDate.parse('2026-06-10'),
+      dayOfMonth: 10,
+      anchorDate: CivilDate.parse('2026-07-01'),
     );
     final r = await localActions.recordDone(tid, CivilDate.parse('2026-07-01'));
     expect(r.recordId, isNotNull);
+    var plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-08-10')); // 7月は済み
     await localActions.undo(r.recordId!);
-    final plans = notif.rescheduleCalls.last;
-    expect(plans.single.date, CivilDate.parse('2026-07-10')); // 6/10+30に戻る
+    plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-07-10')); // 7/10に戻る
   });
 
   test('同日重複はneedsConfirm・force=trueで挿入', () async {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
+      dayOfMonth: 14,
       anchorDate: CivilDate.parse('2026-06-10'),
     );
     final first = await actions.recordDone(tid, CivilDate.parse('2026-07-15'));
@@ -104,14 +107,16 @@ void main() {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
-      anchorDate: CivilDate.parse('2026-06-10'),
+      dayOfMonth: 31,
+      anchorDate: CivilDate.parse('2026-07-01'),
     );
     final r = await localActions.recordDone(tid, CivilDate.parse('2026-06-20'));
     final rec = (await repo.allRecords()).single;
     expect(r.recordId, rec.id);
+    var plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-07-31')); // 6月実施→7/31
 
-    // 日付を7/01に修正→plans.single.date==7/31
+    // 日付を7/01に修正→7月は済み→8/31
     await localActions.editRecord(ChoreRecord(
       id: rec.id,
       taskId: tid,
@@ -119,13 +124,13 @@ void main() {
       memo: rec.memo,
       createdAt: rec.createdAt,
     ));
-    var plans = notif.rescheduleCalls.last;
-    expect(plans.single.date, CivilDate.parse('2026-07-31')); // 7/1+30
+    plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-08-31'));
 
-    // 削除→anchor基準(6/10+30=7/10)に戻る
+    // 削除→anchor基準（作成月の7/31）に戻る
     await localActions.removeRecord(rec.id);
     plans = notif.rescheduleCalls.last;
-    expect(plans.single.date, CivilDate.parse('2026-07-10'));
+    expect(plans.single.date, CivilDate.parse('2026-07-31'));
   });
 
   test('setNotifyTime→lastHour/lastMinuteが変わる', () async {
@@ -136,26 +141,32 @@ void main() {
 
   test('初回記録の直後に一度だけrequestPermission', () async {
     final tid = await actions.createTask(
-        name: 'ハブラシ交換', emoji: '🪥', intervalDays: 30);
+        name: 'ハブラシ交換', emoji: '🪥', dayOfMonth: 20);
     expect(notif.requestCount, 1);
     // 2回目以降の記録では再要求されない
     await actions.recordDone(tid, CivilDate.parse('2026-07-15'));
     expect(notif.requestCount, 1);
   });
 
-  test('createTask: anchorDate=today・次回期日=today+interval', () async {
-    await actions.createTask(name: 'まくら干し', emoji: '🛏', intervalDays: 14);
+  test('createTask: anchorDate=today・初回期日=今日以降で最初の毎月N日', () async {
+    await actions.createTask(name: 'まくら干し', emoji: '🛏', dayOfMonth: 20);
     final t = (await repo.allTasks()).single;
     expect(t.anchorDate, CivilDate.parse('2026-07-15'));
     final plans = notif.rescheduleCalls.last;
-    expect(plans.single.date, CivilDate.parse('2026-07-29'));
+    expect(plans.single.date, CivilDate.parse('2026-07-20')); // 今月の20日
+  });
+
+  test('createTask: 今月の予定日を過ぎていれば初回は翌月', () async {
+    await actions.createTask(name: 'まくら干し', emoji: '🛏', dayOfMonth: 10);
+    final plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-08-10')); // 7/10は経過済み
   });
 
   test('未来日付のrecordDoneはArgumentError', () async {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
+      dayOfMonth: 14,
       anchorDate: CivilDate.parse('2026-06-10'),
     );
     expect(
@@ -169,7 +180,7 @@ void main() {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
       emoji: '🪥',
-      intervalDays: 30,
+      dayOfMonth: 30,
       anchorDate: CivilDate.parse('2026-06-10'),
     );
     notif.rescheduleCalls.clear();
@@ -184,12 +195,12 @@ void main() {
 
   test('updateTaskInfoの全フィールドroundtrip', () async {
     final tid = await actions.createTask(
-        name: 'ハブラシ交換', emoji: '🪥', intervalDays: 30);
+        name: 'ハブラシ交換', emoji: '🪥', dayOfMonth: 20);
     final updated = ChoreTask(
       id: tid,
       name: 'マットレス向き替え',
       emoji: '🛏️',
-      intervalDays: 60,
+      dayOfMonth: 25,
       anchorDate: CivilDate.parse('2026-05-01'),
       archived: true,
     );
@@ -197,7 +208,7 @@ void main() {
     final t = (await repo.allTasks()).singleWhere((t) => t.id == tid);
     expect(t.name, 'マットレス向き替え');
     expect(t.emoji, '🛏️');
-    expect(t.intervalDays, 60);
+    expect(t.dayOfMonth, 25);
     expect(t.anchorDate, CivilDate.parse('2026-05-01'));
     expect(t.archived, isTrue);
   });

@@ -231,7 +231,7 @@ class MonthlyHubScreen extends ConsumerWidget {
                   leading: Text(s.task.emoji,
                       style: const TextStyle(fontSize: 20)),
                   title: Text(s.task.name),
-                  subtitle: Text(l.choreIntervalEvery(s.task.intervalDays)),
+                  subtitle: Text(l.recurringEveryMonthDay(s.task.dayOfMonth)),
                   trailing: Text(
                     choreRemainingText(l, s.daysLeft),
                     style: TextStyle(
@@ -306,11 +306,18 @@ class _SectionHeader extends StatelessWidget {
                   ),
             ),
           ),
+          // 「＋」だけでは入口と分かりにくいというFBで「＋ 追加」のラベル付きに
+          // （2026-08-09）。
           if (onAdd != null)
-            IconButton(
+            TextButton.icon(
               key: addKey,
-              icon: const Icon(Icons.add_circle_outline),
-              color: Theme.of(context).colorScheme.primary,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(AppLocalizations.of(context).commonAdd),
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                textStyle: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600),
+              ),
               onPressed: onAdd,
             ),
         ],

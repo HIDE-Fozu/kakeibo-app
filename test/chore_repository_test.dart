@@ -19,12 +19,12 @@ void main() {
     final id1 = await repo.addTask(
         name: 'ハブラシ交換',
         emoji: '🪥',
-        intervalDays: 30,
+        dayOfMonth: 30,
         anchorDate: CivilDate.parse('2026-06-01'));
     final id2 = await repo.addTask(
         name: 'まくら干し',
         emoji: '🛏',
-        intervalDays: 14,
+        dayOfMonth: 14,
         anchorDate: CivilDate.parse('2026-07-01'));
 
     var tasks = await repo.allTasks();
@@ -35,13 +35,13 @@ void main() {
       id: id1,
       name: 'ハブラシ',
       emoji: '🦷',
-      intervalDays: 45,
+      dayOfMonth: 15,
       anchorDate: CivilDate.parse('2026-06-15'),
       archived: false,
     ));
     tasks = await repo.allTasks();
     expect(tasks.first.name, 'ハブラシ');
-    expect(tasks.first.intervalDays, 45);
+    expect(tasks.first.dayOfMonth, 15);
 
     await repo.setArchived(id2, true);
     tasks = await repo.allTasks();
@@ -57,7 +57,7 @@ void main() {
     final tid = await repo.addTask(
         name: 'ハブラシ交換',
         emoji: '🪥',
-        intervalDays: 30,
+        dayOfMonth: 30,
         anchorDate: CivilDate.parse('2026-06-01'));
     final rid = await repo.addRecord(
         taskId: tid, doneDate: CivilDate.parse('2026-07-10'), memo: '新しいやつ');
@@ -87,7 +87,7 @@ void main() {
     final tid = await repo.addTask(
         name: 'ハブラシ交換',
         emoji: '🪥',
-        intervalDays: 30,
+        dayOfMonth: 30,
         anchorDate: CivilDate.parse('2026-06-01'));
     await repo.addRecord(taskId: tid, doneDate: CivilDate.parse('2026-07-10'));
     await repo.addRecord(taskId: tid, doneDate: CivilDate.parse('2026-07-11'));

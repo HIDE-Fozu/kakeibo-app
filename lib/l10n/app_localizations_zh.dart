@@ -199,6 +199,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryStoreNameLabel => '店铺名称';
 
   @override
+  String get entryCompanyNameLabel => '公司名称';
+
+  @override
   String get entrySaveContinueButton => '保存并继续';
 
   @override
@@ -661,6 +664,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dayOfMonthItem(int day) {
+    return '$day日';
+  }
+
+  @override
   String get recurringDayClampNote => '没有该日期的月份将记在月末（例如31日→2月记在28日）';
 
   @override
@@ -699,8 +707,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get splitMemoDialogTitle => '输入备注';
 
   @override
-  String choreNotificationBody(int days) {
-    return '距上次已过去$days天';
+  String choreNotificationBody(int day) {
+    return '每月$day日的例行安排';
   }
 
   @override
@@ -736,11 +744,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String forecastLabelAtDate(String date) {
     return '预计结余（截至$date）';
-  }
-
-  @override
-  String choreIntervalEvery(int days) {
-    return '每$days天';
   }
 
   @override
@@ -790,7 +793,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get choreFormNameLabel => '项目名称';
 
   @override
-  String get choreFormIntervalLabel => '间隔天数（1–999）';
+  String get choreFormDayLabel => '每月的日期';
 
   @override
   String get choreFormEmojiLabel => '表情（留空则为📌）';

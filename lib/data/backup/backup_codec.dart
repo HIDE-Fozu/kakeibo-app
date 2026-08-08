@@ -12,7 +12,9 @@ class BackupCodec {
   ///     旧バックアップはルール空で復元。
   /// v5: choreTasks / choreRecords（つきいちタスク）を追加。
   ///     旧バックアップは空で復元。
-  static const int formatVersion = 5;
+  /// v6: つきいちタスクを「毎月N日」方式に（intervalDays → dayOfMonth）。
+  ///     旧バックアップは次回期日（anchor+interval）の日を引き継ぐ。
+  static const int formatVersion = 6;
 
   const BackupCodec();
 
@@ -76,7 +78,7 @@ class BackupCodec {
             'id': t.id,
             'name': t.name,
             'emoji': t.emoji,
-            'intervalDays': t.intervalDays,
+            'dayOfMonth': t.dayOfMonth,
             'anchorDate': t.anchorDate.toIso(),
             'archived': t.archived,
             'createdAt': t.createdAt.toUtc().toIso8601String(),
@@ -350,9 +352,9 @@ class BackupCodec {
       if (name.isEmpty) {
         throw BackupValidationError('$ctx.name が空です');
       }
-      final intervalDays = req<int>(raw, 'intervalDays', ctx);
-      if (intervalDays < 1) {
-        throw BackupValidationError('$ctx.intervalDays が範囲外です: $intervalDays');
+      final dayOfMonth = req<int>(raw, 'dayOfMonth', ctx);
+      if (dayOfMonth < 1 || dayOfMonth > 31) {
+        throw BackupValidationError('$ctx.dayOfMonth が範囲外です: $dayOfMonth');
       }
       final anchorRaw = req<String>(raw, 'anchorDate', ctx);
       final CivilDate anchorDate;
@@ -365,7 +367,7 @@ class BackupCodec {
         id: req<int>(raw, 'id', ctx),
         name: name,
         emoji: req<String>(raw, 'emoji', ctx),
-        intervalDays: intervalDays,
+        dayOfMonth: dayOfMonth,
         anchorDate: anchorDate,
         archived: req<bool>(raw, 'archived', ctx),
         createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
@@ -433,6 +435,8 @@ class BackupCodec {
           m = _migrateV3toV4(m);
         case 4:
           m = _migrateV4toV5(m);
+        case 5:
+          m = _migrateV5toV6(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -475,6 +479,30 @@ class BackupCodec {
   Map<String, dynamic> _migrateV4toV5(Map<String, dynamic> root) {
     root.putIfAbsent('choreTasks', () => <dynamic>[]);
     root.putIfAbsent('choreRecords', () => <dynamic>[]);
+    return root;
+  }
+
+  /// v5→v6: つきいちタスクを「間隔日数」→「毎月N日」方式に。旧バックアップは
+  /// 次回期日（anchorDate + intervalDays）の「日」を毎月の予定日として引き継ぐ
+  /// （DBスキーマ v7→v8 と同じ規則）。不正値は後段の検証に任せる。
+  Map<String, dynamic> _migrateV5toV6(Map<String, dynamic> root) {
+    final tasks = root['choreTasks'];
+    if (tasks is List) {
+      for (final t in tasks) {
+        if (t is! Map<String, dynamic>) continue;
+        final interval = t.remove('intervalDays');
+        final anchorRaw = t['anchorDate'];
+        var day = 1;
+        if (interval is int && interval >= 1 && anchorRaw is String) {
+          try {
+            day = CivilDate.parse(anchorRaw).addDays(interval).day;
+          } on FormatException {
+            // anchorDate不正はデコード時のvalidationで拒否される。dayは仮値。
+          }
+        }
+        t['dayOfMonth'] = day;
+      }
+    }
     return root;
   }
 }

@@ -139,12 +139,13 @@ class BackupRecurringRule {
   });
 }
 
-/// 行と1:1のバックアップ用つきいちタスク（formatVersion 5で追加）。
+/// 行と1:1のバックアップ用つきいちタスク（formatVersion 5で追加・
+/// v6で intervalDays → dayOfMonth に変更）。
 class BackupChoreTask {
   final int id;
   final String name;
   final String emoji;
-  final int intervalDays;
+  final int dayOfMonth;
   final CivilDate anchorDate;
   final bool archived;
   final DateTime createdAt;
@@ -152,7 +153,7 @@ class BackupChoreTask {
     required this.id,
     required this.name,
     required this.emoji,
-    required this.intervalDays,
+    required this.dayOfMonth,
     required this.anchorDate,
     required this.archived,
     required this.createdAt,

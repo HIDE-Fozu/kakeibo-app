@@ -68,7 +68,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7); // v1からでも現行(v7)まで一気に上がる
+    expect(v, 8); // v1からでも現行(v8)まで一気に上がる
     await db.close();
   });
 
@@ -127,7 +127,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7);
+    expect(v, 8);
     await db.close();
   });
 
@@ -188,7 +188,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7);
+    expect(v, 8);
     await db.close();
   });
 
@@ -261,7 +261,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7);
+    expect(v, 8);
     await db.close();
   });
 
@@ -331,7 +331,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7);
+    expect(v, 8);
     await db.close();
   });
 
@@ -407,7 +407,7 @@ CREATE TABLE "recurring_rules" (
     // 新テーブルが使える（挿入→読み出し→カスケード削除）
     expect(await db.choreDao.allTasks(), isEmpty);
     await db.customStatement(
-        "INSERT INTO chore_tasks (name, interval_days, anchor_date) VALUES ('ハブラシ交換', 30, '2026-08-01')");
+        "INSERT INTO chore_tasks (name, day_of_month, anchor_date) VALUES ('ハブラシ交換', 30, '2026-08-01')");
     final task = (await db.choreDao.allTasks()).single;
     expect(task.emoji, '📌'); // 既定値
     expect(task.anchorDate.toIso(), '2026-08-01');
@@ -420,7 +420,76 @@ CREATE TABLE "recurring_rules" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 7);
+    expect(v, 8);
+    await db.close();
+  });
+
+  test('schema v7 → v8: つきいちが毎月N日化・anchor+intervalの日を引き継ぐ', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v8');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v7.db');
+
+    // v7当時の chore_tasks（interval_days）を素のsqlite3で構築
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "chore_tasks" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "emoji" TEXT NOT NULL DEFAULT '📌',
+  "interval_days" INTEGER NOT NULL,
+  "anchor_date" TEXT NOT NULL,
+  "archived" INTEGER NOT NULL DEFAULT 0,
+  "created_at" TEXT NOT NULL
+);''');
+    raw.execute('''
+CREATE TABLE "chore_records" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "task_id" INTEGER NOT NULL REFERENCES "chore_tasks" ("id") ON DELETE CASCADE,
+  "done_date" TEXT NOT NULL,
+  "memo" TEXT NOT NULL DEFAULT '',
+  "created_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO chore_tasks (name, emoji, interval_days, anchor_date, created_at) "
+        "VALUES ('ハブラシ交換', '🪥', 14, '2026-08-08', '2026-08-08T00:00:00.000Z')");
+    raw.execute(
+        "INSERT INTO chore_tasks (name, emoji, interval_days, anchor_date, created_at) "
+        "VALUES ('まくら干し', '🛏', 45, '2026-07-20', '2026-07-20T00:00:00.000Z')");
+    raw.execute(
+        "INSERT INTO chore_records (task_id, done_date, created_at) "
+        "VALUES (1, '2026-08-01', '2026-08-01T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 7');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final tasks = await db.choreDao.allTasks();
+    // 8/8+14日=8/22 → 毎月22日 / 7/20+45日=9/3 → 毎月3日
+    expect(tasks.map((t) => (t.name, t.dayOfMonth)).toList(),
+        [('ハブラシ交換', 22), ('まくら干し', 3)]);
+    expect(tasks.first.anchorDate.toIso(), '2026-08-08'); // 他列は無傷
+    expect(tasks.first.emoji, '🪥');
+    // 記録も無傷・FKカスケードも生きている
+    expect((await db.choreDao.allRecords()).length, 1);
+    await db.choreDao.deleteTask(tasks.first.id);
+    expect(await db.choreDao.allRecords(), isEmpty);
+    // interval_days 列は消えている
+    final cols = await db
+        .customSelect("SELECT name FROM pragma_table_info('chore_tasks')")
+        .get()
+        .then((rows) => rows.map((r) => r.read<String>('name')).toSet());
+    expect(cols.contains('interval_days'), isFalse);
+    expect(cols.contains('day_of_month'), isTrue);
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 8);
     await db.close();
   });
 

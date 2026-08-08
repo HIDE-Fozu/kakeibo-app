@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/dates.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../../domain/services/chore_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chore_actions.dart';
 import '../application/chore_providers.dart';
@@ -69,10 +70,10 @@ Future<void> handleChoreDone(
     return;
   }
   if (!context.mounted) return;
-  // 次回期日 = 記録日 + interval（記録した日基準。過去日に記録した場合、
-  // より新しい記録が既にあれば実際の次回はそちら基準になるが、直後の
-  // resync で正しい値に再計算される。表示は分かりやすさ優先の近似）。
-  final next = doneDate.addDays(status.task.intervalDays);
+  // 次回期日 = 記録した月の翌月の毎月N日（過去日に記録した場合、より新しい
+  // 記録が既にあれば実際の次回はそちら基準になるが、直後の resync で正しい
+  // 値に再計算される。表示は分かりやすさ優先の近似）。
+  final next = choreDueAfterDone(status.task, doneDate);
   final recordId = result.recordId!;
   messenger.showSnackBar(SnackBar(
     duration: const Duration(seconds: 5),

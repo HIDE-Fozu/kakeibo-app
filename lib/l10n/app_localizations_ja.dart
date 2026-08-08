@@ -199,6 +199,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryStoreNameLabel => '店舗名';
 
   @override
+  String get entryCompanyNameLabel => '会社名';
+
+  @override
   String get entrySaveContinueButton => '保存して続ける';
 
   @override
@@ -663,6 +666,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String dayOfMonthItem(int day) {
+    return '$day日';
+  }
+
+  @override
   String get recurringDayClampNote => 'その日がない月は月末に記録します（例: 31日→2月は28日）';
 
   @override
@@ -702,8 +710,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get splitMemoDialogTitle => 'メモを入力';
 
   @override
-  String choreNotificationBody(int days) {
-    return '前回から$days日たちました';
+  String choreNotificationBody(int day) {
+    return '毎月$day日の予定です';
   }
 
   @override
@@ -739,11 +747,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String forecastLabelAtDate(String date) {
     return '見込み収支（$date時点）';
-  }
-
-  @override
-  String choreIntervalEvery(int days) {
-    return '$days日ごと';
   }
 
   @override
@@ -793,7 +796,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get choreFormNameLabel => '項目名';
 
   @override
-  String get choreFormIntervalLabel => '間隔日数（1〜999）';
+  String get choreFormDayLabel => '毎月の予定日';
 
   @override
   String get choreFormEmojiLabel => '絵文字（未入力なら📌）';

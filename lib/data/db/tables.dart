@@ -54,13 +54,14 @@ class RecurringRules extends Table {
 }
 
 /// つきいちタスク（低頻度の家事リマインダー）。routine-reminder から v2.2.0 で合体。
-/// 次回期日は保存せず、常に「最後の記録＋intervalDays」で導出する。v7で追加。
+/// 次回期日は保存せず、常に「毎月dayOfMonth日」から導出する。v7で追加・v8で毎月N日化。
 @DataClassName('ChoreTaskRow')
 class ChoreTasks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 30)();
   TextColumn get emoji => text().withDefault(const Constant('📌'))();
-  IntColumn get intervalDays => integer()(); // 1..999（フォームで保証、DBはCHECKなし）
+  // 毎月の予定日 1..31（v8で間隔日数から変更。フォームで保証、DBはCHECKなし）
+  IntColumn get dayOfMonth => integer()();
   TextColumn get anchorDate => text().map(const CivilDateConverter())();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

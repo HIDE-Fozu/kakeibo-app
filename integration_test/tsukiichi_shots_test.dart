@@ -34,8 +34,13 @@ Future<void> pickDropdownDay(WidgetTester t, int day) async {
   await settle(t);
   await t.tap(find.byKey(const Key('recurring-day')), warnIfMissed: false);
   await settle(t);
-  final item = find.text('毎月$day日');
-  await t.scrollUntilVisible(item, 100,
+  await pickCellMenuItem(t, find.text('$day日'));
+}
+
+/// セル幅メニュー（cell_dropdown）の項目を選ぶ。メニューは遅延構築＋
+/// コンパクト高（約5.5行）なので、見えるまでスクロールしてからタップする。
+Future<void> pickCellMenuItem(WidgetTester t, Finder item) async {
+  await t.scrollUntilVisible(item, 88,
       scrollable: find.byType(Scrollable).last);
   await settle(t);
   await t.tap(item, warnIfMissed: false);
@@ -67,8 +72,7 @@ void main() {
     await settle(t);
     await t.tap(find.byKey(const Key('recurring-category-expense')));
     await settle(t);
-    await t.tap(find.textContaining('住居').last, warnIfMissed: false);
-    await settle(t);
+    await pickCellMenuItem(t, find.textContaining('住居'));
     await pickDropdownDay(t, 27);
     await t.enterText(find.byKey(const Key('recurring-store')), '家賃');
     await t.testTextInput.receiveAction(TextInputAction.done);
@@ -85,8 +89,7 @@ void main() {
     await settle(t);
     await t.tap(find.byKey(const Key('recurring-category-income')));
     await settle(t);
-    await t.tap(find.textContaining('給与').last, warnIfMissed: false);
-    await settle(t);
+    await pickCellMenuItem(t, find.textContaining('給与'));
     await pickDropdownDay(t, 25);
     await t.tap(find.byKey(const Key('recurring-save')));
     await settle(t);
@@ -95,7 +98,6 @@ void main() {
     await t.tap(find.byKey(const Key('hub-chore-add')));
     await settle(t);
     await t.enterText(find.byKey(const Key('chore-form-name')), 'まくら干し');
-    await t.enterText(find.byKey(const Key('chore-form-interval')), '14');
     await t.enterText(find.byKey(const Key('chore-form-emoji')), '🛏');
     await t.testTextInput.receiveAction(TextInputAction.done);
     await settle(t);

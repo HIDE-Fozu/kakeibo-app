@@ -3,15 +3,18 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/cell_dropdown.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/services/chore_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chore_providers.dart';
 
 /// 新規/編集共用のつきいちタスクフォーム（routine-reminder の task_form.dart を移植）。
-/// `task: null`=新規（保存で createTask・次回期日=今日+間隔）、非null=編集。
+/// `task: null`=新規（保存で createTask・初回期日=今日以降で最初の毎月N日）、
+/// 非null=編集。
 ///
-/// バリデーション: 名前1〜30文字・間隔1〜999・絵文字1グリフ採用/未入力なら📌。
+/// バリデーション: 名前1〜30文字・絵文字1グリフ採用/未入力なら📌。
+/// 予定日はプルダウン（1..31）なので不正値は入らない。
 /// 編集モードには「アーカイブする」「この項目を削除」（確認あり）が追加される。
 class ChoreTaskFormPage extends ConsumerStatefulWidget {
   const ChoreTaskFormPage({super.key, required this.task});
@@ -25,8 +28,9 @@ class ChoreTaskFormPage extends ConsumerStatefulWidget {
 class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
   late final TextEditingController _nameCtrl =
       TextEditingController(text: widget.task?.name ?? '');
-  late final TextEditingController _intervalCtrl = TextEditingController(
-      text: widget.task == null ? '' : '${widget.task!.intervalDays}');
+  // 新規の既定は今日の「日」（今日作れば今日が初回期日になる自然な既定）。
+  late int _day =
+      widget.task?.dayOfMonth ?? ref.read(choreTodayProvider).day;
   late final TextEditingController _emojiCtrl =
       TextEditingController(text: widget.task?.emoji ?? '');
 
@@ -39,26 +43,16 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _intervalCtrl.dispose();
     _emojiCtrl.dispose();
     super.dispose();
   }
-
-  int? get _interval => int.tryParse(_intervalCtrl.text);
 
   /// 名前は空白のみを拒否するためtrim後で判定する。
   String get _trimmedName => _nameCtrl.text.trim();
 
   bool get _isValid {
     final name = _trimmedName;
-    if (name.isEmpty || name.characters.length > kChoreNameMax) return false;
-    final interval = _interval;
-    if (interval == null ||
-        interval < kChoreIntervalMin ||
-        interval > kChoreIntervalMax) {
-      return false;
-    }
-    return true;
+    return name.isNotEmpty && name.characters.length <= kChoreNameMax;
   }
 
   Future<void> _save() async {
@@ -66,21 +60,19 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
     setState(() => _saving = true);
     try {
       final name = _trimmedName;
-      final interval = _interval!;
       // 絵文字もtrim（先頭空白が「1グリフ目」として保存されるのを防ぐ）
       final emojiGraphemes = _emojiCtrl.text.trim().characters;
       final emoji = emojiGraphemes.isEmpty ? '📌' : emojiGraphemes.first;
       final actions = ref.read(choreActionsProvider);
       final currentTask = widget.task;
       if (currentTask == null) {
-        await actions.createTask(
-            name: name, emoji: emoji, intervalDays: interval);
+        await actions.createTask(name: name, emoji: emoji, dayOfMonth: _day);
       } else {
         await actions.updateTaskInfo(ChoreTask(
           id: currentTask.id,
           name: name,
           emoji: emoji,
-          intervalDays: interval,
+          dayOfMonth: _day,
           anchorDate: currentTask.anchorDate,
           archived: currentTask.archived,
         ));
@@ -168,14 +160,21 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
                 decoration: InputDecoration(labelText: l.choreFormNameLabel),
                 onChanged: (_) => setState(() {}),
               ),
-              TextField(
-                key: const Key('chore-form-interval'),
-                controller: _intervalCtrl,
-                keyboardType: TextInputType.number,
-                decoration:
-                    InputDecoration(labelText: l.choreFormIntervalLabel),
-                onChanged: (_) => setState(() {}),
+              const SizedBox(height: 8),
+              CellDropdownField<int>(
+                key: const Key('chore-form-day'),
+                value: _day,
+                decoration: InputDecoration(
+                  labelText: l.choreFormDayLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  for (var d = 1; d <= 31; d++)
+                    CellDropdownItem(d, l.dayOfMonthItem(d)),
+                ],
+                onChanged: (v) => setState(() => _day = v),
               ),
+              const SizedBox(height: 8),
               TextField(
                 key: const Key('chore-form-emoji'),
                 controller: _emojiCtrl,

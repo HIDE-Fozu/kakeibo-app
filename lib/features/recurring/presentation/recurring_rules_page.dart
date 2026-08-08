@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/cell_dropdown.dart';
 import '../../../app/keyboard_done_bar.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
@@ -222,29 +223,28 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    // typeを切り替えたらFormFieldの内部状態ごと作り直す（選択リセット）。
+                  CellDropdownField<int>(
+                    // typeを切り替えたらウィジェットごと作り直す（選択リセット）。
                     key: Key('recurring-category-${_type.name}'),
-                    initialValue: _categoryId,
+                    value: _categoryId,
                     decoration: InputDecoration(
                       labelText: l.entryCategoryHeading,
                       border: const OutlineInputBorder(),
                     ),
                     items: [
                       for (final c in selectable)
-                        DropdownMenuItem(
-                          value: c.id,
-                          child: Text(
-                            '${c.parentId != null ? '└ ' : ''}${categoryEmoji(c.icon, c.slug)} ${c.name}',
-                          ),
+                        CellDropdownItem(
+                          c.id,
+                          '${c.parentId != null ? '└ ' : ''}${categoryEmoji(c.icon, c.slug)} ${c.name}',
                         ),
                     ],
                     onChanged: (v) => setState(() => _categoryId = v),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
+                  // 項目は「1日」のみ（「毎月」は一覧側の表記が担う・2026-08-09 FB）。
+                  CellDropdownField<int>(
                     key: const Key('recurring-day'),
-                    initialValue: _day,
+                    value: _day,
                     decoration: InputDecoration(
                       labelText: l.recurringDayLabel,
                       helperText: l.recurringDayClampNote,
@@ -253,34 +253,25 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
                     ),
                     items: [
                       for (var d = 1; d <= 31; d++)
-                        DropdownMenuItem(
-                          value: d,
-                          child: Text(l.recurringEveryMonthDay(d)),
-                        ),
+                        CellDropdownItem(d, l.dayOfMonthItem(d)),
                     ],
-                    onChanged: (v) => setState(() => _day = v ?? 1),
+                    onChanged: (v) => setState(() => _day = v),
                   ),
                   if (isNew) ...[
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<bool>(
+                    CellDropdownField<bool>(
                       key: const Key('recurring-start'),
-                      initialValue: _startNextMonth,
+                      value: _startNextMonth,
                       decoration: InputDecoration(
                         labelText: l.recurringStartMonthLabel,
                         border: const OutlineInputBorder(),
                       ),
                       items: [
-                        DropdownMenuItem(
-                          value: false,
-                          child: Text(l.recurringStartThisMonth),
-                        ),
-                        DropdownMenuItem(
-                          value: true,
-                          child: Text(l.recurringStartNextMonth),
-                        ),
+                        CellDropdownItem(false, l.recurringStartThisMonth),
+                        CellDropdownItem(true, l.recurringStartNextMonth),
                       ],
                       onChanged: (v) =>
-                          setState(() => _startNextMonth = v ?? false),
+                          setState(() => _startNextMonth = v),
                     ),
                   ],
                   const SizedBox(height: 16),
@@ -288,7 +279,10 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
                     key: const Key('recurring-store'),
                     controller: _store,
                     decoration: InputDecoration(
-                      labelText: l.entryStoreNameLabel,
+                      // 収入は店ではなく勤め先なので「会社名」（2026-08-09 FB）。
+                      labelText: _type == TxnType.income
+                          ? l.entryCompanyNameLabel
+                          : l.entryStoreNameLabel,
                       border: const OutlineInputBorder(),
                     ),
                   ),

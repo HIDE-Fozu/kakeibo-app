@@ -448,6 +448,12 @@ abstract class AppLocalizations {
   /// **'Store name'**
   String get entryStoreNameLabel;
 
+  /// No description provided for @entryCompanyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get entryCompanyNameLabel;
+
   /// No description provided for @entrySaveContinueButton.
   ///
   /// In en, this message translates to:
@@ -1294,6 +1300,12 @@ abstract class AppLocalizations {
   /// **'Day {day} every month'**
   String recurringEveryMonthDay(int day);
 
+  /// Short day-of-month item, e.g. 'Day 5'
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String dayOfMonthItem(int day);
+
   /// Helper text: days beyond a month's end clamp to the last day
   ///
   /// In en, this message translates to:
@@ -1366,11 +1378,11 @@ abstract class AppLocalizations {
   /// **'Enter a memo'**
   String get splitMemoDialogTitle;
 
-  /// Local notification body for a chore task due today
+  /// Local notification body for a monthly chore due today
   ///
   /// In en, this message translates to:
-  /// **'It\'s been {days} days since last time'**
-  String choreNotificationBody(int days);
+  /// **'Monthly task scheduled for day {day}'**
+  String choreNotificationBody(int day);
 
   /// Bottom navigation label for the Monthly hub tab
   ///
@@ -1437,12 +1449,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Projected balance (as of {date})'**
   String forecastLabelAtDate(String date);
-
-  /// Chore interval label
-  ///
-  /// In en, this message translates to:
-  /// **'Every {days} days'**
-  String choreIntervalEvery(int days);
 
   /// Chore status: overdue by N days
   ///
@@ -1516,11 +1522,11 @@ abstract class AppLocalizations {
   /// **'Name'**
   String get choreFormNameLabel;
 
-  /// Chore form: interval field label
+  /// Label for the day-of-month picker in the chore form
   ///
   /// In en, this message translates to:
-  /// **'Interval in days (1–999)'**
-  String get choreFormIntervalLabel;
+  /// **'Day of the month'**
+  String get choreFormDayLabel;
 
   /// Chore form: emoji field label
   ///

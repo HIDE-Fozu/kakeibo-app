@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/cell_dropdown.dart';
 import '../../../app/keyboard_done_bar.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/navigation.dart';
@@ -325,50 +326,68 @@ class EntryScreen extends ConsumerWidget {
                                       horizontal: 4),
                                   // 白ピル（行メモ・内訳チップと同じ文法）で
                                   // 帯から浮かせ、押せる場所だと分かるようにする。
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Theme.of(context).colorScheme.surface,
-                                      border: Border.all(
+                                  // メニューはピル幅・直下展開（cell_dropdown）。
+                                  child: Builder(builder: (pillContext) {
+                                    return InkWell(
+                                      key: const Key('entry-recurring-day'),
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () async {
+                                        final picked =
+                                            await showCellDropdown<int>(
+                                          pillContext,
+                                          centerItems: true,
+                                          value:
+                                              state.effectiveRecurringDay,
+                                          items: [
+                                            for (var d = 1; d <= 31; d++)
+                                              CellDropdownItem(d, '$d'),
+                                          ],
+                                        );
+                                        if (picked != null) {
+                                          ctrl.setRecurringDay(picked);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 3),
+                                        decoration: BoxDecoration(
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .outlineVariant),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: DropdownButton<int>(
-                                      key: const Key('entry-recurring-day'),
-                                      value: state.effectiveRecurringDay,
-                                      isDense: true,
-                                      underline: const SizedBox.shrink(),
-                                      style: noteStyle.copyWith(fontSize: 13),
-                                      iconSize: 18,
-                                      iconEnabledColor:
-                                          Theme.of(context).colorScheme.primary,
-                                      // 1桁/2桁とも同じ幅の箱の中央に置き、
-                                      // ▾ が数字の右に密着する。
-                                      selectedItemBuilder: (context) => [
-                                        for (var d = 1; d <= 31; d++)
-                                          SizedBox(
-                                            width: 20,
-                                            child: Center(child: Text('$d')),
-                                          ),
-                                      ],
-                                      items: [
-                                        for (var d = 1; d <= 31; d++)
-                                          DropdownMenuItem(
-                                            value: d,
-                                            alignment:
-                                                AlignmentDirectional.center,
-                                            child: Text('$d'),
-                                          ),
-                                      ],
-                                      onChanged: (v) {
-                                        if (v != null) ctrl.setRecurringDay(v);
-                                      },
-                                    ),
-                                  ),
+                                              .surface,
+                                          border: Border.all(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .outlineVariant),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // 1桁/2桁とも同じ幅の箱の中央に
+                                            // 置き、▾ が数字の右に密着する。
+                                            SizedBox(
+                                              width: 20,
+                                              child: Center(
+                                                child: Text(
+                                                  '${state.effectiveRecurringDay}',
+                                                  style: noteStyle.copyWith(
+                                                      fontSize: 13),
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_drop_down,
+                                              size: 18,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
                                 ),
                                 Text(l.entryRecurringNoteSuffix,
                                     style: noteStyle),
@@ -460,7 +479,12 @@ class EntryScreen extends ConsumerWidget {
                                     key: ValueKey('store-field-${state.formSeq}'),
                                     initialValue: state.storeName,
                                     decoration: InputDecoration(
-                                      labelText: l.entryStoreNameLabel,
+                                      // 収入は店ではなく勤め先なので「会社名」
+                                      // （2026-08-09 FB）。
+                                      labelText:
+                                          state.type == TxnType.income
+                                              ? l.entryCompanyNameLabel
+                                              : l.entryStoreNameLabel,
                                       border: const OutlineInputBorder(),
                                     ),
                                     onChanged: ctrl.setStoreName,

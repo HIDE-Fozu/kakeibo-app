@@ -200,6 +200,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryStoreNameLabel => '매장명';
 
   @override
+  String get entryCompanyNameLabel => '회사명';
+
+  @override
   String get entrySaveContinueButton => '저장하고 계속';
 
   @override
@@ -666,6 +669,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String dayOfMonthItem(int day) {
+    return '$day일';
+  }
+
+  @override
   String get recurringDayClampNote => '해당 날짜가 없는 달은 말일에 기록됩니다(예: 31일→2월은 28일)';
 
   @override
@@ -705,8 +713,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get splitMemoDialogTitle => '메모 입력';
 
   @override
-  String choreNotificationBody(int days) {
-    return '지난번부터 $days일 지났어요';
+  String choreNotificationBody(int day) {
+    return '매월 $day일 예정입니다';
   }
 
   @override
@@ -742,11 +750,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String forecastLabelAtDate(String date) {
     return '예상 수지($date 기준)';
-  }
-
-  @override
-  String choreIntervalEvery(int days) {
-    return '$days일마다';
   }
 
   @override
@@ -796,7 +799,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get choreFormNameLabel => '항목 이름';
 
   @override
-  String get choreFormIntervalLabel => '간격 일수 (1–999)';
+  String get choreFormDayLabel => '매월 예정일';
 
   @override
   String get choreFormEmojiLabel => '이모지 (비우면 📌)';

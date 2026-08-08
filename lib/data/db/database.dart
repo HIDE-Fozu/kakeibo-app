@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,8 +54,21 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 7) {
             // v7: つきいちタスク（家事リマインダー）合体。既存データは無関係。
+            // v8定義（day_of_month入り）で作られるので v8 の変換は不要。
             await m.createTable(choreTasks);
             await m.createTable(choreRecords);
+          } else if (from < 8) {
+            // v8: つきいちタスクを「間隔日数」→「毎月N日」方式に変更。
+            // 旧データは次回期日（anchor_date + interval_days）の「日」を
+            // 毎月の予定日として引き継ぐ（interval_days列は削除）。
+            await m.alterTable(TableMigration(
+              choreTasks,
+              columnTransformer: {
+                choreTasks.dayOfMonth: const CustomExpression<int>(
+                    "CAST(strftime('%d', date(anchor_date, "
+                    "'+' || interval_days || ' days')) AS INTEGER)"),
+              },
+            ));
           }
         },
         beforeOpen: (details) async {

@@ -46,11 +46,11 @@ void main() {
       dayOfMonth: 25,
       startYm: 202607,
     ));
-    // 家事: ハブラシ交換 30日ごと・anchor 7/1 → 期日 7/31（今月内）
+    // 家事: ハブラシ交換 毎月31日・anchor 7/1 → 期日 7/31（今月内）
     await c.read(choreRepositoryProvider).addTask(
         name: 'ハブラシ交換',
         emoji: '🪥',
-        intervalDays: 30,
+        dayOfMonth: 31,
         anchorDate: const CivilDate(2026, 7, 1));
     await tester.pumpAndSettle();
 
@@ -108,15 +108,14 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('chore-form-name')), 'まくら干し');
-    await tester.enterText(find.byKey(const Key('chore-form-interval')), '14');
     await tester.enterText(find.byKey(const Key('chore-form-emoji')), '🛏');
     await tester.tap(find.byKey(const Key('chore-form-save')));
     await tester.pumpAndSettle();
 
-    // ハブへ戻り、一覧に出る（7/15 + 14 = 7/29 → あと14日）
+    // ハブへ戻り、一覧に出る（予定日は既定=今日の日(15) → 期日7/15=今日）
     expect(find.text('まくら干し'), findsWidgets);
-    expect(find.text('14日ごと'), findsOneWidget);
-    expect(find.text('あと14日'), findsOneWidget);
+    expect(find.text('毎月15日'), findsOneWidget);
+    expect(find.text('今日'), findsOneWidget);
   });
 
   testWidgets('タスク行→履歴→編集→アーカイブで一覧から消える', (tester) async {
@@ -128,7 +127,7 @@ void main() {
     final taskId = await c.read(choreRepositoryProvider).addTask(
         name: 'フィルター掃除',
         emoji: '🧹',
-        intervalDays: 60,
+        dayOfMonth: 15,
         anchorDate: const CivilDate(2026, 7, 1));
     await tester.pumpAndSettle();
 

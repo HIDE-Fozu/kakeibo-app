@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../app/cell_dropdown.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/dates.dart';
@@ -388,19 +389,46 @@ class _MonthHeader extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     title: Row(
                       children: [
-                        DropdownButton<int>(
-                          key: const Key('forecast-anchor-day-dropdown'),
-                          value: day,
-                          items: [
-                            for (var d = 1; d <= 31; d++)
-                              DropdownMenuItem(
-                                value: d,
-                                child: Text(l.recurringEveryMonthDay(d)),
+                        // 白ピル＋セル幅・直下展開のメニュー（cell_dropdown）。
+                        Builder(builder: (pillContext) {
+                          final scheme = Theme.of(pillContext).colorScheme;
+                          return InkWell(
+                            key: const Key('forecast-anchor-day-dropdown'),
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () async {
+                              final picked = await showCellDropdown<int>(
+                                pillContext,
+                                centerItems: true,
+                                value: day,
+                                items: [
+                                  for (var d = 1; d <= 31; d++)
+                                    CellDropdownItem(d, l.dayOfMonthItem(d)),
+                                ],
+                              );
+                              if (picked != null) {
+                                setSheetState(() => day = picked);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: scheme.surface,
+                                border:
+                                    Border.all(color: scheme.outlineVariant),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                          ],
-                          onChanged: (v) =>
-                              setSheetState(() => day = v ?? day),
-                        ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(l.recurringEveryMonthDay(day)),
+                                  Icon(Icons.arrow_drop_down,
+                                      size: 20, color: scheme.primary),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                       ],
                     ),
                     trailing: current != 0

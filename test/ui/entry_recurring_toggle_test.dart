@@ -61,11 +61,10 @@ void main() {
     await tester.pump();
     expect(find.byKey(const Key('entry-recurring-note')), findsOneWidget);
     expect(
-        tester
-            .widget<DropdownButton<int>>(
-                find.byKey(const Key('entry-recurring-day')))
-            .value,
-        15);
+        find.descendant(
+            of: find.byKey(const Key('entry-recurring-day')),
+            matching: find.text('15')),
+        findsOneWidget);
     expect(find.text('日に自動で記帳します'), findsOneWidget);
     expect(find.text('保存（＋毎月の費用に登録）'), findsOneWidget);
 
@@ -115,11 +114,10 @@ void main() {
     await tester.pump();
     expect(find.text('保存（＋毎月の収入に登録）'), findsOneWidget);
     expect(
-        tester
-            .widget<DropdownButton<int>>(
-                find.byKey(const Key('entry-recurring-day')))
-            .value,
-        25);
+        find.descendant(
+            of: find.byKey(const Key('entry-recurring-day')),
+            matching: find.text('25')),
+        findsOneWidget);
   });
 
   testWidgets('過去日付で登録: さかのぼり多重起票せず当月分だけ即起票', (tester) async {
@@ -185,11 +183,12 @@ void main() {
 
     // 既定は入力日付の日（毎月8日）→帯のプルダウンで毎月25日へ
     final dayDropdown = find.byKey(const Key('entry-recurring-day'));
-    expect(tester.widget<DropdownButton<int>>(dayDropdown).value, 8);
+    expect(
+        find.descendant(of: dayDropdown, matching: find.text('8')),
+        findsOneWidget);
     await tester.tap(dayDropdown);
     await tester.pumpAndSettle();
-    // メニュー項目に限定するため InkWell との組で探す
-    // （素の find.text はDropdownButton内部のIndexedStack項目にも当たる）。
+    // メニュー項目（cell_dropdownのInkWell行）に限定して探す。
     // メニューは遅延構築なので25までスクロールしてからタップ。
     final item25 = find.widgetWithText(InkWell, '25');
     await tester.scrollUntilVisible(item25, 96,
@@ -197,7 +196,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(item25, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(tester.widget<DropdownButton<int>>(dayDropdown).value, 25);
+    expect(
+        find.descendant(of: dayDropdown, matching: find.text('25')),
+        findsOneWidget);
 
     await tester.tap(find.textContaining('食費'));
     await tester.pump();
