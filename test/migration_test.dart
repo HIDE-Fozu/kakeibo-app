@@ -68,7 +68,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 6); // v1からでも現行(v6)まで一気に上がる
+    expect(v, 7); // v1からでも現行(v7)まで一気に上がる
     await db.close();
   });
 
@@ -127,7 +127,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 6);
+    expect(v, 7);
     await db.close();
   });
 
@@ -188,7 +188,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 6);
+    expect(v, 7);
     await db.close();
   });
 
@@ -261,7 +261,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 6);
+    expect(v, 7);
     await db.close();
   });
 
@@ -331,7 +331,96 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 6);
+    expect(v, 7);
+    await db.close();
+  });
+
+  test('schema v6 → v7: chore_tasks/chore_records が作られ既存データも無傷', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v7');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v6.db');
+
+    // v6スキーマ（recurring_rules あり / chore_* なし）
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "categories" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "icon" TEXT NULL,
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  "is_archived" INTEGER NOT NULL DEFAULT 0,
+  "is_system" INTEGER NOT NULL DEFAULT 0,
+  "slug" TEXT NULL,
+  "parent_id" INTEGER NULL REFERENCES "categories" ("id")
+);''');
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    raw.execute('''
+CREATE TABLE "recurring_rules" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "day_of_month" INTEGER NOT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "is_active" INTEGER NOT NULL DEFAULT 1,
+  "start_ym" INTEGER NOT NULL,
+  "end_ym" INTEGER NULL,
+  "last_generated_ym" INTEGER NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order, slug) VALUES (1,'食費','expense',0,'food')");
+    raw.execute(
+        "INSERT INTO recurring_rules (type, amount, category_id, day_of_month, start_ym, created_at, updated_at) "
+        "VALUES ('expense', 80000, 1, 27, 202608, '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 6');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    // 既存データ無傷
+    final rules = await db.recurringRuleDao.allRules();
+    expect(rules.single.amount, 80000);
+    // 新テーブルが使える（挿入→読み出し→カスケード削除）
+    expect(await db.choreDao.allTasks(), isEmpty);
+    await db.customStatement(
+        "INSERT INTO chore_tasks (name, interval_days, anchor_date) VALUES ('ハブラシ交換', 30, '2026-08-01')");
+    final task = (await db.choreDao.allTasks()).single;
+    expect(task.emoji, '📌'); // 既定値
+    expect(task.anchorDate.toIso(), '2026-08-01');
+    await db.customStatement(
+        "INSERT INTO chore_records (task_id, done_date) VALUES (${task.id}, '2026-08-05')");
+    expect((await db.choreDao.allRecords()).length, 1);
+    await db.choreDao.deleteTask(task.id);
+    expect(await db.choreDao.allRecords(), isEmpty); // FK ON でカスケード
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 7);
     await db.close();
   });
 

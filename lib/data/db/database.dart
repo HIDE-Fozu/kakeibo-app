@@ -9,8 +9,8 @@ import '../../domain/money/civil_date.dart';
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Categories, Transactions, RecurringRules],
-  daos: [CategoryDao, TransactionDao, RecurringRuleDao],
+  tables: [Categories, Transactions, RecurringRules, ChoreTasks, ChoreRecords],
+  daos: [CategoryDao, TransactionDao, RecurringRuleDao, ChoreDao],
 )
 class AppDatabase extends _$AppDatabase {
   /// 新規インストール時にシードするカテゴリ名の言語（BCP-47のlanguageCode）。
@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +51,11 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             // v6: 毎月の固定費・収入（定期取引ルール）。既存データは無関係。
             await m.createTable(recurringRules);
+          }
+          if (from < 7) {
+            // v7: つきいちタスク（家事リマインダー）合体。既存データは無関係。
+            await m.createTable(choreTasks);
+            await m.createTable(choreRecords);
           }
         },
         beforeOpen: (details) async {

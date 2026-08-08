@@ -3,11 +3,16 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 import '../data/db/database.dart';
+import '../data/notifications/badge_service.dart';
+import '../data/notifications/notification_service.dart';
 import '../data/ocr/apple_vision_ocr_service.dart';
 import '../data/ocr/image_picker_receipt_capture.dart';
 import '../domain/services/ocr/ocr_types.dart';
@@ -16,10 +21,23 @@ import '../l10n/app_localizations.dart';
 import 'app.dart';
 import 'providers.dart';
 
+/// つきいちタスクの通知予約（zonedSchedule）に必要な tz の初期化。
+/// 失敗しても UTC のまま起動を続ける（通知時刻が数時間ずれるだけで致命ではない）。
+Future<void> _initTimeZone() async {
+  try {
+    tzdata.initializeTimeZones();
+    final info = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(info.identifier));
+  } catch (e) {
+    debugPrint('timezone init failed, staying on UTC: $e');
+  }
+}
+
 /// 実行時の実配線。ロジックを持たない（テストはハーネスの override で代替）。
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting(); // table_calendarの曜日ラベル(DateFormat.E)に必須
+  await _initTimeZone();
   final support = await getApplicationSupportDirectory();
   final docs = await getApplicationDocumentsDirectory();
   final prefs = await SharedPreferences.getInstance();
@@ -53,6 +71,16 @@ Future<void> bootstrap() async {
         (ref) => Platform.isIOS
             ? ImagePickerReceiptCapture()
             : const UnavailableReceiptCapture(),
+      ),
+      // つきいちタスクの通知・バッジもiOSのみ実物（既定はNoop）。
+      notificationServiceProvider.overrideWith(
+        (ref) => Platform.isIOS
+            ? IosNotificationService()
+            : NoopNotificationService(),
+      ),
+      badgeServiceProvider.overrideWith(
+        (ref) =>
+            Platform.isIOS ? AppBadgePlusBadgeService() : NoopBadgeService(),
       ),
     ],
     child: const KakeiboApp(),

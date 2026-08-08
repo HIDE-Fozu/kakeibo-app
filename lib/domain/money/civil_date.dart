@@ -33,10 +33,26 @@ class CivilDate implements Comparable<CivilDate> {
   }
 
   String toIso() {
+    final yyyy = year.toString().padLeft(4, '0');
     final mm = month.toString().padLeft(2, '0');
     final dd = day.toString().padLeft(2, '0');
-    return '$year-$mm-$dd';
+    return '$yyyy-$mm-$dd';
   }
+
+  /// n日後（負なら過去）。DateTime.utc への投影で計算し、DST の影響を受けない。
+  /// 注意: const コンストラクタは不正日付（2/30等）を許すが、本メソッドは
+  /// 正規化された実在日付を前提とする（isValid な日付でのみ使うこと）。
+  CivilDate addDays(int n) =>
+      CivilDate.fromDateTime(_utc().add(Duration(days: n)));
+
+  /// this - other の日数（this が未来なら正）。
+  int differenceInDays(CivilDate other) =>
+      _utc().difference(other._utc()).inDays;
+
+  bool isBefore(CivilDate other) => compareTo(other) < 0;
+  bool isAfter(CivilDate other) => compareTo(other) > 0;
+
+  DateTime _utc() => DateTime.utc(year, month, day);
 
   static String firstOfMonthIso(int year, int month) =>
       CivilDate(year, month, 1).toIso();

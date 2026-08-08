@@ -208,5 +208,6 @@
   "recurringDeleteConfirmContent": "この固定費・収入を削除します。作成済みの取引はそのまま残ります。",
   "entryHintPickCategoryForItem": "品目{n}のカテゴリを選んでください",
   "entryHintPickCategoryRemainder": "「残り」の行のカテゴリを選んでください",
-  "splitMemoDialogTitle": "メモを入力"
+  "splitMemoDialogTitle": "メモを入力",
+  "choreNotificationBody": "前回から{days}日たちました"
 }

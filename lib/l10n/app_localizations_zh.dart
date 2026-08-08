@@ -697,4 +697,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get splitMemoDialogTitle => '输入备注';
+
+  @override
+  String choreNotificationBody(int days) {
+    return 'It\'s been $days days since last time';
+  }
 }

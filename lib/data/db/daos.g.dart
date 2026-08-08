@@ -39,6 +39,21 @@ class RecurringRuleDaoManager {
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
 }
 
+mixin _$ChoreDaoMixin on DatabaseAccessor<AppDatabase> {
+  $ChoreTasksTable get choreTasks => attachedDatabase.choreTasks;
+  $ChoreRecordsTable get choreRecords => attachedDatabase.choreRecords;
+  ChoreDaoManager get managers => ChoreDaoManager(this);
+}
+
+class ChoreDaoManager {
+  final _$ChoreDaoMixin _db;
+  ChoreDaoManager(this._db);
+  $$ChoreTasksTableTableManager get choreTasks =>
+      $$ChoreTasksTableTableManager(_db.attachedDatabase, _db.choreTasks);
+  $$ChoreRecordsTableTableManager get choreRecords =>
+      $$ChoreRecordsTableTableManager(_db.attachedDatabase, _db.choreRecords);
+}
+
 mixin _$CategoryDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
   $TransactionsTable get transactions => attachedDatabase.transactions;

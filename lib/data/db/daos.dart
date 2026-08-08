@@ -214,6 +214,59 @@ class RecurringRuleDao extends DatabaseAccessor<AppDatabase>
   }
 }
 
+/// つきいちタスク（家事リマインダー）の素朴な読み書き。
+/// 期日導出・通知計画は domain（chore_schedule.dart）と ChoreActions が担う。
+@DriftAccessor(tables: [ChoreTasks, ChoreRecords])
+class ChoreDao extends DatabaseAccessor<AppDatabase> with _$ChoreDaoMixin {
+  ChoreDao(super.db);
+
+  Stream<List<ChoreTaskRow>> watchTasks() =>
+      (select(choreTasks)..orderBy([(t) => OrderingTerm.asc(t.id)])).watch();
+
+  Stream<List<ChoreRecordRow>> watchRecords() => select(choreRecords).watch();
+
+  /// resync 用のFuture版。widget test（fake async）内で stream.first を
+  /// await するとハングする既知の罠があるため、一括読みは必ずこちらを使う。
+  Future<List<ChoreTaskRow>> allTasks() =>
+      (select(choreTasks)..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+
+  Future<List<ChoreRecordRow>> allRecords() => select(choreRecords).get();
+
+  Future<int> insertTask(ChoreTasksCompanion c) => into(choreTasks).insert(c);
+
+  Future<void> updateTask(int id, ChoreTasksCompanion c) async {
+    await (update(choreTasks)..where((t) => t.id.equals(id))).write(c);
+  }
+
+  Future<void> setArchived(int taskId, bool archived) async {
+    await (update(choreTasks)..where((t) => t.id.equals(taskId)))
+        .write(ChoreTasksCompanion(archived: Value(archived)));
+  }
+
+  /// 記録もカスケード削除される（FK ON が前提。database.dart beforeOpen 参照）。
+  Future<void> deleteTask(int taskId) =>
+      (delete(choreTasks)..where((t) => t.id.equals(taskId))).go();
+
+  Future<int> insertRecord(ChoreRecordsCompanion c) =>
+      into(choreRecords).insert(c);
+
+  Future<void> updateRecord(int id, ChoreRecordsCompanion c) async {
+    await (update(choreRecords)..where((r) => r.id.equals(id))).write(c);
+  }
+
+  Future<void> deleteRecord(int recordId) =>
+      (delete(choreRecords)..where((r) => r.id.equals(recordId))).go();
+
+  /// 同じタスク・同じ日にすでに記録があるか（重複確認ダイアログの判定用）。
+  Future<bool> hasRecordOn(int taskId, CivilDate date) async {
+    final rows = await (select(choreRecords)
+          ..where((r) => r.taskId.equals(taskId) & r.doneDate.equals(date.toIso()))
+          ..limit(1))
+        .get();
+    return rows.isNotEmpty;
+  }
+}
+
 @DriftAccessor(tables: [Categories, Transactions])
 class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {

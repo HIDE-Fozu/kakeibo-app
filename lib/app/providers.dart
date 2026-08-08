@@ -7,9 +7,12 @@ import '../data/backup/auto_backup_store.dart';
 import '../data/backup/backup_crypto.dart';
 import '../data/backup/backup_service.dart';
 import '../data/db/database.dart';
+import '../data/notifications/badge_service.dart';
+import '../data/notifications/notification_service.dart';
 import '../data/ocr/cloud_fixture_uploader.dart';
 import '../data/ocr/ocr_fixture_recorder.dart';
 import '../data/repositories/drift_category_repository.dart';
+import '../data/repositories/drift_chore_repository.dart';
 import '../data/repositories/drift_recurring_rule_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
 import '../domain/entities.dart';
@@ -112,6 +115,21 @@ final cloudFixtureUploaderProvider = Provider<CloudFixtureUploader>(
 
 final recurringRuleRepositoryProvider = Provider<RecurringRuleRepository>(
   (ref) => DriftRecurringRuleRepository(ref.watch(appDatabaseProvider)),
+);
+
+final choreRepositoryProvider = Provider<ChoreRepository>(
+  (ref) => DriftChoreRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// 通知・バッジ。他の縫い目と違い**Noopが既定**（throwしない）:
+/// home_shell が起動時に必ず resync するため、throw既定だと全widgetテストが
+/// initState で死ぬ。実物への差し替えは bootstrap（iOSのみ）で行う。
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NoopNotificationService(),
+);
+
+final badgeServiceProvider = Provider<BadgeService>(
+  (ref) => NoopBadgeService(),
 );
 
 /// 定期ルール一覧（設定→毎月の固定費・収入 の画面用）。

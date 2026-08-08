@@ -1365,6 +1365,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a memo'**
   String get splitMemoDialogTitle;
+
+  /// Local notification body for a chore task due today
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s been {days} days since last time'**
+  String choreNotificationBody(int days);
 }
 
 class _AppLocalizationsDelegate

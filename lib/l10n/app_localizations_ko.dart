@@ -703,4 +703,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get splitMemoDialogTitle => '메모 입력';
+
+  @override
+  String choreNotificationBody(int days) {
+    return 'It\'s been $days days since last time';
+  }
 }

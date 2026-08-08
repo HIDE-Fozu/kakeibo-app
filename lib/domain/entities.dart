@@ -60,6 +60,72 @@ class RecurringRuleEntity {
   });
 }
 
+/// つきいちタスク（低頻度の家事。ハブラシ交換・マットレス干し等）。
+/// 次回期日 = 最後にやった日 + intervalDays（記録が無ければ anchorDate + intervalDays）。
+class ChoreTask {
+  final int id;
+  final String name;
+  final String emoji;
+  final int intervalDays; // 1..999（フォームで保証）
+  final CivilDate anchorDate;
+  final bool archived;
+
+  const ChoreTask({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.intervalDays,
+    required this.anchorDate,
+    required this.archived,
+  });
+}
+
+/// つきいちタスクの「やった」記録1件。
+class ChoreRecord {
+  final int id;
+  final int taskId;
+  final CivilDate doneDate;
+  final String memo;
+  final DateTime createdAt;
+
+  const ChoreRecord({
+    required this.id,
+    required this.taskId,
+    required this.doneDate,
+    required this.memo,
+    required this.createdAt,
+  });
+}
+
+/// ある基準日時点でのタスクの期日状況。
+class ChoreStatus {
+  final ChoreTask task;
+  final CivilDate due;
+  final int daysLeft;
+
+  const ChoreStatus({
+    required this.task,
+    required this.due,
+    required this.daysLeft,
+  });
+
+  /// 残り日数が負＝期日超過。
+  bool get isOverdue => daysLeft < 0;
+}
+
+/// 月カレンダー1日分の家事ドット情報。
+class ChoreDayMarks {
+  final List<int> doneTaskIds;
+  final List<int> dueTaskIds;
+  final bool hasOverdue;
+
+  const ChoreDayMarks({
+    required this.doneTaskIds,
+    required this.dueTaskIds,
+    required this.hasOverdue,
+  });
+}
+
 class MonthlySummary {
   final int income;
   final int expense;

@@ -527,5 +527,14 @@
   "splitMemoDialogTitle": "Enter a memo",
   "@splitMemoDialogTitle": {
     "description": "Title of the per-item memo input dialog in split mode"
+  },
+  "choreNotificationBody": "It's been {days} days since last time",
+  "@choreNotificationBody": {
+    "description": "Local notification body for a chore task due today",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }

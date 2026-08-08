@@ -43,6 +43,42 @@ abstract interface class RecurringRuleRepository {
   Future<int> applyDue(CivilDate today);
 }
 
+abstract interface class ChoreRepository {
+  Stream<List<ChoreTask>> watchTasks();
+  Stream<List<ChoreRecord>> watchRecords();
+
+  /// resync 用の一括読み（Future版。stream.first はテストでハングするため使わない）。
+  Future<List<ChoreTask>> allTasks();
+  Future<List<ChoreRecord>> allRecords();
+
+  Future<int> addTask({
+    required String name,
+    required String emoji,
+    required int intervalDays,
+    required CivilDate anchorDate,
+  });
+
+  /// 既存タスクを更新する（name/emoji/intervalDays/anchorDate/archived）。
+  Future<void> updateTask(ChoreTask task);
+  Future<void> setArchived(int taskId, bool archived);
+
+  /// 記録もカスケード削除される。冪等。
+  Future<void> deleteTask(int taskId);
+
+  Future<int> addRecord({
+    required int taskId,
+    required CivilDate doneDate,
+    String memo = '',
+  });
+
+  /// 記録の doneDate/memo を更新する（record.id 必須）。
+  Future<void> updateRecord(ChoreRecord record);
+  Future<void> deleteRecord(int recordId);
+
+  /// 同じタスク・同じ日にすでに記録があるか（重複確認用）。
+  Future<bool> hasRecordOn(int taskId, CivilDate date);
+}
+
 abstract interface class CategoryRepository {
   Future<List<CategoryEntity>> active();
 

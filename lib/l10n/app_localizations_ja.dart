@@ -700,4 +700,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get splitMemoDialogTitle => 'メモを入力';
+
+  @override
+  String choreNotificationBody(int days) {
+    return '前回から$days日たちました';
+  }
 }

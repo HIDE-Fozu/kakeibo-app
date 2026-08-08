@@ -729,4 +729,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splitMemoDialogTitle => 'Escribe una nota';
+
+  @override
+  String choreNotificationBody(int days) {
+    return 'It\'s been $days days since last time';
+  }
 }

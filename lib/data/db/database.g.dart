@@ -2110,12 +2110,815 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
   }
 }
 
+class $ChoreTasksTable extends ChoreTasks
+    with TableInfo<$ChoreTasksTable, ChoreTaskRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChoreTasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 30,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
+  @override
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+    'emoji',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('📌'),
+  );
+  static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
+    'intervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
+    'interval_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CivilDate, String> anchorDate =
+      GeneratedColumn<String>(
+        'anchor_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<CivilDate>($ChoreTasksTable.$converteranchorDate);
+  static const VerificationMeta _archivedMeta = const VerificationMeta(
+    'archived',
+  );
+  @override
+  late final GeneratedColumn<bool> archived = GeneratedColumn<bool>(
+    'archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    emoji,
+    intervalDays,
+    anchorDate,
+    archived,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chore_tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChoreTaskRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('emoji')) {
+      context.handle(
+        _emojiMeta,
+        emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta),
+      );
+    }
+    if (data.containsKey('interval_days')) {
+      context.handle(
+        _intervalDaysMeta,
+        intervalDays.isAcceptableOrUnknown(
+          data['interval_days']!,
+          _intervalDaysMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalDaysMeta);
+    }
+    if (data.containsKey('archived')) {
+      context.handle(
+        _archivedMeta,
+        archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChoreTaskRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChoreTaskRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      emoji: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emoji'],
+      )!,
+      intervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_days'],
+      )!,
+      anchorDate: $ChoreTasksTable.$converteranchorDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}anchor_date'],
+        )!,
+      ),
+      archived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}archived'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ChoreTasksTable createAlias(String alias) {
+    return $ChoreTasksTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<CivilDate, String> $converteranchorDate =
+      const CivilDateConverter();
+}
+
+class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
+  final int id;
+  final String name;
+  final String emoji;
+  final int intervalDays;
+  final CivilDate anchorDate;
+  final bool archived;
+  final DateTime createdAt;
+  const ChoreTaskRow({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.intervalDays,
+    required this.anchorDate,
+    required this.archived,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['emoji'] = Variable<String>(emoji);
+    map['interval_days'] = Variable<int>(intervalDays);
+    {
+      map['anchor_date'] = Variable<String>(
+        $ChoreTasksTable.$converteranchorDate.toSql(anchorDate),
+      );
+    }
+    map['archived'] = Variable<bool>(archived);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ChoreTasksCompanion toCompanion(bool nullToAbsent) {
+    return ChoreTasksCompanion(
+      id: Value(id),
+      name: Value(name),
+      emoji: Value(emoji),
+      intervalDays: Value(intervalDays),
+      anchorDate: Value(anchorDate),
+      archived: Value(archived),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ChoreTaskRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChoreTaskRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      emoji: serializer.fromJson<String>(json['emoji']),
+      intervalDays: serializer.fromJson<int>(json['intervalDays']),
+      anchorDate: serializer.fromJson<CivilDate>(json['anchorDate']),
+      archived: serializer.fromJson<bool>(json['archived']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'emoji': serializer.toJson<String>(emoji),
+      'intervalDays': serializer.toJson<int>(intervalDays),
+      'anchorDate': serializer.toJson<CivilDate>(anchorDate),
+      'archived': serializer.toJson<bool>(archived),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ChoreTaskRow copyWith({
+    int? id,
+    String? name,
+    String? emoji,
+    int? intervalDays,
+    CivilDate? anchorDate,
+    bool? archived,
+    DateTime? createdAt,
+  }) => ChoreTaskRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    emoji: emoji ?? this.emoji,
+    intervalDays: intervalDays ?? this.intervalDays,
+    anchorDate: anchorDate ?? this.anchorDate,
+    archived: archived ?? this.archived,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ChoreTaskRow copyWithCompanion(ChoreTasksCompanion data) {
+    return ChoreTaskRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      intervalDays: data.intervalDays.present
+          ? data.intervalDays.value
+          : this.intervalDays,
+      anchorDate: data.anchorDate.present
+          ? data.anchorDate.value
+          : this.anchorDate,
+      archived: data.archived.present ? data.archived.value : this.archived,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChoreTaskRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('emoji: $emoji, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('anchorDate: $anchorDate, ')
+          ..write('archived: $archived, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    emoji,
+    intervalDays,
+    anchorDate,
+    archived,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChoreTaskRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.emoji == this.emoji &&
+          other.intervalDays == this.intervalDays &&
+          other.anchorDate == this.anchorDate &&
+          other.archived == this.archived &&
+          other.createdAt == this.createdAt);
+}
+
+class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> emoji;
+  final Value<int> intervalDays;
+  final Value<CivilDate> anchorDate;
+  final Value<bool> archived;
+  final Value<DateTime> createdAt;
+  const ChoreTasksCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.intervalDays = const Value.absent(),
+    this.anchorDate = const Value.absent(),
+    this.archived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ChoreTasksCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.emoji = const Value.absent(),
+    required int intervalDays,
+    required CivilDate anchorDate,
+    this.archived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : name = Value(name),
+       intervalDays = Value(intervalDays),
+       anchorDate = Value(anchorDate);
+  static Insertable<ChoreTaskRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? emoji,
+    Expression<int>? intervalDays,
+    Expression<String>? anchorDate,
+    Expression<bool>? archived,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (emoji != null) 'emoji': emoji,
+      if (intervalDays != null) 'interval_days': intervalDays,
+      if (anchorDate != null) 'anchor_date': anchorDate,
+      if (archived != null) 'archived': archived,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ChoreTasksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? emoji,
+    Value<int>? intervalDays,
+    Value<CivilDate>? anchorDate,
+    Value<bool>? archived,
+    Value<DateTime>? createdAt,
+  }) {
+    return ChoreTasksCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      emoji: emoji ?? this.emoji,
+      intervalDays: intervalDays ?? this.intervalDays,
+      anchorDate: anchorDate ?? this.anchorDate,
+      archived: archived ?? this.archived,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
+    }
+    if (intervalDays.present) {
+      map['interval_days'] = Variable<int>(intervalDays.value);
+    }
+    if (anchorDate.present) {
+      map['anchor_date'] = Variable<String>(
+        $ChoreTasksTable.$converteranchorDate.toSql(anchorDate.value),
+      );
+    }
+    if (archived.present) {
+      map['archived'] = Variable<bool>(archived.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChoreTasksCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('emoji: $emoji, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('anchorDate: $anchorDate, ')
+          ..write('archived: $archived, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChoreRecordsTable extends ChoreRecords
+    with TableInfo<$ChoreRecordsTable, ChoreRecordRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChoreRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<int> taskId = GeneratedColumn<int>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES chore_tasks (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CivilDate, String> doneDate =
+      GeneratedColumn<String>(
+        'done_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<CivilDate>($ChoreRecordsTable.$converterdoneDate);
+  static const VerificationMeta _memoMeta = const VerificationMeta('memo');
+  @override
+  late final GeneratedColumn<String> memo = GeneratedColumn<String>(
+    'memo',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, taskId, doneDate, memo, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chore_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChoreRecordRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('memo')) {
+      context.handle(
+        _memoMeta,
+        memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChoreRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChoreRecordRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}task_id'],
+      )!,
+      doneDate: $ChoreRecordsTable.$converterdoneDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}done_date'],
+        )!,
+      ),
+      memo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memo'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ChoreRecordsTable createAlias(String alias) {
+    return $ChoreRecordsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<CivilDate, String> $converterdoneDate =
+      const CivilDateConverter();
+}
+
+class ChoreRecordRow extends DataClass implements Insertable<ChoreRecordRow> {
+  final int id;
+  final int taskId;
+  final CivilDate doneDate;
+  final String memo;
+  final DateTime createdAt;
+  const ChoreRecordRow({
+    required this.id,
+    required this.taskId,
+    required this.doneDate,
+    required this.memo,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['task_id'] = Variable<int>(taskId);
+    {
+      map['done_date'] = Variable<String>(
+        $ChoreRecordsTable.$converterdoneDate.toSql(doneDate),
+      );
+    }
+    map['memo'] = Variable<String>(memo);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ChoreRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ChoreRecordsCompanion(
+      id: Value(id),
+      taskId: Value(taskId),
+      doneDate: Value(doneDate),
+      memo: Value(memo),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ChoreRecordRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChoreRecordRow(
+      id: serializer.fromJson<int>(json['id']),
+      taskId: serializer.fromJson<int>(json['taskId']),
+      doneDate: serializer.fromJson<CivilDate>(json['doneDate']),
+      memo: serializer.fromJson<String>(json['memo']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'taskId': serializer.toJson<int>(taskId),
+      'doneDate': serializer.toJson<CivilDate>(doneDate),
+      'memo': serializer.toJson<String>(memo),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ChoreRecordRow copyWith({
+    int? id,
+    int? taskId,
+    CivilDate? doneDate,
+    String? memo,
+    DateTime? createdAt,
+  }) => ChoreRecordRow(
+    id: id ?? this.id,
+    taskId: taskId ?? this.taskId,
+    doneDate: doneDate ?? this.doneDate,
+    memo: memo ?? this.memo,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ChoreRecordRow copyWithCompanion(ChoreRecordsCompanion data) {
+    return ChoreRecordRow(
+      id: data.id.present ? data.id.value : this.id,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      doneDate: data.doneDate.present ? data.doneDate.value : this.doneDate,
+      memo: data.memo.present ? data.memo.value : this.memo,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChoreRecordRow(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('doneDate: $doneDate, ')
+          ..write('memo: $memo, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, taskId, doneDate, memo, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChoreRecordRow &&
+          other.id == this.id &&
+          other.taskId == this.taskId &&
+          other.doneDate == this.doneDate &&
+          other.memo == this.memo &&
+          other.createdAt == this.createdAt);
+}
+
+class ChoreRecordsCompanion extends UpdateCompanion<ChoreRecordRow> {
+  final Value<int> id;
+  final Value<int> taskId;
+  final Value<CivilDate> doneDate;
+  final Value<String> memo;
+  final Value<DateTime> createdAt;
+  const ChoreRecordsCompanion({
+    this.id = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.doneDate = const Value.absent(),
+    this.memo = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ChoreRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    required int taskId,
+    required CivilDate doneDate,
+    this.memo = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : taskId = Value(taskId),
+       doneDate = Value(doneDate);
+  static Insertable<ChoreRecordRow> custom({
+    Expression<int>? id,
+    Expression<int>? taskId,
+    Expression<String>? doneDate,
+    Expression<String>? memo,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (taskId != null) 'task_id': taskId,
+      if (doneDate != null) 'done_date': doneDate,
+      if (memo != null) 'memo': memo,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ChoreRecordsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? taskId,
+    Value<CivilDate>? doneDate,
+    Value<String>? memo,
+    Value<DateTime>? createdAt,
+  }) {
+    return ChoreRecordsCompanion(
+      id: id ?? this.id,
+      taskId: taskId ?? this.taskId,
+      doneDate: doneDate ?? this.doneDate,
+      memo: memo ?? this.memo,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<int>(taskId.value);
+    }
+    if (doneDate.present) {
+      map['done_date'] = Variable<String>(
+        $ChoreRecordsTable.$converterdoneDate.toSql(doneDate.value),
+      );
+    }
+    if (memo.present) {
+      map['memo'] = Variable<String>(memo.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChoreRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('doneDate: $doneDate, ')
+          ..write('memo: $memo, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
   late final $RecurringRulesTable recurringRules = $RecurringRulesTable(this);
+  late final $ChoreTasksTable choreTasks = $ChoreTasksTable(this);
+  late final $ChoreRecordsTable choreRecords = $ChoreRecordsTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -2123,6 +2926,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final RecurringRuleDao recurringRuleDao = RecurringRuleDao(
     this as AppDatabase,
   );
+  late final ChoreDao choreDao = ChoreDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2131,7 +2935,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     categories,
     transactions,
     recurringRules,
+    choreTasks,
+    choreRecords,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'chore_tasks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('chore_records', kind: UpdateKind.delete)],
+    ),
+  ]);
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -3671,6 +4487,657 @@ typedef $$RecurringRulesTableProcessedTableManager =
       RecurringRuleRow,
       PrefetchHooks Function({bool categoryId})
     >;
+typedef $$ChoreTasksTableCreateCompanionBuilder =
+    ChoreTasksCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String> emoji,
+      required int intervalDays,
+      required CivilDate anchorDate,
+      Value<bool> archived,
+      Value<DateTime> createdAt,
+    });
+typedef $$ChoreTasksTableUpdateCompanionBuilder =
+    ChoreTasksCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> emoji,
+      Value<int> intervalDays,
+      Value<CivilDate> anchorDate,
+      Value<bool> archived,
+      Value<DateTime> createdAt,
+    });
+
+final class $$ChoreTasksTableReferences
+    extends BaseReferences<_$AppDatabase, $ChoreTasksTable, ChoreTaskRow> {
+  $$ChoreTasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ChoreRecordsTable, List<ChoreRecordRow>>
+  _choreRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.choreRecords,
+    aliasName: 'chore_tasks__id__chore_records__task_id',
+  );
+
+  $$ChoreRecordsTableProcessedTableManager get choreRecordsRefs {
+    final manager = $$ChoreRecordsTableTableManager(
+      $_db,
+      $_db.choreRecords,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_choreRecordsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ChoreTasksTableFilterComposer
+    extends Composer<_$AppDatabase, $ChoreTasksTable> {
+  $$ChoreTasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CivilDate, CivilDate, String> get anchorDate =>
+      $composableBuilder(
+        column: $table.anchorDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> choreRecordsRefs(
+    Expression<bool> Function($$ChoreRecordsTableFilterComposer f) f,
+  ) {
+    final $$ChoreRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.choreRecords,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChoreRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.choreRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChoreTasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChoreTasksTable> {
+  $$ChoreTasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get anchorDate => $composableBuilder(
+    column: $table.anchorDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChoreTasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChoreTasksTable> {
+  $$ChoreTasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<CivilDate, String> get anchorDate =>
+      $composableBuilder(
+        column: $table.anchorDate,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<bool> get archived =>
+      $composableBuilder(column: $table.archived, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> choreRecordsRefs<T extends Object>(
+    Expression<T> Function($$ChoreRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$ChoreRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.choreRecords,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChoreRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.choreRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ChoreTasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChoreTasksTable,
+          ChoreTaskRow,
+          $$ChoreTasksTableFilterComposer,
+          $$ChoreTasksTableOrderingComposer,
+          $$ChoreTasksTableAnnotationComposer,
+          $$ChoreTasksTableCreateCompanionBuilder,
+          $$ChoreTasksTableUpdateCompanionBuilder,
+          (ChoreTaskRow, $$ChoreTasksTableReferences),
+          ChoreTaskRow,
+          PrefetchHooks Function({bool choreRecordsRefs})
+        > {
+  $$ChoreTasksTableTableManager(_$AppDatabase db, $ChoreTasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChoreTasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChoreTasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChoreTasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> emoji = const Value.absent(),
+                Value<int> intervalDays = const Value.absent(),
+                Value<CivilDate> anchorDate = const Value.absent(),
+                Value<bool> archived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ChoreTasksCompanion(
+                id: id,
+                name: name,
+                emoji: emoji,
+                intervalDays: intervalDays,
+                anchorDate: anchorDate,
+                archived: archived,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String> emoji = const Value.absent(),
+                required int intervalDays,
+                required CivilDate anchorDate,
+                Value<bool> archived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ChoreTasksCompanion.insert(
+                id: id,
+                name: name,
+                emoji: emoji,
+                intervalDays: intervalDays,
+                anchorDate: anchorDate,
+                archived: archived,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChoreTasksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({choreRecordsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (choreRecordsRefs) db.choreRecords],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (choreRecordsRefs)
+                    await $_getPrefetchedData<
+                      ChoreTaskRow,
+                      $ChoreTasksTable,
+                      ChoreRecordRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ChoreTasksTableReferences
+                          ._choreRecordsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ChoreTasksTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).choreRecordsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.taskId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ChoreTasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChoreTasksTable,
+      ChoreTaskRow,
+      $$ChoreTasksTableFilterComposer,
+      $$ChoreTasksTableOrderingComposer,
+      $$ChoreTasksTableAnnotationComposer,
+      $$ChoreTasksTableCreateCompanionBuilder,
+      $$ChoreTasksTableUpdateCompanionBuilder,
+      (ChoreTaskRow, $$ChoreTasksTableReferences),
+      ChoreTaskRow,
+      PrefetchHooks Function({bool choreRecordsRefs})
+    >;
+typedef $$ChoreRecordsTableCreateCompanionBuilder =
+    ChoreRecordsCompanion Function({
+      Value<int> id,
+      required int taskId,
+      required CivilDate doneDate,
+      Value<String> memo,
+      Value<DateTime> createdAt,
+    });
+typedef $$ChoreRecordsTableUpdateCompanionBuilder =
+    ChoreRecordsCompanion Function({
+      Value<int> id,
+      Value<int> taskId,
+      Value<CivilDate> doneDate,
+      Value<String> memo,
+      Value<DateTime> createdAt,
+    });
+
+final class $$ChoreRecordsTableReferences
+    extends BaseReferences<_$AppDatabase, $ChoreRecordsTable, ChoreRecordRow> {
+  $$ChoreRecordsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ChoreTasksTable _taskIdTable(_$AppDatabase db) =>
+      db.choreTasks.createAlias('chore_records__task_id__chore_tasks__id');
+
+  $$ChoreTasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<int>('task_id')!;
+
+    final manager = $$ChoreTasksTableTableManager(
+      $_db,
+      $_db.choreTasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ChoreRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ChoreRecordsTable> {
+  $$ChoreRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CivilDate, CivilDate, String> get doneDate =>
+      $composableBuilder(
+        column: $table.doneDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ChoreTasksTableFilterComposer get taskId {
+    final $$ChoreTasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.choreTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChoreTasksTableFilterComposer(
+            $db: $db,
+            $table: $db.choreTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ChoreRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChoreRecordsTable> {
+  $$ChoreRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get doneDate => $composableBuilder(
+    column: $table.doneDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ChoreTasksTableOrderingComposer get taskId {
+    final $$ChoreTasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.choreTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChoreTasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.choreTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ChoreRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChoreRecordsTable> {
+  $$ChoreRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<CivilDate, String> get doneDate =>
+      $composableBuilder(column: $table.doneDate, builder: (column) => column);
+
+  GeneratedColumn<String> get memo =>
+      $composableBuilder(column: $table.memo, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ChoreTasksTableAnnotationComposer get taskId {
+    final $$ChoreTasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.choreTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChoreTasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.choreTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ChoreRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChoreRecordsTable,
+          ChoreRecordRow,
+          $$ChoreRecordsTableFilterComposer,
+          $$ChoreRecordsTableOrderingComposer,
+          $$ChoreRecordsTableAnnotationComposer,
+          $$ChoreRecordsTableCreateCompanionBuilder,
+          $$ChoreRecordsTableUpdateCompanionBuilder,
+          (ChoreRecordRow, $$ChoreRecordsTableReferences),
+          ChoreRecordRow,
+          PrefetchHooks Function({bool taskId})
+        > {
+  $$ChoreRecordsTableTableManager(_$AppDatabase db, $ChoreRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChoreRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChoreRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChoreRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> taskId = const Value.absent(),
+                Value<CivilDate> doneDate = const Value.absent(),
+                Value<String> memo = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ChoreRecordsCompanion(
+                id: id,
+                taskId: taskId,
+                doneDate: doneDate,
+                memo: memo,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int taskId,
+                required CivilDate doneDate,
+                Value<String> memo = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ChoreRecordsCompanion.insert(
+                id: id,
+                taskId: taskId,
+                doneDate: doneDate,
+                memo: memo,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChoreRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable: $$ChoreRecordsTableReferences
+                                    ._taskIdTable(db),
+                                referencedColumn: $$ChoreRecordsTableReferences
+                                    ._taskIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ChoreRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChoreRecordsTable,
+      ChoreRecordRow,
+      $$ChoreRecordsTableFilterComposer,
+      $$ChoreRecordsTableOrderingComposer,
+      $$ChoreRecordsTableAnnotationComposer,
+      $$ChoreRecordsTableCreateCompanionBuilder,
+      $$ChoreRecordsTableUpdateCompanionBuilder,
+      (ChoreRecordRow, $$ChoreRecordsTableReferences),
+      ChoreRecordRow,
+      PrefetchHooks Function({bool taskId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3681,4 +5148,8 @@ class $AppDatabaseManager {
       $$TransactionsTableTableManager(_db, _db.transactions);
   $$RecurringRulesTableTableManager get recurringRules =>
       $$RecurringRulesTableTableManager(_db, _db.recurringRules);
+  $$ChoreTasksTableTableManager get choreTasks =>
+      $$ChoreTasksTableTableManager(_db, _db.choreTasks);
+  $$ChoreRecordsTableTableManager get choreRecords =>
+      $$ChoreRecordsTableTableManager(_db, _db.choreRecords);
 }

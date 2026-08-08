@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/ocr/ocr_fixture_recorder.dart';
 import '../features/calendar/application/calendar_providers.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
+import '../features/chores/application/chore_providers.dart';
 import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
 import '../features/settings/application/backup_controller.dart';
@@ -12,6 +13,7 @@ import '../features/settings/presentation/onboarding_dialog.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/summary/presentation/summary_screen.dart';
 import '../l10n/app_localizations.dart';
+import 'l10n_providers.dart';
 import 'navigation.dart';
 import 'providers.dart';
 
@@ -44,6 +46,8 @@ class _HomeShellState extends ConsumerState<HomeShell>
           .catchError((_) => false);
       // 定期ルール（毎月の固定費・収入）の期日到来分を起票。
       _applyRecurringDue();
+      // つきいちタスクの通知・バッジを現在値に同期。
+      _choreResync();
       // 【テスト期間限定・オプトイン】未送信の収集データを再送
       if (kCollectReceiptPhotosDuringTest &&
           ref.read(appSettingsProvider).autoUploadTestData) {
@@ -65,7 +69,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // iOSはアプリが数日メモリに残る。起動時だけだと月をまたいでも起票されない
     // ため、フォアグラウンド復帰でも期日到来分を確認する（冪等なので安全）。
-    if (state == AppLifecycleState.resumed) _applyRecurringDue();
+    if (state == AppLifecycleState.resumed) {
+      _applyRecurringDue();
+      _choreResync();
+    }
   }
 
   void _applyRecurringDue() {
@@ -73,6 +80,13 @@ class _HomeShellState extends ConsumerState<HomeShell>
         .read(recurringRuleRepositoryProvider)
         .applyDue(ref.read(clockProvider)())
         .catchError((_) => 0);
+  }
+
+  /// 家事の「今日」を進め、通知予約とバッジを現在値へ同期する。
+  /// 失敗しても起動・復帰を妨げない。
+  void _choreResync() {
+    ref.read(choreTodayProvider.notifier).refresh();
+    ref.read(choreActionsProvider).resync().catchError((_) {});
   }
 
   /// ボトムタブに出す並び → IndexedStack の index。
@@ -85,6 +99,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   @override
   Widget build(BuildContext context) {
+    // ロケール変更時は予約済み通知の文言も差し替える（次回発火分から新言語に）。
+    ref.listen(effectiveLocaleProvider, (prev, next) {
+      if (prev != next) _choreResync();
+    });
     final l = AppLocalizations.of(context);
     final index = ref.watch(homeTabIndexProvider);
     // 入力画面(1)表示中はタブ選択なし → カレンダーを選択表示にしておく。
