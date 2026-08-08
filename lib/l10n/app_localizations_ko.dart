@@ -708,4 +708,158 @@ class AppLocalizationsKo extends AppLocalizations {
   String choreNotificationBody(int days) {
     return 'It\'s been $days days since last time';
   }
+
+  @override
+  String get homeNavMonthly => 'Monthly';
+
+  @override
+  String get hubUpcomingSection => 'Coming up this month';
+
+  @override
+  String get hubUpcomingEmpty => 'Nothing scheduled for the rest of this month';
+
+  @override
+  String get hubRulesSection => 'Fixed costs & income';
+
+  @override
+  String get hubRulesEmpty =>
+      'Tap + to automate monthly entries like rent or salary';
+
+  @override
+  String get hubChoresSection => 'Recurring chores';
+
+  @override
+  String get hubChoresEmpty =>
+      'Tap + to add chores like replacing your toothbrush';
+
+  @override
+  String get hubChoreTimelineLabel => 'Chore';
+
+  @override
+  String get ghostBadgeLabel => 'Planned';
+
+  @override
+  String get forecastLabelMonthEnd => 'Projected balance (end of month)';
+
+  @override
+  String forecastLabelAtDate(String date) {
+    return 'Projected balance (as of $date)';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String choreOverdueDays(int days) {
+    return '${days}d overdue';
+  }
+
+  @override
+  String get choreDueToday => 'Today';
+
+  @override
+  String choreDaysLeft(int days) {
+    return 'in $days days';
+  }
+
+  @override
+  String choreNextDate(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String get choreDoneButton => 'Done';
+
+  @override
+  String choreDoneSnackbar(String date) {
+    return '✓ Recorded. Next: $date';
+  }
+
+  @override
+  String get choreDupConfirmTitle => 'Already recorded';
+
+  @override
+  String choreDupConfirmBody(String name) {
+    return '\"$name\" already has a record on this day. Add another?';
+  }
+
+  @override
+  String get choreDupConfirmAdd => 'Add';
+
+  @override
+  String get choreFormNewTitle => 'New chore';
+
+  @override
+  String get choreFormEditTitle => 'Edit chore';
+
+  @override
+  String get choreFormNameLabel => 'Name';
+
+  @override
+  String get choreFormIntervalLabel => 'Interval in days (1–999)';
+
+  @override
+  String get choreFormEmojiLabel => 'Emoji (📌 if empty)';
+
+  @override
+  String get choreFormArchiveButton => 'Archive';
+
+  @override
+  String get choreFormDeleteButton => 'Delete this chore';
+
+  @override
+  String choreDeleteConfirmBody(int count) {
+    return '$count history records will also be deleted';
+  }
+
+  @override
+  String get choreHistoryTitle => 'History';
+
+  @override
+  String get choreHistoryEmpty => 'No records yet';
+
+  @override
+  String get choreRecordEditTitle => 'Edit record';
+
+  @override
+  String get choreRecordDeleteConfirm => 'Delete this record?';
+
+  @override
+  String get choreMemoLabel => 'Memo';
+
+  @override
+  String get settingsChoresTitle => 'Recurring chores';
+
+  @override
+  String get settingsChoresSubtitle => 'Notification time and archived chores';
+
+  @override
+  String get choreNotifyTimeLabel => 'Notification time';
+
+  @override
+  String get chorePermissionChecking => 'Checking notification permission…';
+
+  @override
+  String get chorePermissionNotAsked =>
+      'You\'ll be asked to allow notifications after your first record';
+
+  @override
+  String get chorePermissionGranted => 'Notifications are enabled';
+
+  @override
+  String get chorePermissionDenied => 'Notifications are not allowed';
+
+  @override
+  String get chorePermissionOpenSettings => 'Open Settings';
+
+  @override
+  String get choreArchivedSection => 'Archived chores';
+
+  @override
+  String get choreArchivedEmpty => 'No archived chores';
+
+  @override
+  String get choreUnarchiveButton => 'Restore';
 }

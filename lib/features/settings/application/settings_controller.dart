@@ -25,6 +25,10 @@ class SettingsState {
 
   /// 通貨（ISO 4217）。既定 JPY。取引が1件でもあると変更ロック（Phase 2でUI制御）。
   final String currencyCode;
+
+  /// 見込み収支の基準日。0=月末（既定）、1..31=毎月N日
+  /// （短い月は起票日と同じ末日丸め）。カレンダーの見込み行タップで変更。
+  final int forecastAnchorDay;
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
@@ -34,6 +38,7 @@ class SettingsState {
     required this.categoryOrder,
     this.locale,
     this.currencyCode = 'JPY',
+    this.forecastAnchorDay = 0,
   });
 }
 
@@ -47,6 +52,7 @@ class AppSettings extends Notifier<SettingsState> {
   static const kCategoryOrder = 'categoryOrder';
   static const kLocale = 'locale';
   static const kCurrency = 'currency';
+  static const kForecastAnchorDay = 'forecastAnchorDay';
 
   @override
   SettingsState build() {
@@ -64,6 +70,7 @@ class AppSettings extends Notifier<SettingsState> {
           : CategoryOrderMode.recentlyUsed,
       locale: parseLocale(p.getString(kLocale)),
       currencyCode: p.getString(kCurrency) ?? 'JPY',
+      forecastAnchorDay: p.getInt(kForecastAnchorDay) ?? 0,
     );
   }
 
@@ -130,6 +137,15 @@ class AppSettings extends Notifier<SettingsState> {
   /// 通貨（ISO 4217）を設定。取引ロックの判定は呼び出し側（設定画面）で行う。
   Future<void> setCurrency(String code) async {
     await ref.read(sharedPreferencesProvider).setString(kCurrency, code);
+    ref.invalidateSelf();
+  }
+
+  /// 見込み収支の基準日を設定（0=月末、1..31=毎月N日）。
+  Future<void> setForecastAnchorDay(int day) async {
+    assert(day >= 0 && day <= 31);
+    await ref
+        .read(sharedPreferencesProvider)
+        .setInt(kForecastAnchorDay, day);
     ref.invalidateSelf();
   }
 }

@@ -7,6 +7,7 @@ import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/chores/application/chore_providers.dart';
 import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
+import '../features/monthly/presentation/monthly_hub_screen.dart';
 import '../features/settings/application/backup_controller.dart';
 import '../features/settings/application/settings_controller.dart';
 import '../features/settings/presentation/onboarding_dialog.dart';
@@ -91,7 +92,8 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   /// ボトムタブに出す並び → IndexedStack の index。
   /// 入力(1)はタブに出さず、カレンダーのFABから開く（保存/戻るでカレンダーへ）。
-  static const _navToShell = [0, 2, 3];
+  /// v2.2.0で「毎月」(4)を2番目のタブに追加（カレンダー・毎月・サマリ・設定）。
+  static const _navToShell = [0, 4, 2, 3];
 
   void _onSelect(int navIndex) {
     ref.read(homeTabIndexProvider.notifier).set(_navToShell[navIndex]);
@@ -115,6 +117,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
           EntryScreen(embedded: true),
           SummaryScreen(),
           SettingsScreen(),
+          MonthlyHubScreen(),
         ],
       ),
       floatingActionButton: index == 0
@@ -142,6 +145,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
                 NavigationDestination(
                     icon: const Icon(Icons.calendar_month),
                     label: l.homeNavCalendar),
+                NavigationDestination(
+                    icon: const Icon(Icons.event_repeat),
+                    label: l.homeNavMonthly),
                 NavigationDestination(
                     icon: const Icon(Icons.bar_chart),
                     label: l.homeNavSummary),

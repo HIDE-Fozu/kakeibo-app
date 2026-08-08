@@ -536,5 +536,225 @@
         "type": "int"
       }
     }
+  },
+  "homeNavMonthly": "Monthly",
+  "@homeNavMonthly": {
+    "description": "Bottom navigation label for the Monthly hub tab"
+  },
+  "hubUpcomingSection": "Coming up this month",
+  "@hubUpcomingSection": {
+    "description": "Monthly hub: section header for the rest-of-month timeline"
+  },
+  "hubUpcomingEmpty": "Nothing scheduled for the rest of this month",
+  "@hubUpcomingEmpty": {
+    "description": "Monthly hub: empty state for the timeline section"
+  },
+  "hubRulesSection": "Fixed costs & income",
+  "@hubRulesSection": {
+    "description": "Monthly hub: section header for recurring transaction rules"
+  },
+  "hubRulesEmpty": "Tap + to automate monthly entries like rent or salary",
+  "@hubRulesEmpty": {
+    "description": "Monthly hub: empty state for the rules section"
+  },
+  "hubChoresSection": "Recurring chores",
+  "@hubChoresSection": {
+    "description": "Monthly hub: section header for chore tasks"
+  },
+  "hubChoresEmpty": "Tap + to add chores like replacing your toothbrush",
+  "@hubChoresEmpty": {
+    "description": "Monthly hub: empty state for the chores section"
+  },
+  "hubChoreTimelineLabel": "Chore",
+  "@hubChoreTimelineLabel": {
+    "description": "Monthly hub timeline: trailing label marking a chore row"
+  },
+  "ghostBadgeLabel": "Planned",
+  "@ghostBadgeLabel": {
+    "description": "Badge on a not-yet-posted recurring transaction (ghost row)"
+  },
+  "forecastLabelMonthEnd": "Projected balance (end of month)",
+  "@forecastLabelMonthEnd": {
+    "description": "Forecast line label when the anchor is the end of month"
+  },
+  "forecastLabelAtDate": "Projected balance (as of {date})",
+  "@forecastLabelAtDate": {
+    "description": "Forecast line label when the anchor is a specific day",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "choreIntervalEvery": "Every {days} days",
+  "@choreIntervalEvery": {
+    "description": "Chore interval label",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "choreOverdueDays": "{days}d overdue",
+  "@choreOverdueDays": {
+    "description": "Chore status: overdue by N days",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "choreDueToday": "Today",
+  "@choreDueToday": {
+    "description": "Chore status: due today"
+  },
+  "choreDaysLeft": "in {days} days",
+  "@choreDaysLeft": {
+    "description": "Chore status: due in N days",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "choreNextDate": "Next: {date}",
+  "@choreNextDate": {
+    "description": "Next due date of a chore",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "choreDoneButton": "Done",
+  "@choreDoneButton": {
+    "description": "Button that records a chore as done today"
+  },
+  "choreDoneSnackbar": "✓ Recorded. Next: {date}",
+  "@choreDoneSnackbar": {
+    "description": "Snackbar after recording a chore, with the next due date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "choreDupConfirmTitle": "Already recorded",
+  "@choreDupConfirmTitle": {
+    "description": "Title of the duplicate-record confirmation dialog"
+  },
+  "choreDupConfirmBody": "\"{name}\" already has a record on this day. Add another?",
+  "@choreDupConfirmBody": {
+    "description": "Body of the duplicate-record confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "choreDupConfirmAdd": "Add",
+  "@choreDupConfirmAdd": {
+    "description": "Confirm button of the duplicate-record dialog"
+  },
+  "choreFormNewTitle": "New chore",
+  "@choreFormNewTitle": {
+    "description": "Chore form title (create)"
+  },
+  "choreFormEditTitle": "Edit chore",
+  "@choreFormEditTitle": {
+    "description": "Chore form title (edit)"
+  },
+  "choreFormNameLabel": "Name",
+  "@choreFormNameLabel": {
+    "description": "Chore form: name field label"
+  },
+  "choreFormIntervalLabel": "Interval in days (1–999)",
+  "@choreFormIntervalLabel": {
+    "description": "Chore form: interval field label"
+  },
+  "choreFormEmojiLabel": "Emoji (📌 if empty)",
+  "@choreFormEmojiLabel": {
+    "description": "Chore form: emoji field label"
+  },
+  "choreFormArchiveButton": "Archive",
+  "@choreFormArchiveButton": {
+    "description": "Chore form: archive button (edit mode)"
+  },
+  "choreFormDeleteButton": "Delete this chore",
+  "@choreFormDeleteButton": {
+    "description": "Chore form: delete button (edit mode)"
+  },
+  "choreDeleteConfirmBody": "{count} history records will also be deleted",
+  "@choreDeleteConfirmBody": {
+    "description": "Chore delete confirmation body",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "choreHistoryTitle": "History",
+  "@choreHistoryTitle": {
+    "description": "Chore history page title"
+  },
+  "choreHistoryEmpty": "No records yet",
+  "@choreHistoryEmpty": {
+    "description": "Chore history page empty state"
+  },
+  "choreRecordEditTitle": "Edit record",
+  "@choreRecordEditTitle": {
+    "description": "Chore record edit dialog title"
+  },
+  "choreRecordDeleteConfirm": "Delete this record?",
+  "@choreRecordDeleteConfirm": {
+    "description": "Chore record delete confirmation"
+  },
+  "choreMemoLabel": "Memo",
+  "@choreMemoLabel": {
+    "description": "Chore record memo field label"
+  },
+  "settingsChoresTitle": "Recurring chores",
+  "@settingsChoresTitle": {
+    "description": "Settings tile leading to chore notification settings"
+  },
+  "settingsChoresSubtitle": "Notification time and archived chores",
+  "@settingsChoresSubtitle": {
+    "description": "Settings tile subtitle for chore settings"
+  },
+  "choreNotifyTimeLabel": "Notification time",
+  "@choreNotifyTimeLabel": {
+    "description": "Chore settings: notification time row"
+  },
+  "chorePermissionChecking": "Checking notification permission…",
+  "@chorePermissionChecking": {
+    "description": "Chore settings: permission status unknown/loading"
+  },
+  "chorePermissionNotAsked": "You'll be asked to allow notifications after your first record",
+  "@chorePermissionNotAsked": {
+    "description": "Chore settings: permission not requested yet"
+  },
+  "chorePermissionGranted": "Notifications are enabled",
+  "@chorePermissionGranted": {
+    "description": "Chore settings: permission granted"
+  },
+  "chorePermissionDenied": "Notifications are not allowed",
+  "@chorePermissionDenied": {
+    "description": "Chore settings: permission denied"
+  },
+  "chorePermissionOpenSettings": "Open Settings",
+  "@chorePermissionOpenSettings": {
+    "description": "Chore settings: button opening the OS notification settings"
+  },
+  "choreArchivedSection": "Archived chores",
+  "@choreArchivedSection": {
+    "description": "Chore settings: archived chores section header"
+  },
+  "choreArchivedEmpty": "No archived chores",
+  "@choreArchivedEmpty": {
+    "description": "Chore settings: archived chores empty state"
+  },
+  "choreUnarchiveButton": "Restore",
+  "@choreUnarchiveButton": {
+    "description": "Chore settings: unarchive button"
   }
 }

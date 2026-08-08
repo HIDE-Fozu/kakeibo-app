@@ -705,4 +705,155 @@ class AppLocalizationsJa extends AppLocalizations {
   String choreNotificationBody(int days) {
     return '前回から$days日たちました';
   }
+
+  @override
+  String get homeNavMonthly => '毎月';
+
+  @override
+  String get hubUpcomingSection => '今月のこれから';
+
+  @override
+  String get hubUpcomingEmpty => '今月の残りの予定はありません';
+
+  @override
+  String get hubRulesSection => '固定費・収入';
+
+  @override
+  String get hubRulesEmpty => '＋から家賃や給料など毎月の記録を自動化できます';
+
+  @override
+  String get hubChoresSection => 'つきいちタスク';
+
+  @override
+  String get hubChoresEmpty => '＋からハブラシ交換などの家事を登録できます';
+
+  @override
+  String get hubChoreTimelineLabel => '家事';
+
+  @override
+  String get ghostBadgeLabel => '予定';
+
+  @override
+  String get forecastLabelMonthEnd => '見込み収支（月末）';
+
+  @override
+  String forecastLabelAtDate(String date) {
+    return '見込み収支（$date時点）';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return '$days日ごと';
+  }
+
+  @override
+  String choreOverdueDays(int days) {
+    return '$days日超過';
+  }
+
+  @override
+  String get choreDueToday => '今日';
+
+  @override
+  String choreDaysLeft(int days) {
+    return 'あと$days日';
+  }
+
+  @override
+  String choreNextDate(String date) {
+    return '次回: $date';
+  }
+
+  @override
+  String get choreDoneButton => 'やった';
+
+  @override
+  String choreDoneSnackbar(String date) {
+    return '✓ 記録しました。次回は$date';
+  }
+
+  @override
+  String get choreDupConfirmTitle => '確認';
+
+  @override
+  String choreDupConfirmBody(String name) {
+    return '「$name」はこの日はすでに記録があります。追加しますか？';
+  }
+
+  @override
+  String get choreDupConfirmAdd => '追加';
+
+  @override
+  String get choreFormNewTitle => '新しい項目';
+
+  @override
+  String get choreFormEditTitle => '項目を編集';
+
+  @override
+  String get choreFormNameLabel => '項目名';
+
+  @override
+  String get choreFormIntervalLabel => '間隔日数（1〜999）';
+
+  @override
+  String get choreFormEmojiLabel => '絵文字（未入力なら📌）';
+
+  @override
+  String get choreFormArchiveButton => 'アーカイブする';
+
+  @override
+  String get choreFormDeleteButton => 'この項目を削除';
+
+  @override
+  String choreDeleteConfirmBody(int count) {
+    return '履歴$count件もすべて削除されます';
+  }
+
+  @override
+  String get choreHistoryTitle => '履歴';
+
+  @override
+  String get choreHistoryEmpty => '記録はまだありません';
+
+  @override
+  String get choreRecordEditTitle => '記録を編集';
+
+  @override
+  String get choreRecordDeleteConfirm => '記録を削除しますか？';
+
+  @override
+  String get choreMemoLabel => 'メモ';
+
+  @override
+  String get settingsChoresTitle => 'つきいちタスク';
+
+  @override
+  String get settingsChoresSubtitle => '通知時刻とアーカイブの管理';
+
+  @override
+  String get choreNotifyTimeLabel => '通知時刻';
+
+  @override
+  String get chorePermissionChecking => '通知の許可状況を確認中…';
+
+  @override
+  String get chorePermissionNotAsked => '通知の確認は最初の記録時に行われます';
+
+  @override
+  String get chorePermissionGranted => '通知は有効です';
+
+  @override
+  String get chorePermissionDenied => '通知が許可されていません';
+
+  @override
+  String get chorePermissionOpenSettings => '設定を開く';
+
+  @override
+  String get choreArchivedSection => 'アーカイブ済みの項目';
+
+  @override
+  String get choreArchivedEmpty => 'アーカイブ済みの項目はありません';
+
+  @override
+  String get choreUnarchiveButton => '元に戻す';
 }

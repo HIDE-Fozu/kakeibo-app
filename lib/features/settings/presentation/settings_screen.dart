@@ -15,6 +15,7 @@ import '../../../data/ocr/ocr_fixture_share.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
+import '../../chores/presentation/chore_notification_settings_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import 'category_manage_page.dart';
 import 'color_picker_dialog.dart';
@@ -109,6 +110,17 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const RecurringRulesPage()),
+            ),
+          ),
+          ListTile(
+            key: const Key('chores-tile'),
+            leading: const Icon(Icons.cleaning_services_outlined),
+            title: Text(l.settingsChoresTitle),
+            subtitle: Text(l.settingsChoresSubtitle),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const ChoreNotificationSettingsPage()),
             ),
           ),
           SwitchListTile(

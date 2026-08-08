@@ -1371,6 +1371,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It\'s been {days} days since last time'**
   String choreNotificationBody(int days);
+
+  /// Bottom navigation label for the Monthly hub tab
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get homeNavMonthly;
+
+  /// Monthly hub: section header for the rest-of-month timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up this month'**
+  String get hubUpcomingSection;
+
+  /// Monthly hub: empty state for the timeline section
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled for the rest of this month'**
+  String get hubUpcomingEmpty;
+
+  /// Monthly hub: section header for recurring transaction rules
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed costs & income'**
+  String get hubRulesSection;
+
+  /// Monthly hub: empty state for the rules section
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to automate monthly entries like rent or salary'**
+  String get hubRulesEmpty;
+
+  /// Monthly hub: section header for chore tasks
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring chores'**
+  String get hubChoresSection;
+
+  /// Monthly hub: empty state for the chores section
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add chores like replacing your toothbrush'**
+  String get hubChoresEmpty;
+
+  /// Monthly hub timeline: trailing label marking a chore row
+  ///
+  /// In en, this message translates to:
+  /// **'Chore'**
+  String get hubChoreTimelineLabel;
+
+  /// Badge on a not-yet-posted recurring transaction (ghost row)
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get ghostBadgeLabel;
+
+  /// Forecast line label when the anchor is the end of month
+  ///
+  /// In en, this message translates to:
+  /// **'Projected balance (end of month)'**
+  String get forecastLabelMonthEnd;
+
+  /// Forecast line label when the anchor is a specific day
+  ///
+  /// In en, this message translates to:
+  /// **'Projected balance (as of {date})'**
+  String forecastLabelAtDate(String date);
+
+  /// Chore interval label
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String choreIntervalEvery(int days);
+
+  /// Chore status: overdue by N days
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d overdue'**
+  String choreOverdueDays(int days);
+
+  /// Chore status: due today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get choreDueToday;
+
+  /// Chore status: due in N days
+  ///
+  /// In en, this message translates to:
+  /// **'in {days} days'**
+  String choreDaysLeft(int days);
+
+  /// Next due date of a chore
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String choreNextDate(String date);
+
+  /// Button that records a chore as done today
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get choreDoneButton;
+
+  /// Snackbar after recording a chore, with the next due date
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Recorded. Next: {date}'**
+  String choreDoneSnackbar(String date);
+
+  /// Title of the duplicate-record confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Already recorded'**
+  String get choreDupConfirmTitle;
+
+  /// Body of the duplicate-record confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" already has a record on this day. Add another?'**
+  String choreDupConfirmBody(String name);
+
+  /// Confirm button of the duplicate-record dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get choreDupConfirmAdd;
+
+  /// Chore form title (create)
+  ///
+  /// In en, this message translates to:
+  /// **'New chore'**
+  String get choreFormNewTitle;
+
+  /// Chore form title (edit)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit chore'**
+  String get choreFormEditTitle;
+
+  /// Chore form: name field label
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get choreFormNameLabel;
+
+  /// Chore form: interval field label
+  ///
+  /// In en, this message translates to:
+  /// **'Interval in days (1–999)'**
+  String get choreFormIntervalLabel;
+
+  /// Chore form: emoji field label
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji (📌 if empty)'**
+  String get choreFormEmojiLabel;
+
+  /// Chore form: archive button (edit mode)
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get choreFormArchiveButton;
+
+  /// Chore form: delete button (edit mode)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this chore'**
+  String get choreFormDeleteButton;
+
+  /// Chore delete confirmation body
+  ///
+  /// In en, this message translates to:
+  /// **'{count} history records will also be deleted'**
+  String choreDeleteConfirmBody(int count);
+
+  /// Chore history page title
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get choreHistoryTitle;
+
+  /// Chore history page empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No records yet'**
+  String get choreHistoryEmpty;
+
+  /// Chore record edit dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit record'**
+  String get choreRecordEditTitle;
+
+  /// Chore record delete confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record?'**
+  String get choreRecordDeleteConfirm;
+
+  /// Chore record memo field label
+  ///
+  /// In en, this message translates to:
+  /// **'Memo'**
+  String get choreMemoLabel;
+
+  /// Settings tile leading to chore notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring chores'**
+  String get settingsChoresTitle;
+
+  /// Settings tile subtitle for chore settings
+  ///
+  /// In en, this message translates to:
+  /// **'Notification time and archived chores'**
+  String get settingsChoresSubtitle;
+
+  /// Chore settings: notification time row
+  ///
+  /// In en, this message translates to:
+  /// **'Notification time'**
+  String get choreNotifyTimeLabel;
+
+  /// Chore settings: permission status unknown/loading
+  ///
+  /// In en, this message translates to:
+  /// **'Checking notification permission…'**
+  String get chorePermissionChecking;
+
+  /// Chore settings: permission not requested yet
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be asked to allow notifications after your first record'**
+  String get chorePermissionNotAsked;
+
+  /// Chore settings: permission granted
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are enabled'**
+  String get chorePermissionGranted;
+
+  /// Chore settings: permission denied
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are not allowed'**
+  String get chorePermissionDenied;
+
+  /// Chore settings: button opening the OS notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get chorePermissionOpenSettings;
+
+  /// Chore settings: archived chores section header
+  ///
+  /// In en, this message translates to:
+  /// **'Archived chores'**
+  String get choreArchivedSection;
+
+  /// Chore settings: archived chores empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No archived chores'**
+  String get choreArchivedEmpty;
+
+  /// Chore settings: unarchive button
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get choreUnarchiveButton;
 }
 
 class _AppLocalizationsDelegate
