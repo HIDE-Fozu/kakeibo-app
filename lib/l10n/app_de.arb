@@ -264,8 +264,8 @@
   "calendarLegendGhost": "geplante Fixkosten",
   "entryRecurringExpense": "Monatliche Ausgabe",
   "entryRecurringIncome": "Monatliches Einkommen",
-  "entryRecurringNote": "Wird jeden Monat am {day}. automatisch erfasst (dieser Eintrag ist der erste)",
   "entrySaveWithRuleExpense": "Speichern (+ monatlich)",
   "entrySaveWithRuleIncome": "Speichern (+ monatlich)",
-  "entryRecurringChangeDay": "Tag ändern"
+  "entryRecurringNotePrefix": "Wird monatlich am Tag",
+  "entryRecurringNoteSuffix": "automatisch erfasst"
 }

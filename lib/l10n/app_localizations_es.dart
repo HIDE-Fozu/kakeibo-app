@@ -919,16 +919,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get entryRecurringIncome => 'Ingreso mensual';
 
   @override
-  String entryRecurringNote(int day) {
-    return 'Se registrará automáticamente el día $day de cada mes (esta entrada es la primera)';
-  }
-
-  @override
   String get entrySaveWithRuleExpense => 'Guardar (+ mensual)';
 
   @override
   String get entrySaveWithRuleIncome => 'Guardar (+ mensual)';
 
   @override
-  String get entryRecurringChangeDay => 'Cambiar día';
+  String get entryRecurringNotePrefix => 'Se registrará automáticamente el día';
+
+  @override
+  String get entryRecurringNoteSuffix => 'de cada mes';
 }

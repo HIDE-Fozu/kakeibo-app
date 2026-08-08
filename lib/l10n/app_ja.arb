@@ -264,8 +264,8 @@
   "calendarLegendGhost": "固定費の予定",
   "entryRecurringExpense": "毎月の費用",
   "entryRecurringIncome": "毎月の収入",
-  "entryRecurringNote": "毎月{day}日に自動で記帳します（この入力が1回目）",
   "entrySaveWithRuleExpense": "保存（＋毎月の費用に登録）",
   "entrySaveWithRuleIncome": "保存（＋毎月の収入に登録）",
-  "entryRecurringChangeDay": "記帳日を変更"
+  "entryRecurringNotePrefix": "毎月",
+  "entryRecurringNoteSuffix": "日に自動で記帳します"
 }

@@ -882,16 +882,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryRecurringIncome => '每月收入';
 
   @override
-  String entryRecurringNote(int day) {
-    return '将于每月$day日自动记录（本次输入为第一笔）';
-  }
-
-  @override
   String get entrySaveWithRuleExpense => '保存（+每月支出）';
 
   @override
   String get entrySaveWithRuleIncome => '保存（+每月收入）';
 
   @override
-  String get entryRecurringChangeDay => '更改记账日';
+  String get entryRecurringNotePrefix => '每月';
+
+  @override
+  String get entryRecurringNoteSuffix => '日自动记录';
 }

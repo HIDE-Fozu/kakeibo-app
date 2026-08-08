@@ -885,16 +885,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryRecurringIncome => '毎月の収入';
 
   @override
-  String entryRecurringNote(int day) {
-    return '毎月$day日に自動で記帳します（この入力が1回目）';
-  }
-
-  @override
   String get entrySaveWithRuleExpense => '保存（＋毎月の費用に登録）';
 
   @override
   String get entrySaveWithRuleIncome => '保存（＋毎月の収入に登録）';
 
   @override
-  String get entryRecurringChangeDay => '記帳日を変更';
+  String get entryRecurringNotePrefix => '毎月';
+
+  @override
+  String get entryRecurringNoteSuffix => '日に自動で記帳します';
 }

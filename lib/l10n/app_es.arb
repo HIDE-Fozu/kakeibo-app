@@ -264,8 +264,8 @@
   "calendarLegendGhost": "gasto fijo previsto",
   "entryRecurringExpense": "Gasto mensual",
   "entryRecurringIncome": "Ingreso mensual",
-  "entryRecurringNote": "Se registrará automáticamente el día {day} de cada mes (esta entrada es la primera)",
   "entrySaveWithRuleExpense": "Guardar (+ mensual)",
   "entrySaveWithRuleIncome": "Guardar (+ mensual)",
-  "entryRecurringChangeDay": "Cambiar día"
+  "entryRecurringNotePrefix": "Se registrará automáticamente el día",
+  "entryRecurringNoteSuffix": "de cada mes"
 }

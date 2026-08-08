@@ -264,8 +264,8 @@
   "calendarLegendGhost": "고정비 예정",
   "entryRecurringExpense": "매월 지출",
   "entryRecurringIncome": "매월 수입",
-  "entryRecurringNote": "매월 {day}일에 자동으로 기록됩니다 (이번 입력이 첫 회)",
   "entrySaveWithRuleExpense": "저장 (+매월 지출)",
   "entrySaveWithRuleIncome": "저장 (+매월 수입)",
-  "entryRecurringChangeDay": "기록일 변경"
+  "entryRecurringNotePrefix": "매월",
+  "entryRecurringNoteSuffix": "일에 자동으로 기록됩니다"
 }

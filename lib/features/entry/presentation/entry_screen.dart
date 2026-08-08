@@ -306,36 +306,49 @@ class EntryScreen extends ConsumerWidget {
                                 .withValues(alpha: .45),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  l.entryRecurringNote(
-                                      state.effectiveRecurringDay),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color:
+                          // 「毎月［27▾］日に自動で記帳します」— 日は帯の中の
+                          // プルダウンで直接変更（取引の日付は変えない）。
+                          // 語順が言語で違うため前後テキストは別キー。
+                          child: Builder(builder: (context) {
+                            final noteStyle = TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            );
+                            return Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(l.entryRecurringNotePrefix,
+                                    style: noteStyle),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4),
+                                  child: DropdownButton<int>(
+                                    key: const Key('entry-recurring-day'),
+                                    value: state.effectiveRecurringDay,
+                                    isDense: true,
+                                    underline: const SizedBox.shrink(),
+                                    style: noteStyle.copyWith(fontSize: 13),
+                                    iconSize: 18,
+                                    iconEnabledColor:
                                         Theme.of(context).colorScheme.primary,
+                                    items: [
+                                      for (var d = 1; d <= 31; d++)
+                                        DropdownMenuItem(
+                                          value: d,
+                                          child: Text('$d'),
+                                        ),
+                                    ],
+                                    onChanged: (v) {
+                                      if (v != null) ctrl.setRecurringDay(v);
+                                    },
                                   ),
                                 ),
-                              ),
-                              TextButton(
-                                key: const Key('entry-recurring-day'),
-                                style: TextButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8),
-                                ),
-                                onPressed: () =>
-                                    _pickRecurringDay(context, ref, state),
-                                child: Text(
-                                  l.entryRecurringChangeDay,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
+                                Text(l.entryRecurringNoteSuffix,
+                                    style: noteStyle),
+                              ],
+                            );
+                          }),
                         ),
                       // カテゴリ: 分割中もグリッドと同じ位置（電卓の下・見出し付き）に
                       // 常設の1行帯を出す（split_category_strip・タップ=アクティブ行へ割当）。
@@ -594,67 +607,6 @@ class EntryScreen extends ConsumerWidget {
     }
   }
 
-  /// 「毎月の費用/収入」の記帳日(毎月N日)を選ぶ。取引の日付は変えない。
-  Future<void> _pickRecurringDay(
-      BuildContext context, WidgetRef ref, EntryFormState state) async {
-    final l = AppLocalizations.of(context);
-    final current = state.effectiveRecurringDay;
-    final picked = await showDialog<int>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.recurringDayLabel),
-        contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 360,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  l.recurringDayClampNote,
-                  style: Theme.of(ctx).textTheme.bodySmall,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  controller: ScrollController(
-                    // 現在値の少し手前から表示（31件を先頭から探させない）
-                    initialScrollOffset: ((current - 3).clamp(0, 30)) * 48.0,
-                  ),
-                  itemExtent: 48,
-                  itemCount: 31,
-                  itemBuilder: (ctx, i) {
-                    final d = i + 1;
-                    return ListTile(
-                      key: Key('entry-recurring-day-$d'),
-                      title: Text(l.recurringEveryMonthDay(d)),
-                      selected: d == current,
-                      trailing: d == current
-                          ? Icon(Icons.check,
-                              color: Theme.of(ctx).colorScheme.primary)
-                          : null,
-                      onTap: () => Navigator.pop(ctx, d),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l.commonCancel),
-          ),
-        ],
-      ),
-    );
-    if (picked != null) {
-      ref.read(entryFormControllerProvider.notifier).setRecurringDay(picked);
-    }
-  }
 
   Future<void> _scanReceipt(BuildContext context, WidgetRef ref) async {
     final l = AppLocalizations.of(context);

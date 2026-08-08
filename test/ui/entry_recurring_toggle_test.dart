@@ -56,11 +56,17 @@ void main() {
     await tester.tap(find.byKey(const Key('np-00')));
     await tester.pump();
 
-    // トグルON → 予告帯 + 保存文言が変わる
+    // トグルON → 予告帯（毎月[15▾]日に自動で記帳します）+ 保存文言が変わる
     await tester.tap(find.byKey(const Key('entry-recurring-btn')));
     await tester.pump();
     expect(find.byKey(const Key('entry-recurring-note')), findsOneWidget);
-    expect(find.textContaining('毎月15日に自動で記帳します'), findsOneWidget);
+    expect(
+        tester
+            .widget<DropdownButton<int>>(
+                find.byKey(const Key('entry-recurring-day')))
+            .value,
+        15);
+    expect(find.text('日に自動で記帳します'), findsOneWidget);
     expect(find.text('保存（＋毎月の費用に登録）'), findsOneWidget);
 
     await tester.tap(find.textContaining('食費'));
@@ -108,7 +114,12 @@ void main() {
     await tester.tap(find.byKey(const Key('entry-recurring-btn')));
     await tester.pump();
     expect(find.text('保存（＋毎月の収入に登録）'), findsOneWidget);
-    expect(find.textContaining('毎月25日に自動で記帳します'), findsOneWidget);
+    expect(
+        tester
+            .widget<DropdownButton<int>>(
+                find.byKey(const Key('entry-recurring-day')))
+            .value,
+        25);
   });
 
   testWidgets('過去日付で登録: さかのぼり多重起票せず当月分だけ即起票', (tester) async {
@@ -172,18 +183,21 @@ void main() {
     await tester.tap(find.byKey(const Key('entry-recurring-btn')));
     await tester.pump();
 
-    // 既定は入力日付の日（毎月8日）→「記帳日を変更」で毎月25日へ
-    expect(find.textContaining('毎月8日に自動で記帳します'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('entry-recurring-day')));
+    // 既定は入力日付の日（毎月8日）→帯のプルダウンで毎月25日へ
+    final dayDropdown = find.byKey(const Key('entry-recurring-day'));
+    expect(tester.widget<DropdownButton<int>>(dayDropdown).value, 8);
+    await tester.tap(dayDropdown);
     await tester.pumpAndSettle();
-    // ダイアログのリストは遅延構築なので25日までスクロールしてからタップ
-    await tester.scrollUntilVisible(
-        find.byKey(const Key('entry-recurring-day-25')), 96,
+    // メニュー項目に限定するため InkWell との組で探す
+    // （素の find.text はDropdownButton内部のIndexedStack項目にも当たる）。
+    // メニューは遅延構築なので25までスクロールしてからタップ。
+    final item25 = find.widgetWithText(InkWell, '25');
+    await tester.scrollUntilVisible(item25, 96,
         scrollable: find.byType(Scrollable).last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('entry-recurring-day-25')));
+    await tester.tap(item25, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.textContaining('毎月25日に自動で記帳します'), findsOneWidget);
+    expect(tester.widget<DropdownButton<int>>(dayDropdown).value, 25);
 
     await tester.tap(find.textContaining('食費'));
     await tester.pump();

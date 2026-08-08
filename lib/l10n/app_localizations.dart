@@ -1696,12 +1696,6 @@ abstract class AppLocalizations {
   /// **'Monthly income'**
   String get entryRecurringIncome;
 
-  /// Note shown while the monthly toggle is on
-  ///
-  /// In en, this message translates to:
-  /// **'Will be recorded automatically on day {day} every month (this entry is the first)'**
-  String entryRecurringNote(int day);
-
   /// Save button label while the monthly expense toggle is on
   ///
   /// In en, this message translates to:
@@ -1714,11 +1708,17 @@ abstract class AppLocalizations {
   /// **'Save + monthly income'**
   String get entrySaveWithRuleIncome;
 
-  /// Button in the monthly-toggle note strip to override the rule's day of month
+  /// Monthly-toggle note: text before the inline day dropdown
   ///
   /// In en, this message translates to:
-  /// **'Change day'**
-  String get entryRecurringChangeDay;
+  /// **'Recorded automatically on day'**
+  String get entryRecurringNotePrefix;
+
+  /// Monthly-toggle note: text after the inline day dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'of every month'**
+  String get entryRecurringNoteSuffix;
 }
 
 class _AppLocalizationsDelegate

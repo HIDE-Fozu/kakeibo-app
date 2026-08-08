@@ -264,8 +264,8 @@
   "calendarLegendGhost": "固定支出预定",
   "entryRecurringExpense": "每月支出",
   "entryRecurringIncome": "每月收入",
-  "entryRecurringNote": "将于每月{day}日自动记录（本次输入为第一笔）",
   "entrySaveWithRuleExpense": "保存（+每月支出）",
   "entrySaveWithRuleIncome": "保存（+每月收入）",
-  "entryRecurringChangeDay": "更改记账日"
+  "entryRecurringNotePrefix": "每月",
+  "entryRecurringNoteSuffix": "日自动记录"
 }

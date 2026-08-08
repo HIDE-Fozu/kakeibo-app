@@ -793,15 +793,6 @@
   "@entryRecurringIncome": {
     "description": "Entry screen toggle that also creates a recurring rule (income)"
   },
-  "entryRecurringNote": "Will be recorded automatically on day {day} every month (this entry is the first)",
-  "@entryRecurringNote": {
-    "description": "Note shown while the monthly toggle is on",
-    "placeholders": {
-      "day": {
-        "type": "int"
-      }
-    }
-  },
   "entrySaveWithRuleExpense": "Save + monthly expense",
   "@entrySaveWithRuleExpense": {
     "description": "Save button label while the monthly expense toggle is on"
@@ -810,8 +801,12 @@
   "@entrySaveWithRuleIncome": {
     "description": "Save button label while the monthly income toggle is on"
   },
-  "entryRecurringChangeDay": "Change day",
-  "@entryRecurringChangeDay": {
-    "description": "Button in the monthly-toggle note strip to override the rule's day of month"
+  "entryRecurringNotePrefix": "Recorded automatically on day",
+  "entryRecurringNoteSuffix": "of every month",
+  "@entryRecurringNotePrefix": {
+    "description": "Monthly-toggle note: text before the inline day dropdown"
+  },
+  "@entryRecurringNoteSuffix": {
+    "description": "Monthly-toggle note: text after the inline day dropdown"
   }
 }

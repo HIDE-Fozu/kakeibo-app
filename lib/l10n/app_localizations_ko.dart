@@ -888,16 +888,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryRecurringIncome => '매월 수입';
 
   @override
-  String entryRecurringNote(int day) {
-    return '매월 $day일에 자동으로 기록됩니다 (이번 입력이 첫 회)';
-  }
-
-  @override
   String get entrySaveWithRuleExpense => '저장 (+매월 지출)';
 
   @override
   String get entrySaveWithRuleIncome => '저장 (+매월 수입)';
 
   @override
-  String get entryRecurringChangeDay => '기록일 변경';
+  String get entryRecurringNotePrefix => '매월';
+
+  @override
+  String get entryRecurringNoteSuffix => '일에 자동으로 기록됩니다';
 }
