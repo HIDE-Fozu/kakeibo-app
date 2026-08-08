@@ -784,5 +784,30 @@
   "calendarLegendGhost": "planned fixed cost",
   "@calendarLegendGhost": {
     "description": "Calendar legend: grey amount = not-yet-posted recurring transaction"
+  },
+  "entryRecurringExpense": "Monthly expense",
+  "@entryRecurringExpense": {
+    "description": "Entry screen toggle that also creates a recurring rule (expense)"
+  },
+  "entryRecurringIncome": "Monthly income",
+  "@entryRecurringIncome": {
+    "description": "Entry screen toggle that also creates a recurring rule (income)"
+  },
+  "entryRecurringNote": "Will be recorded automatically on day {day} every month (this entry is the first)",
+  "@entryRecurringNote": {
+    "description": "Note shown while the monthly toggle is on",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "entrySaveWithRuleExpense": "Save + monthly expense",
+  "@entrySaveWithRuleExpense": {
+    "description": "Save button label while the monthly expense toggle is on"
+  },
+  "entrySaveWithRuleIncome": "Save + monthly income",
+  "@entrySaveWithRuleIncome": {
+    "description": "Save button label while the monthly income toggle is on"
   }
 }

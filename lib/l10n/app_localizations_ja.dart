@@ -877,4 +877,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get calendarLegendGhost => '固定費の予定';
+
+  @override
+  String get entryRecurringExpense => '毎月の費用';
+
+  @override
+  String get entryRecurringIncome => '毎月の収入';
+
+  @override
+  String entryRecurringNote(int day) {
+    return '毎月$day日に自動で記帳します（この入力が1回目）';
+  }
+
+  @override
+  String get entrySaveWithRuleExpense => '保存（＋毎月の費用に登録）';
+
+  @override
+  String get entrySaveWithRuleIncome => '保存（＋毎月の収入に登録）';
 }

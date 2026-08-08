@@ -48,4 +48,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Jetzt sichern'), findsOneWidget);
   });
+
+  // v2.2.0: 入力画面の「毎月の費用」+「複数のカテゴリを選択」の横並びは
+  // 長い言語で溢れやすいので、de で金額入力後の状態まで描画して検知する。
+  testWidgets('ドイツ語ロケール: 入力画面のトグル行が溢れない', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness(
+        prefs: {'onboardingDone': true, 'locale': 'de', 'currency': 'EUR'});
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+
+    await tester.tap(find.byKey(const Key('fab-entry')));
+    await tester.pumpAndSettle();
+    // 金額を入れるとトグル行（毎月の費用/内訳）が現れる
+    // （EURは小数通貨で 00 キーが小数点キーに変わるため数字キーだけで入力）
+    await tester.tap(find.text('5'));
+    await tester.tap(find.text('0'));
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('entry-recurring-btn')), findsOneWidget);
+    expect(find.byKey(const Key('start-split')), findsOneWidget);
+    // ONにして帯と保存文言も描画（オーバーフローがあればここで落ちる）
+    await tester.tap(find.byKey(const Key('entry-recurring-btn')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('entry-recurring-note')), findsOneWidget);
+  });
 }

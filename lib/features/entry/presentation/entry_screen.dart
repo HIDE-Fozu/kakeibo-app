@@ -231,25 +231,88 @@ class EntryScreen extends ConsumerWidget {
                       const SizedBox(height: 8),
                       // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
                       // 分割/一括/編集中と金額0では出さない。
+                      // 左隣に「毎月の費用/収入」トグル（単体登録専用。グループ
+                      // 再保存=replacesTxIds中とレシート確認では出さない）。
                       if (!splitMode &&
                           !batchMode &&
                           state.mode != EntryMode.edit &&
                           state.amountYen > 0)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            key: const Key('start-split'),
-                            onPressed: () {
-                              final hasItems =
-                                  state.receipt?.itemLines.isNotEmpty ?? false;
-                              if (hasItems) {
-                                ctrl.startBatchItemize();
-                              } else {
-                                ctrl.startSplit();
-                              }
-                            },
-                            icon: const Icon(Icons.call_split, size: 18),
-                            label: Text(l.entryStartSplitButton),
+                        Row(
+                          children: [
+                            if (state.mode == EntryMode.create &&
+                                state.replacesTxIds == null)
+                              Flexible(
+                                child: TextButton.icon(
+                                  key: const Key('entry-recurring-btn'),
+                                  onPressed: ctrl.toggleRecurring,
+                                  style: state.recurringOn
+                                      ? TextButton.styleFrom(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          foregroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                        )
+                                      : null,
+                                  icon: const Icon(Icons.event_repeat, size: 18),
+                                  label: Text(
+                                    state.type == TxnType.expense
+                                        ? l.entryRecurringExpense
+                                        : l.entryRecurringIncome,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            const Spacer(),
+                            Flexible(
+                              child: TextButton.icon(
+                                key: const Key('start-split'),
+                                onPressed: () {
+                                  final hasItems =
+                                      state.receipt?.itemLines.isNotEmpty ??
+                                          false;
+                                  if (hasItems) {
+                                    ctrl.startBatchItemize();
+                                  } else {
+                                    ctrl.startSplit();
+                                  }
+                                },
+                                icon: const Icon(Icons.call_split, size: 18),
+                                label: Text(
+                                  l.entryStartSplitButton,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      // ON時の予告帯: 「毎月N日に自動で記帳します（この入力が1回目）」
+                      if (!splitMode &&
+                          !batchMode &&
+                          state.recurringOn &&
+                          state.amountYen > 0)
+                        Container(
+                          key: const Key('entry-recurring-note'),
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: .45),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            l.entryRecurringNote(state.date.day),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ),
                       // カテゴリ: 分割中もグリッドと同じ位置（電卓の下・見出し付き）に
@@ -414,7 +477,12 @@ class EntryScreen extends ConsumerWidget {
                                       }
                                     }
                                   : null,
-                              child: Text(l.commonSave),
+                              // 「毎月の費用/収入」ON時はルールも作ることを予告
+                              child: Text(state.recurringOn
+                                  ? (state.type == TxnType.expense
+                                      ? l.entrySaveWithRuleExpense
+                                      : l.entrySaveWithRuleIncome)
+                                  : l.commonSave),
                             ),
                           ),
                           if (state.mode != EntryMode.edit) ...[

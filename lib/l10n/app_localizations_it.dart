@@ -912,4 +912,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get calendarLegendGhost => 'planned fixed cost';
+
+  @override
+  String get entryRecurringExpense => 'Monthly expense';
+
+  @override
+  String get entryRecurringIncome => 'Monthly income';
+
+  @override
+  String entryRecurringNote(int day) {
+    return 'Will be recorded automatically on day $day every month (this entry is the first)';
+  }
+
+  @override
+  String get entrySaveWithRuleExpense => 'Save + monthly expense';
+
+  @override
+  String get entrySaveWithRuleIncome => 'Save + monthly income';
 }

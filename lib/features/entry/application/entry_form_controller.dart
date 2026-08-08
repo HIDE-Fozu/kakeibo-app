@@ -9,6 +9,7 @@ import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
+import '../../../domain/services/recurring_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/application/settings_controller.dart';
 import 'split_calc.dart';
@@ -142,6 +143,10 @@ class EntryFormState {
   /// 常時表示のメモ欄をリセットするためのwidget keyに使う。
   final int formSeq;
 
+  /// 「毎月の費用/収入」トグル（単体登録専用）。ONで保存すると今回の記帳に加えて
+  /// 毎月ルールを作成する。内訳/一括の開始でOFFに戻り、保存後もリセットされる。
+  final bool recurringOn;
+
   const EntryFormState({
     required this.mode,
     this.editingId,
@@ -169,6 +174,7 @@ class EntryFormState {
     this.reuseSplitGroupId,
     this.fixturePath,
     this.formSeq = 0,
+    this.recurringOn = false,
   });
 
   bool get canSave => batchItems != null
@@ -337,6 +343,7 @@ class EntryFormState {
     Object? reuseSplitGroupId = _unset,
     Object? fixturePath = _unset,
     int? formSeq,
+    bool? recurringOn,
   }) =>
       EntryFormState(
         formSeq: formSeq ?? this.formSeq,
@@ -386,6 +393,7 @@ class EntryFormState {
         fixturePath: identical(fixturePath, _unset)
             ? this.fixturePath
             : fixturePath as String?,
+        recurringOn: recurringOn ?? this.recurringOn,
       );
 }
 
@@ -607,6 +615,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       batchDiffCategoryId: null,
       splits: null,
       expandedParentId: null,
+      recurringOn: false, // 毎月の費用/収入は単体登録専用
     );
   }
 
@@ -734,6 +743,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       splitCatPickerOpen: false,
       batchItems: null,
       expandedParentId: null,
+      recurringOn: false, // 毎月の費用/収入は単体登録専用
     );
   }
 
@@ -975,6 +985,9 @@ class EntryFormController extends Notifier<EntryFormState?> {
   void toggleMemoExpanded() =>
       state = _s.copyWith(memoExpanded: !_s.memoExpanded);
 
+  /// 「毎月の費用/収入」トグル（単体登録専用。UI側も内訳/一括/編集/置換では出さない）。
+  void toggleRecurring() => state = _s.copyWith(recurringOn: !_s.recurringOn);
+
   void selectTotalCandidate(AmountCandidate c) => state = _s.copyWith(
       amountYen: c.yen, amountText: amountTextFromMinor(c.yen, _decimals));
 
@@ -1037,6 +1050,25 @@ class EntryFormController extends Notifier<EntryFormState?> {
       source: s.source,
       imagePath: storedImage,
     ));
+    if (s.recurringOn) {
+      // 「毎月の費用/収入」: 今回の記帳を1回目として毎月ルールを同時作成。
+      // lastGeneratedYm は「入力月」と「今日の前月」の遅い方 —— 過去日付で
+      // 登録しても経過月をさかのぼって多重起票せず、当月分の期日が過ぎて
+      // いれば直後の applyDue が1件だけ即起票する（来月からは全自動）。
+      final ruleRepo = ref.read(recurringRuleRepositoryProvider);
+      final today = ref.read(clockProvider)();
+      await ruleRepo.add(RecurringRuleEntity(
+        type: s.type,
+        amountMinor: s.amountYen,
+        categoryId: s.categoryId!,
+        dayOfMonth: s.date.day,
+        storeName: store.isEmpty ? null : store,
+        memo: memo.isEmpty ? null : memo,
+        startYm: ymOf(s.date),
+        lastGeneratedYm: maxYm(ymOf(s.date), prevYm(ymOf(today))),
+      ));
+      await ruleRepo.applyDue(today);
+    }
   }
 
   /// 分割/一括内訳の保存: 各行を別々の取引として追加し、同じ splitGroupId で

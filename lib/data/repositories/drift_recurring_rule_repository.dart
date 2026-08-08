@@ -28,6 +28,9 @@ class DriftRecurringRuleRepository implements RecurringRuleRepository {
       isActive: Value(rule.isActive),
       startYm: rule.startYm,
       endYm: Value(rule.endYm),
+      // 「毎月の費用/収入」（入力画面トグル）は手入力分を1回目扱いにするため
+      // watermark 付きでルールを作る。落とすと当月分が二重起票される。
+      lastGeneratedYm: Value(rule.lastGeneratedYm),
     ));
   }
 

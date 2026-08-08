@@ -1683,6 +1683,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'planned fixed cost'**
   String get calendarLegendGhost;
+
+  /// Entry screen toggle that also creates a recurring rule (expense)
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly expense'**
+  String get entryRecurringExpense;
+
+  /// Entry screen toggle that also creates a recurring rule (income)
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly income'**
+  String get entryRecurringIncome;
+
+  /// Note shown while the monthly toggle is on
+  ///
+  /// In en, this message translates to:
+  /// **'Will be recorded automatically on day {day} every month (this entry is the first)'**
+  String entryRecurringNote(int day);
+
+  /// Save button label while the monthly expense toggle is on
+  ///
+  /// In en, this message translates to:
+  /// **'Save + monthly expense'**
+  String get entrySaveWithRuleExpense;
+
+  /// Save button label while the monthly income toggle is on
+  ///
+  /// In en, this message translates to:
+  /// **'Save + monthly income'**
+  String get entrySaveWithRuleIncome;
 }
 
 class _AppLocalizationsDelegate
