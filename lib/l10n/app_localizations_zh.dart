@@ -425,9 +425,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get splitAddCategoryLabel => '添加分类';
-
-  @override
   String get splitOverLabel => '超出';
 
   @override

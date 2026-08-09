@@ -442,9 +442,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get splitAddCategoryLabel => 'Añadir categoría';
-
-  @override
   String get splitOverLabel => 'Excedido';
 
   @override

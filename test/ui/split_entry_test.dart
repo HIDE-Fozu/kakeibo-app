@@ -44,7 +44,7 @@ void main() {
     expect(find.byKey(const Key('np-op-+')), findsOneWidget);
     expect(find.byKey(const Key('split-incl-0')), findsNothing);
     // 残額行は最下段に固定表示
-    expect(find.byKey(const Key('split-remainder')), findsOneWidget);
+    expect(find.byKey(const Key('split-line-remainder')), findsOneWidget);
 
     // 1行目は自動額なし
     expect(st().splitLineAmount(0), isNull);
@@ -131,8 +131,8 @@ void main() {
     // 帯内チップ＋行のチップ表示の2箇所
     expect(find.textContaining('日用品'), findsNWidgets(2));
 
-    // 残額行タップ → 帯の割当先が残額行になる
-    await tester.tap(find.byKey(const Key('split-remainder')));
+    // 残額行タップ → 帯の割当先が残額行になる（行のどこでも可）
+    await tester.tap(find.byKey(const Key('split-line-remainder')));
     await tester.pumpAndSettle();
 
     // 食費（内訳あり親）→ 親を割当しつつ帯は内訳チップ表示に切替

@@ -62,7 +62,7 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('split-remainder')));
+    await tester.tap(find.byKey(const Key('split-line-remainder')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);

@@ -126,7 +126,6 @@
   "splitMemoHint": "メモ",
   "splitCategoryUnselected": "カテゴリ未選択",
   "splitTaxIncludedAmount": "税込 {amount}",
-  "splitAddCategoryLabel": "カテゴリを追加",
   "splitOverLabel": "超過",
   "splitRemainingLabel": "残り",
   "summaryMonthHeader": "{year}年{month}月",

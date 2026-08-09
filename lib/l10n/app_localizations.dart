@@ -868,12 +868,6 @@ abstract class AppLocalizations {
   /// **'Tax incl. {amount}'**
   String splitTaxIncludedAmount(String amount);
 
-  /// No description provided for @splitAddCategoryLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Add category'**
-  String get splitAddCategoryLabel;
-
   /// No description provided for @splitOverLabel.
   ///
   /// In en, this message translates to:

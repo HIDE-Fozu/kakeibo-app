@@ -126,7 +126,6 @@
   "splitMemoHint": "Nota",
   "splitCategoryUnselected": "Sin categoría",
   "splitTaxIncludedAmount": "IVA incl. {amount}",
-  "splitAddCategoryLabel": "Añadir categoría",
   "splitOverLabel": "Excedido",
   "splitRemainingLabel": "Restante",
   "summaryMonthHeader": "{month}/{year}",

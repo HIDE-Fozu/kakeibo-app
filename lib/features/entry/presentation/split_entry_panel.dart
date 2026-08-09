@@ -82,7 +82,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         // 店名行
         Row(
           children: [
-            Icon(Icons.call_split, size: 15, color: scheme.outline),
+            Icon(Icons.call_split, size: 15, color: scheme.onSurfaceVariant),
             const SizedBox(width: 6),
             Expanded(
               child: TextFormField(
@@ -357,7 +357,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: active ? scheme.primary : scheme.outline,
+                    color: active ? scheme.primary : scheme.onSurfaceVariant,
                     fontFeatures: kTabularFigures,
                   ),
                 ),
@@ -480,7 +480,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.all(2),
-                    child: Icon(Icons.close, size: 16, color: scheme.outline),
+                    child: Icon(Icons.close,
+                        size: 16, color: scheme.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -546,55 +547,37 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
           child: Row(
             children: [
-              // 左: カテゴリを追加（未選択）or 選択済みチップ。タップで割当先にする。
-              InkWell(
-                key: const Key('split-remainder'),
-                onTap: () => ctrl.openSplitCatPicker(i),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: catLabel == null
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, size: 15, color: scheme.primary),
-                            Text(
-                              l.splitAddCategoryLabel,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: scheme.primary,
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 15,
-                              color: scheme.primary,
-                            ),
-                          ],
-                        )
-                      : Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: scheme.primaryContainer.withValues(
-                              alpha: 0.5,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            catLabel,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: scheme.primary,
-                            ),
-                          ),
+              // 左: 選択済みならチップ（タップで割当先にする）。未選択のときは
+              // 何も置かない — 旧仕様の「＋ カテゴリを追加」ボタンは廃止した。
+              // 行のどこをタップしても割当先になる（背面GestureDetector）ので
+              // 導線は失われない。
+              if (catLabel != null)
+                InkWell(
+                  key: const Key('split-remainder'),
+                  onTap: () => ctrl.openSplitCatPicker(i),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        catLabel,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.primary,
                         ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
               const Spacer(),
               // 右: 残り（差分・非タップ）
               Text(

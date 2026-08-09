@@ -287,7 +287,6 @@
       }
     }
   },
-  "splitAddCategoryLabel": "Add category",
   "splitOverLabel": "Over",
   "splitRemainingLabel": "Remaining",
   "summaryMonthHeader": "{month}/{year}",

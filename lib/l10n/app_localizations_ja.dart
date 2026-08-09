@@ -426,9 +426,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get splitAddCategoryLabel => 'カテゴリを追加';
-
-  @override
   String get splitOverLabel => '超過';
 
   @override

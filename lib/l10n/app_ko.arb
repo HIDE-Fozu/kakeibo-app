@@ -126,7 +126,6 @@
   "splitMemoHint": "메모",
   "splitCategoryUnselected": "카테고리 미선택",
   "splitTaxIncludedAmount": "세금 포함 {amount}",
-  "splitAddCategoryLabel": "카테고리 추가",
   "splitOverLabel": "초과",
   "splitRemainingLabel": "남음",
   "summaryMonthHeader": "{year}년 {month}월",

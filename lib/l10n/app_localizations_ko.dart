@@ -428,9 +428,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get splitAddCategoryLabel => '카테고리 추가';
-
-  @override
   String get splitOverLabel => '초과';
 
   @override

@@ -126,7 +126,6 @@
   "splitMemoHint": "备注",
   "splitCategoryUnselected": "未选择分类",
   "splitTaxIncludedAmount": "含税 {amount}",
-  "splitAddCategoryLabel": "添加分类",
   "splitOverLabel": "超出",
   "splitRemainingLabel": "剩余",
   "summaryMonthHeader": "{year}年{month}月",

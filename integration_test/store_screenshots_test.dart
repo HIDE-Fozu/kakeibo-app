@@ -158,7 +158,8 @@ void main() {
         warnIfMissed: false);
     await settle(t);
     // 残額行: カテゴリを割当てて確定（残り0の完成形になる）
-    await t.tap(find.byKey(const Key('split-remainder')), warnIfMissed: false);
+    await t.tap(find.byKey(const Key('split-line-remainder')),
+        warnIfMissed: false);
     await settle(t);
     await t.tap(
         find

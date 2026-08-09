@@ -126,7 +126,6 @@
   "splitMemoHint": "Nota",
   "splitCategoryUnselected": "Sem categoria",
   "splitTaxIncludedAmount": "C/ imposto {amount}",
-  "splitAddCategoryLabel": "Adicionar categoria",
   "splitOverLabel": "Excedente",
   "splitRemainingLabel": "Restante",
   "summaryMonthHeader": "{month}/{year}",

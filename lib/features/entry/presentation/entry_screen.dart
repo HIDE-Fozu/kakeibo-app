@@ -406,7 +406,7 @@ class EntryScreen extends ConsumerWidget {
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color:
-                                      Theme.of(context).colorScheme.outline)),
+                                      Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
                         const SplitCategoryStrip(),
                       ],
@@ -421,7 +421,7 @@ class EntryScreen extends ConsumerWidget {
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                     color:
-                                        Theme.of(context).colorScheme.outline)),
+                                        Theme.of(context).colorScheme.onSurfaceVariant)),
                             // 分割は行ごとのメモ。一括内訳はグループのメモ欄をここに。
                             if (batchMode) ...[
                               const SizedBox(width: 12),

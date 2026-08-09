@@ -136,6 +136,6 @@ void main() {
     expect(st.replacesTxIds, hasLength(2));
     // 分割UIが出ている（行のカテゴリチップと残額行で確認）。
     expect(find.byKey(const Key('split-pickcat-0')), findsOneWidget);
-    expect(find.byKey(const Key('split-remainder')), findsOneWidget);
+    expect(find.byKey(const Key('split-line-remainder')), findsOneWidget);
   });
 }

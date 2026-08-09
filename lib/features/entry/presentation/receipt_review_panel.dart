@@ -65,14 +65,15 @@ class ReceiptReviewPanel extends ConsumerWidget {
               Row(
                 children: [
                   Icon(Icons.storefront_outlined,
-                      size: 16, color: Theme.of(context).colorScheme.outline),
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Text(
                     l.entryStoreNameLabel,
                     key: const Key('store-name'),
                     style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.outline),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

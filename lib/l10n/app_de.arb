@@ -126,7 +126,6 @@
   "splitMemoHint": "Notiz",
   "splitCategoryUnselected": "Keine Kategorie",
   "splitTaxIncludedAmount": "inkl. MwSt. {amount}",
-  "splitAddCategoryLabel": "Kategorie hinzufügen",
   "splitOverLabel": "Zu viel",
   "splitRemainingLabel": "Rest",
   "summaryMonthHeader": "{month}/{year}",

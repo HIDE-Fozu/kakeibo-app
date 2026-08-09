@@ -442,9 +442,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get splitAddCategoryLabel => 'Adicionar categoria';
-
-  @override
   String get splitOverLabel => 'Excedente';
 
   @override

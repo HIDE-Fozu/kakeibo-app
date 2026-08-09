@@ -126,7 +126,6 @@
   "splitMemoHint": "Note",
   "splitCategoryUnselected": "Aucune catégorie",
   "splitTaxIncludedAmount": "TTC {amount}",
-  "splitAddCategoryLabel": "Ajouter une catégorie",
   "splitOverLabel": "Dépassement",
   "splitRemainingLabel": "Reste",
   "summaryMonthHeader": "{month}/{year}",

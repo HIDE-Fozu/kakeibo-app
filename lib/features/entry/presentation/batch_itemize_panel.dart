@@ -42,7 +42,7 @@ class BatchItemizePanel extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.call_split, size: 16, color: scheme.outline),
+            Icon(Icons.call_split, size: 16, color: scheme.onSurfaceVariant),
             const SizedBox(width: 4),
             // 合計はすぐ上の金額表示に出ているので、ここは短く
             Expanded(
@@ -74,7 +74,7 @@ class BatchItemizePanel extends ConsumerWidget {
         Row(
           children: [
             Text(l.batchThisReceiptLabel,
-                style: TextStyle(fontSize: 11, color: scheme.outline)),
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
             const SizedBox(width: 6),
             Expanded(
               child: Align(
@@ -157,7 +157,8 @@ class BatchItemizePanel extends ConsumerWidget {
             child: Text('$percent%',
                 style: TextStyle(
                     fontSize: 10,
-                    color: selected ? scheme.onPrimary : scheme.outline)),
+                    color:
+                        selected ? scheme.onPrimary : scheme.onSurfaceVariant)),
           ),
         ),
       );
@@ -300,12 +301,12 @@ class BatchItemizePanel extends ConsumerWidget {
         children: [
           Text(
             '🧾 ${headerLabel.isEmpty ? l.batchReceiptFallbackLabel : headerLabel}　${state.date.toIso()}',
-            style: TextStyle(fontSize: 11, color: scheme.outline),
+            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
             overflow: TextOverflow.ellipsis,
           ),
           Divider(height: 10, color: scheme.outlineVariant),
           if (groups.isEmpty)
-            row(l.batchNoAssignmentsYet, '', color: scheme.outline),
+            row(l.batchNoAssignmentsYet, '', color: scheme.onSurfaceVariant),
           for (final e in groups.entries)
             row(
               '${categoryEmoji(categoriesById[e.key]?.icon, categoriesById[e.key]?.slug)} '
