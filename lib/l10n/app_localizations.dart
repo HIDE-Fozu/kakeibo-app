@@ -862,6 +862,12 @@ abstract class AppLocalizations {
   /// **'No category'**
   String get splitCategoryUnselected;
 
+  /// Shown in the amount slot of a split line with no amount yet
+  ///
+  /// In en, this message translates to:
+  /// **'No amount'**
+  String get splitAmountEmpty;
+
   /// No description provided for @splitTaxIncludedAmount.
   ///
   /// In en, this message translates to:

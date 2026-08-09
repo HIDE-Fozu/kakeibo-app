@@ -125,6 +125,7 @@
   "splitTaxIndividual": "Individual",
   "splitMemoHint": "Nota",
   "splitCategoryUnselected": "Sem categoria",
+  "splitAmountEmpty": "Sem valor",
   "splitTaxIncludedAmount": "C/ imposto {amount}",
   "splitOverLabel": "Excedente",
   "splitRemainingLabel": "Restante",

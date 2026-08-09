@@ -279,6 +279,10 @@
   "splitTaxIndividual": "Custom",
   "splitMemoHint": "Memo",
   "splitCategoryUnselected": "No category",
+  "splitAmountEmpty": "No amount",
+  "@splitAmountEmpty": {
+    "description": "Shown in the amount slot of a split line with no amount yet"
+  },
   "splitTaxIncludedAmount": "Tax incl. {amount}",
   "@splitTaxIncludedAmount": {
     "placeholders": {

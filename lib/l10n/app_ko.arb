@@ -125,6 +125,7 @@
   "splitTaxIndividual": "개별",
   "splitMemoHint": "메모",
   "splitCategoryUnselected": "카테고리 미선택",
+  "splitAmountEmpty": "금액 미입력",
   "splitTaxIncludedAmount": "세금 포함 {amount}",
   "splitOverLabel": "초과",
   "splitRemainingLabel": "남음",

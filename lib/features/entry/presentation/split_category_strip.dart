@@ -11,8 +11,12 @@ import '../application/entry_category_providers.dart';
 import '../application/entry_form_controller.dart';
 import 'category_grid.dart';
 
-/// 分割中のカテゴリ帯（通常グリッドと同じ位置・同じタイルサイズの1行横スクロール）。
-/// 分割中は常設で、タップはアクティブ行（編集中の行）への割当になる。
+/// 分割中のカテゴリ帯（通常グリッドと同じタイルサイズ・横スクロール）。行のすぐ下
+/// （電卓の上）に常設で、タップはアクティブ行（編集中の行）への割当になる。
+///
+/// 行の「カテゴリ未選択」/カテゴリチップを押すと `splitCatPickerOpen` が立ち、
+/// **帯が2行に開く**（押しても何も起きないように見えるというFBへの対応。
+/// 一度に見えるカテゴリが4→8に増える）。カテゴリの確定で1行に戻る。
 /// 親（内訳あり）をタップ→親を割当てつつ帯が内訳タイルに切り替わり、
 /// leaf/内訳タイルの確定で親一覧表示に戻る（expandedParentId=null）。
 class SplitCategoryStrip extends ConsumerWidget {
@@ -126,28 +130,48 @@ class SplitCategoryStrip extends ConsumerWidget {
     }
 
     // タイル幅は通常グリッドと同じ計算（4つ見え＋続きが覗く）。高さも同じ56。
+    // 開いている間は2行（縦に2枚ずつの列を横スクロール＝並び順が読み順のまま）。
+    final expanded = state.splitCatPickerOpen;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final tileW = CatGridMetrics.fit(constraints.maxWidth).tileW;
+          double widthOf(Widget t) =>
+              (t is _SizedAction ? t.width : null) ?? tileW;
+          Widget cell(Widget t) => SizedBox(
+                width: widthOf(t),
+                height: kCatTileH,
+                child: t,
+              );
           return SizedBox(
-            height: kCatTileH,
+            height: expanded ? kCatTileH * 2 + kCatGap : kCatTileH,
             child: SingleChildScrollView(
               key: const Key('split-cat-strip'),
               scrollDirection: Axis.horizontal,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final t in tiles)
-                    Padding(
-                      padding: const EdgeInsets.only(right: kCatGap),
-                      child: SizedBox(
-                        // 戻るタイルだけ幅指定（狭い）。他はグリッドと同じ幅。
-                        width: (t is _SizedAction ? t.width : null) ?? tileW,
-                        height: kCatTileH,
-                        child: t,
+                  if (!expanded)
+                    for (final t in tiles)
+                      Padding(
+                        padding: const EdgeInsets.only(right: kCatGap),
+                        child: cell(t),
+                      )
+                  else
+                    for (var c = 0; c < (tiles.length + 1) ~/ 2; c++)
+                      Padding(
+                        padding: const EdgeInsets.only(right: kCatGap),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            cell(tiles[c * 2]),
+                            const SizedBox(height: kCatGap),
+                            if (c * 2 + 1 < tiles.length)
+                              cell(tiles[c * 2 + 1]),
+                          ],
+                        ),
                       ),
-                    ),
                 ],
               ),
             ),

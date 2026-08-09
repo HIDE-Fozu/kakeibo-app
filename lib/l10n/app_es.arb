@@ -125,6 +125,7 @@
   "splitTaxIndividual": "Individual",
   "splitMemoHint": "Nota",
   "splitCategoryUnselected": "Sin categoría",
+  "splitAmountEmpty": "Sin importe",
   "splitTaxIncludedAmount": "IVA incl. {amount}",
   "splitOverLabel": "Excedido",
   "splitRemainingLabel": "Restante",

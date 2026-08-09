@@ -433,6 +433,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splitCategoryUnselected => 'No category';
 
   @override
+  String get splitAmountEmpty => 'No amount';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return 'Tax incl. $amount';
   }

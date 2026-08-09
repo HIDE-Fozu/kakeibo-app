@@ -437,6 +437,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get splitCategoryUnselected => 'Sem categoria';
 
   @override
+  String get splitAmountEmpty => 'Sem valor';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return 'C/ imposto $amount';
   }

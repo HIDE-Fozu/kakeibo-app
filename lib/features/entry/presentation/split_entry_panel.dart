@@ -318,11 +318,14 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final hasOp = RegExp(r'[+\-×÷]').hasMatch(line.expr);
 
     // 主表示は「入力した値」。入力中は式。外税のときだけ税込換算を下に併記。
+    // 金額が空の行は「金額未入力」と書く（'—' では何が足りないか伝わらない、
+    // というFB。カテゴリ未選択と違い黒字＝入力待ちの案内という位置づけ）。
     final String mainLabel;
+    final bool amountEmpty = entered == null && !(active && hasOp);
     if (active && hasOp) {
       mainLabel = line.expr;
     } else {
-      mainLabel = entered == null ? '—' : mf.format(entered);
+      mainLabel = entered == null ? l.splitAmountEmpty : mf.format(entered);
     }
     final String? subLabel = (!line.taxIncluded && net != null)
         ? l.splitTaxIncludedAmount(mf.format(net))
@@ -455,10 +458,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 children: [
                   Text(
                     mainLabel,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: TextStyle(
+                      // 文言のときは金額より一段小さく（桁揃えも不要）。
+                      fontSize: amountEmpty ? 12.5 : 15,
                       fontWeight: FontWeight.w700,
-                      fontFeatures: kTabularFigures,
+                      fontFeatures: amountEmpty ? null : kTabularFigures,
                     ),
                   ),
                   if (subLabel != null)
@@ -547,37 +551,39 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
           child: Row(
             children: [
-              // 左: 選択済みならチップ（タップで割当先にする）。未選択のときは
-              // 何も置かない — 旧仕様の「＋ カテゴリを追加」ボタンは廃止した。
-              // 行のどこをタップしても割当先になる（背面GestureDetector）ので
-              // 導線は失われない。
-              if (catLabel != null)
-                InkWell(
-                  key: const Key('split-remainder'),
-                  onTap: () => ctrl.openSplitCatPicker(i),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.primaryContainer.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        catLabel,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.primary,
-                        ),
+              // 左: 入力行と同じく「カテゴリ未選択」/選択済みチップ。
+              // タップでカテゴリ帯を開き、その行を割当先にする。
+              InkWell(
+                key: const Key('split-remainder'),
+                onTap: () => ctrl.openSplitCatPicker(i),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: catLabel == null
+                          ? null
+                          : scheme.primaryContainer.withValues(alpha: 0.5),
+                      border: catLabel == null
+                          ? Border.all(color: kWarnMuted)
+                          : null,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      catLabel ?? l.splitCategoryUnselected,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: catLabel == null ? kWarnMuted : scheme.primary,
                       ),
                     ),
                   ),
                 ),
+              ),
               const Spacer(),
               // 右: 残り（差分・非タップ）
               Text(

@@ -420,6 +420,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get splitCategoryUnselected => '未选择分类';
 
   @override
+  String get splitAmountEmpty => '未输入金额';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return '含税 $amount';
   }

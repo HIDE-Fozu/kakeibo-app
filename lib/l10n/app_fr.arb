@@ -125,6 +125,7 @@
   "splitTaxIndividual": "Individuel",
   "splitMemoHint": "Note",
   "splitCategoryUnselected": "Aucune catégorie",
+  "splitAmountEmpty": "Sans montant",
   "splitTaxIncludedAmount": "TTC {amount}",
   "splitOverLabel": "Dépassement",
   "splitRemainingLabel": "Reste",

@@ -125,6 +125,7 @@
   "splitTaxIndividual": "個別",
   "splitMemoHint": "メモ",
   "splitCategoryUnselected": "カテゴリ未選択",
+  "splitAmountEmpty": "金額未入力",
   "splitTaxIncludedAmount": "税込 {amount}",
   "splitOverLabel": "超過",
   "splitRemainingLabel": "残り",

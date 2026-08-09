@@ -421,6 +421,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get splitCategoryUnselected => 'カテゴリ未選択';
 
   @override
+  String get splitAmountEmpty => '金額未入力';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return '税込 $amount';
   }

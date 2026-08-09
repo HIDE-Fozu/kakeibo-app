@@ -125,6 +125,7 @@
   "splitTaxIndividual": "单独",
   "splitMemoHint": "备注",
   "splitCategoryUnselected": "未选择分类",
+  "splitAmountEmpty": "未输入金额",
   "splitTaxIncludedAmount": "含税 {amount}",
   "splitOverLabel": "超出",
   "splitRemainingLabel": "剩余",

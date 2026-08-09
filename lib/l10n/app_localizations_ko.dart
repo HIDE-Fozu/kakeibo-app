@@ -423,6 +423,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get splitCategoryUnselected => '카테고리 미선택';
 
   @override
+  String get splitAmountEmpty => '금액 미입력';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return '세금 포함 $amount';
   }

@@ -108,12 +108,22 @@ void main() {
     await t.tap(find.textContaining('複数のカテゴリ'), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_11_split_fields');
+    // 1品目のときに帯を開いた状態（電卓が収まるか）
+    await t.tap(find.byKey(const Key('split-pickcat-0')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_15_strip_expanded_1line');
+    await t.tap(find.byKey(const Key('split-pickcat-0')), warnIfMissed: false);
+    await settle(t);
     // ＋品目で行を増やした状態（帯が電卓の上にある構成で電卓が下がりすぎないか）
     await t.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
     await settle(t);
     await t.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_13_split_three_lines');
+    // 「カテゴリ未選択」タップ → 帯が2行に開く
+    await t.tap(find.byKey(const Key('split-pickcat-1')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_14_strip_expanded');
     await t.tap(find.textContaining('やめる'), warnIfMissed: false);
     await settle(t);
 

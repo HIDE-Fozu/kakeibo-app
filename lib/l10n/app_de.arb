@@ -125,6 +125,7 @@
   "splitTaxIndividual": "Einzeln",
   "splitMemoHint": "Notiz",
   "splitCategoryUnselected": "Keine Kategorie",
+  "splitAmountEmpty": "Kein Betrag",
   "splitTaxIncludedAmount": "inkl. MwSt. {amount}",
   "splitOverLabel": "Zu viel",
   "splitRemainingLabel": "Rest",

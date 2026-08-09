@@ -125,6 +125,7 @@
   "splitTaxIndividual": "Per voce",
   "splitMemoHint": "Nota",
   "splitCategoryUnselected": "Nessuna categoria",
+  "splitAmountEmpty": "Nessun importo",
   "splitTaxIncludedAmount": "IVA incl. {amount}",
   "splitOverLabel": "In eccesso",
   "splitRemainingLabel": "Rimanente",

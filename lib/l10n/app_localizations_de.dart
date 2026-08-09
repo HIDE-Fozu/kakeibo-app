@@ -437,6 +437,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get splitCategoryUnselected => 'Keine Kategorie';
 
   @override
+  String get splitAmountEmpty => 'Kein Betrag';
+
+  @override
   String splitTaxIncludedAmount(String amount) {
     return 'inkl. MwSt. $amount';
   }
