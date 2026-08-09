@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/dates.dart';
+import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/chore_schedule.dart';
@@ -14,6 +15,13 @@ import '../application/chore_providers.dart';
 String choreShortDate(BuildContext context, CivilDate d) =>
     DateFormat.Md(Localizations.localeOf(context).toLanguageTag())
         .format(dateTimeOfCivil(d));
+
+/// 繰り返し設定の表示文言（毎月N日 / N日ごと）。一覧・履歴で共通。
+String choreRepeatText(AppLocalizations l, ChoreTask task) =>
+    switch (task.repeatUnit) {
+      ChoreRepeatUnit.monthlyDay => l.recurringEveryMonthDay(task.dayOfMonth),
+      ChoreRepeatUnit.everyDays => l.choreIntervalEvery(task.intervalDays),
+    };
 
 /// 残り日数の表示文言（N日超過 / 今日 / あとN日）。
 String choreRemainingText(AppLocalizations l, int daysLeft) {

@@ -61,12 +61,15 @@ class RecurringRuleEntity {
 }
 
 /// つきいちタスク（低頻度の家事。ハブラシ交換・マットレス干し等）。
-/// 次回期日 = 最後にやった月の翌月の毎月N日（記録が無ければ anchorDate 以降で最初のN日）。
+/// 次回期日は [repeatUnit] で決まる（chore_schedule.dart の nextChoreDue）:
+/// monthlyDay=最後にやった月の翌月のN日 / everyDays=最後にやった日＋間隔。
 class ChoreTask {
   final int id;
   final String name;
   final String emoji;
-  final int dayOfMonth; // 毎月の予定日 1..31（フォームで保証・短い月は月末丸め）
+  final ChoreRepeatUnit repeatUnit;
+  final int dayOfMonth; // 毎月の予定日 1..31（monthlyDay時・短い月は月末丸め）
+  final int intervalDays; // 間隔 1..999（everyDays時）
   final CivilDate anchorDate; // 作成日。記録が無い間の初回期日の基準
   final bool archived;
 
@@ -74,7 +77,9 @@ class ChoreTask {
     required this.id,
     required this.name,
     required this.emoji,
+    this.repeatUnit = ChoreRepeatUnit.monthlyDay,
     required this.dayOfMonth,
+    this.intervalDays = 30,
     required this.anchorDate,
     required this.archived,
   });

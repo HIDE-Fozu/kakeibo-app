@@ -1384,6 +1384,12 @@ abstract class AppLocalizations {
   /// **'Monthly task scheduled for day {day}'**
   String choreNotificationBody(int day);
 
+  /// Local notification body for an interval-based chore due today
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s been {days} days since last time'**
+  String choreNotificationBodyInterval(int days);
+
   /// Bottom navigation label for the Monthly hub tab
   ///
   /// In en, this message translates to:
@@ -1522,11 +1528,47 @@ abstract class AppLocalizations {
   /// **'Name'**
   String get choreFormNameLabel;
 
+  /// Label for the repeat-unit picker (monthly / every N days)
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get choreRepeatUnitLabel;
+
+  /// No description provided for @choreRepeatUnitMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get choreRepeatUnitMonthly;
+
+  /// No description provided for @choreRepeatUnitEveryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every N days'**
+  String get choreRepeatUnitEveryDays;
+
   /// Label for the day-of-month picker in the chore form
   ///
   /// In en, this message translates to:
-  /// **'Day of the month'**
+  /// **'Day'**
   String get choreFormDayLabel;
+
+  /// Label for the interval picker in the chore form
+  ///
+  /// In en, this message translates to:
+  /// **'Interval'**
+  String get choreFormIntervalLabel;
+
+  /// Day-count item in the interval picker, e.g. '14 days'
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String choreIntervalDaysItem(int days);
+
+  /// Interval description, e.g. 'Every 14 days'
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String choreIntervalEvery(int days);
 
   /// Chore form: emoji field label
   ///

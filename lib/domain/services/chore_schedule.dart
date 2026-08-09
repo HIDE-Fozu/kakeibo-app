@@ -1,13 +1,20 @@
+import '../../data/db/enums.dart';
 import '../entities.dart';
 import '../money/civil_date.dart';
 import 'recurring_schedule.dart' show daysInMonth;
 
 /// つきいちタスクの期日計算。DBに触れない純関数群
 /// （routine-reminder の due_logic.dart を CivilDate ベースに移植。
-/// v2.2.0で「間隔日数」→「毎月N日」方式に変更・固定費ルールと同じ語彙）。
+/// v2.2.0で「毎月N日」（固定費と同じ語彙）を追加し、「N日ごと」と選べる二本立てに）。
 
 /// iOSのpending通知上限64に対する安全マージン込みの予約上限。
 const kChoreMaxScheduled = 60;
+const kChoreIntervalMin = 1;
+const kChoreIntervalMax = 999;
+
+/// 間隔プルダウンに並べる上限（半年）。これを超える値は復元データのみで、
+/// フォームは現在値を選択肢に足して表示する。
+const kChoreIntervalPickerMax = 180;
 const kChoreNameMax = 30;
 const kChoreMemoMax = 100;
 const kChoreDefaultNotifyHour = 9;
@@ -19,7 +26,9 @@ class PlannedChore {
   final int taskId;
   final String emoji;
   final String name;
+  final ChoreRepeatUnit repeatUnit;
   final int dayOfMonth;
+  final int intervalDays;
   final CivilDate date;
 
   /// その期日時点の「超過見込み件数」。通知バッジに使う。
@@ -29,7 +38,9 @@ class PlannedChore {
     required this.taskId,
     required this.emoji,
     required this.name,
+    required this.repeatUnit,
     required this.dayOfMonth,
+    required this.intervalDays,
     required this.date,
     required this.badge,
   });
@@ -45,24 +56,37 @@ CivilDate _dueInNextMonth(int year, int month, int day) => month == 12
     ? _dueInMonth(year + 1, 1, day)
     : _dueInMonth(year, month + 1, day);
 
-/// 次回期日 = 記録が無ければ anchorDate（作成日）以降で最初の「毎月N日」、
-/// あれば最後にやった月の翌月の「毎月N日」（その月にやった＝その月は済み）。
+/// 次回期日。
+/// - everyDays: 最後にやった日＋間隔（記録なしなら anchorDate＋間隔）。
+/// - monthlyDay: 記録が無ければ anchorDate（作成日）以降で最初の「毎月N日」、
+///   あれば最後にやった月の翌月の「毎月N日」（その月にやった＝その月は済み）。
 CivilDate nextChoreDue(ChoreTask task, List<ChoreRecord> recordsOfTask) {
-  if (recordsOfTask.isEmpty) {
-    final a = task.anchorDate;
-    final inAnchorMonth = _dueInMonth(a.year, a.month, task.dayOfMonth);
-    if (!inAnchorMonth.isBefore(a)) return inAnchorMonth;
-    return _dueInNextMonth(a.year, a.month, task.dayOfMonth);
+  final latest = recordsOfTask.isEmpty
+      ? null
+      : recordsOfTask
+          .map((r) => r.doneDate)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+  switch (task.repeatUnit) {
+    case ChoreRepeatUnit.everyDays:
+      return (latest ?? task.anchorDate).addDays(task.intervalDays);
+    case ChoreRepeatUnit.monthlyDay:
+      if (latest == null) {
+        final a = task.anchorDate;
+        final inAnchorMonth = _dueInMonth(a.year, a.month, task.dayOfMonth);
+        if (!inAnchorMonth.isBefore(a)) return inAnchorMonth;
+        return _dueInNextMonth(a.year, a.month, task.dayOfMonth);
+      }
+      return _dueInNextMonth(latest.year, latest.month, task.dayOfMonth);
   }
-  final latest = recordsOfTask
-      .map((r) => r.doneDate)
-      .reduce((a, b) => a.isAfter(b) ? a : b);
-  return _dueInNextMonth(latest.year, latest.month, task.dayOfMonth);
 }
 
 /// [doneDate] に記録した直後の次回期日（スナックバーの近似表示用）。
 CivilDate choreDueAfterDone(ChoreTask task, CivilDate doneDate) =>
-    _dueInNextMonth(doneDate.year, doneDate.month, task.dayOfMonth);
+    switch (task.repeatUnit) {
+      ChoreRepeatUnit.everyDays => doneDate.addDays(task.intervalDays),
+      ChoreRepeatUnit.monthlyDay =>
+        _dueInNextMonth(doneDate.year, doneDate.month, task.dayOfMonth),
+    };
 
 int choreDaysLeft(CivilDate today, CivilDate due) => due.differenceInDays(today);
 
@@ -133,7 +157,9 @@ List<PlannedChore> buildChorePlans(
       taskId: s.task.id,
       emoji: s.task.emoji,
       name: s.task.name,
+      repeatUnit: s.task.repeatUnit,
       dayOfMonth: s.task.dayOfMonth,
+      intervalDays: s.task.intervalDays,
       date: s.due,
       badge: badge,
     );

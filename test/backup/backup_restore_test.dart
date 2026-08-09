@@ -166,7 +166,9 @@ void main() {
       transactions: minimalPayload().transactions,
       choreTasks: [
         BackupChoreTask(
-          id: 7, name: 'ハブラシ交換', emoji: '🪥', dayOfMonth: 30,
+          id: 7, name: 'ハブラシ交換', emoji: '🪥',
+          repeatUnit: ChoreRepeatUnit.everyDays, dayOfMonth: 30,
+          intervalDays: 45,
           anchorDate: const CivilDate(2026, 6, 1), archived: false,
           createdAt: DateTime.utc(2026, 6, 1),
         ),
@@ -183,6 +185,8 @@ void main() {
     final tasks = await db.choreDao.allTasks();
     expect(tasks.single.id, 7); // IDまで逐語復元・既存は消えた
     expect(tasks.single.name, 'ハブラシ交換');
+    expect(tasks.single.repeatUnit, ChoreRepeatUnit.everyDays); // 繰り返し設定も復元
+    expect(tasks.single.intervalDays, 45);
     final records = await db.choreDao.allRecords();
     expect(records.single.taskId, 7);
     expect(records.single.doneDate, const CivilDate(2026, 6, 20));

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/db/database.dart';
+import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'support/test_db.dart';
@@ -68,7 +69,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8); // v1からでも現行(v8)まで一気に上がる
+    expect(v, 9); // v1からでも現行(v9)まで一気に上がる
     await db.close();
   });
 
@@ -127,7 +128,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
     await db.close();
   });
 
@@ -188,7 +189,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
     await db.close();
   });
 
@@ -261,7 +262,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
     await db.close();
   });
 
@@ -331,7 +332,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
     await db.close();
   });
 
@@ -420,11 +421,11 @@ CREATE TABLE "recurring_rules" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
     await db.close();
   });
 
-  test('schema v7 → v8: つきいちが毎月N日化・anchor+intervalの日を引き継ぐ', () async {
+  test('schema v7 → v9: 「N日ごと」を維持しつつ毎月の予定日を初期化', () async {
     final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v8');
     addTearDown(() {
       try {
@@ -469,27 +470,79 @@ CREATE TABLE "chore_records" (
 
     final db = AppDatabase(NativeDatabase(file));
     final tasks = await db.choreDao.allTasks();
-    // 8/8+14日=8/22 → 毎月22日 / 7/20+45日=9/3 → 毎月3日
-    expect(tasks.map((t) => (t.name, t.dayOfMonth)).toList(),
-        [('ハブラシ交換', 22), ('まくら干し', 3)]);
+    // 繰り返し方は everyDays を維持し、間隔もそのまま（意味が変わらない）
+    expect(tasks.map((t) => (t.name, t.repeatUnit, t.intervalDays)).toList(), [
+      ('ハブラシ交換', ChoreRepeatUnit.everyDays, 14),
+      ('まくら干し', ChoreRepeatUnit.everyDays, 45),
+    ]);
+    // 毎月の予定日は次回期日の日を初期値に（8/8+14=8/22 / 7/20+45=9/3）
+    expect(tasks.map((t) => t.dayOfMonth).toList(), [22, 3]);
     expect(tasks.first.anchorDate.toIso(), '2026-08-08'); // 他列は無傷
     expect(tasks.first.emoji, '🪥');
     // 記録も無傷・FKカスケードも生きている
     expect((await db.choreDao.allRecords()).length, 1);
     await db.choreDao.deleteTask(tasks.first.id);
     expect(await db.choreDao.allRecords(), isEmpty);
-    // interval_days 列は消えている
-    final cols = await db
-        .customSelect("SELECT name FROM pragma_table_info('chore_tasks')")
-        .get()
-        .then((rows) => rows.map((r) => r.read<String>('name')).toSet());
-    expect(cols.contains('interval_days'), isFalse);
-    expect(cols.contains('day_of_month'), isTrue);
     final v = await db
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 8);
+    expect(v, 9);
+    await db.close();
+  });
+
+  test('schema v8 → v9: 毎月N日はそのまま・繰り返し方と間隔が既定で入る', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v9');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v8.db');
+
+    // v8当時の chore_tasks（day_of_month のみ・interval_days なし）
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "chore_tasks" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "emoji" TEXT NOT NULL DEFAULT '📌',
+  "day_of_month" INTEGER NOT NULL,
+  "anchor_date" TEXT NOT NULL,
+  "archived" INTEGER NOT NULL DEFAULT 0,
+  "created_at" TEXT NOT NULL
+);''');
+    raw.execute('''
+CREATE TABLE "chore_records" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "task_id" INTEGER NOT NULL REFERENCES "chore_tasks" ("id") ON DELETE CASCADE,
+  "done_date" TEXT NOT NULL,
+  "memo" TEXT NOT NULL DEFAULT '',
+  "created_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO chore_tasks (name, emoji, day_of_month, anchor_date, created_at) "
+        "VALUES ('ハブラシ交換', '🪥', 22, '2026-08-08', '2026-08-08T00:00:00.000Z')");
+    raw.execute(
+        "INSERT INTO chore_records (task_id, done_date, created_at) "
+        "VALUES (1, '2026-08-01', '2026-08-01T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 8');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final t = (await db.choreDao.allTasks()).single;
+    expect(t.repeatUnit, ChoreRepeatUnit.monthlyDay); // 既定
+    expect(t.dayOfMonth, 22); // 既存値は無傷
+    expect(t.intervalDays, 30); // 列のdefault
+    expect(t.emoji, '🪥');
+    expect((await db.choreDao.allRecords()).length, 1);
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 9);
     await db.close();
   });
 

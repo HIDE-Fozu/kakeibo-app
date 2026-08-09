@@ -231,7 +231,7 @@ class MonthlyHubScreen extends ConsumerWidget {
                   leading: Text(s.task.emoji,
                       style: const TextStyle(fontSize: 20)),
                   title: Text(s.task.name),
-                  subtitle: Text(l.recurringEveryMonthDay(s.task.dayOfMonth)),
+                  subtitle: Text(choreRepeatText(l, s.task)),
                   trailing: Text(
                     choreRemainingText(l, s.daysLeft),
                     style: TextStyle(

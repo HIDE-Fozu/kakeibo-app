@@ -742,6 +742,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String choreNotificationBodyInterval(int days) {
+    return 'Já se passaram $days dias desde a última vez';
+  }
+
+  @override
   String get homeNavMonthly => 'Mensal';
 
   @override
@@ -825,7 +830,29 @@ class AppLocalizationsPt extends AppLocalizations {
   String get choreFormNameLabel => 'Nome';
 
   @override
-  String get choreFormDayLabel => 'Dia do mês';
+  String get choreRepeatUnitLabel => 'Repetição';
+
+  @override
+  String get choreRepeatUnitMonthly => 'Todo mês';
+
+  @override
+  String get choreRepeatUnitEveryDays => 'A cada N dias';
+
+  @override
+  String get choreFormDayLabel => 'Dia';
+
+  @override
+  String get choreFormIntervalLabel => 'Intervalo';
+
+  @override
+  String choreIntervalDaysItem(int days) {
+    return '$days dias';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return 'A cada $days dias';
+  }
 
   @override
   String get choreFormEmojiLabel => 'Emoji (📌 se vazio)';

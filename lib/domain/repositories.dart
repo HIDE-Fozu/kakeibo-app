@@ -54,11 +54,13 @@ abstract interface class ChoreRepository {
   Future<int> addTask({
     required String name,
     required String emoji,
+    ChoreRepeatUnit repeatUnit,
     required int dayOfMonth,
+    int intervalDays,
     required CivilDate anchorDate,
   });
 
-  /// 既存タスクを更新する（name/emoji/dayOfMonth/anchorDate/archived）。
+  /// 既存タスクを更新する（name/emoji/繰り返し設定/anchorDate/archived）。
   Future<void> updateTask(ChoreTask task);
   Future<void> setArchived(int taskId, bool archived);
 

@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/data/repositories/drift_chore_repository.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
@@ -13,7 +14,7 @@ import 'support/test_db.dart';
 
 /// routine-reminder の record_actions_test.dart を移植。
 /// 変更点: DB直依存→ChoreRepository / 固定Clock→ラムダ / 文言はl10n(ja)で検証。
-/// v2.2.0で「毎月N日」方式（期日=記録した月の翌月N日・記録なしはanchor基準）。
+/// v2.2.0で繰り返しは二本立て（毎月N日 / N日ごと）。
 void main() {
   late DriftChoreRepository repo;
   late FakeNotificationService notif;
@@ -55,7 +56,7 @@ void main() {
     final plans = notif.rescheduleCalls.single;
     expect(plans.single.date, CivilDate.parse('2026-08-14')); // 7月に実施→8/14
     expect(plans.single.title, '🪥 ハブラシ交換');
-    expect(plans.single.body, '毎月14日の予定です'); // l10n(ja)で組み立て
+    expect(plans.single.body, '毎月14日の予定です'); // l10n(ja)で組み立て（毎月N日）
     expect(notif.lastHour, 9); // 既定の通知時刻
     expect(badge.setCalls.single, 0); // 超過なし
   });
@@ -162,6 +163,36 @@ void main() {
     expect(plans.single.date, CivilDate.parse('2026-08-10')); // 7/10は経過済み
   });
 
+  test('createTask（N日ごと）: 初回期日=today+間隔・通知文言も間隔版', () async {
+    await actions.createTask(
+      name: 'まくら干し',
+      emoji: '🛏',
+      repeatUnit: ChoreRepeatUnit.everyDays,
+      dayOfMonth: 1,
+      intervalDays: 14,
+    );
+    final t = (await repo.allTasks()).single;
+    expect(t.repeatUnit, ChoreRepeatUnit.everyDays);
+    expect(t.intervalDays, 14);
+    final plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-07-29')); // 7/15+14
+    expect(plans.single.body, '前回から14日たちました');
+  });
+
+  test('N日ごとの記録→次回は記録日+間隔（毎月N日と挙動が違う）', () async {
+    final tid = await repo.addTask(
+      name: 'ハブラシ交換',
+      emoji: '🪥',
+      repeatUnit: ChoreRepeatUnit.everyDays,
+      dayOfMonth: 1,
+      intervalDays: 30,
+      anchorDate: CivilDate.parse('2026-06-10'),
+    );
+    await actions.recordDone(tid, CivilDate.parse('2026-07-15'));
+    final plans = notif.rescheduleCalls.last;
+    expect(plans.single.date, CivilDate.parse('2026-08-14')); // 7/15+30
+  });
+
   test('未来日付のrecordDoneはArgumentError', () async {
     final tid = await repo.addTask(
       name: 'ハブラシ交換',
@@ -200,7 +231,9 @@ void main() {
       id: tid,
       name: 'マットレス向き替え',
       emoji: '🛏️',
+      repeatUnit: ChoreRepeatUnit.everyDays,
       dayOfMonth: 25,
+      intervalDays: 90,
       anchorDate: CivilDate.parse('2026-05-01'),
       archived: true,
     );
@@ -208,7 +241,9 @@ void main() {
     final t = (await repo.allTasks()).singleWhere((t) => t.id == tid);
     expect(t.name, 'マットレス向き替え');
     expect(t.emoji, '🛏️');
+    expect(t.repeatUnit, ChoreRepeatUnit.everyDays); // 単位の切替も保存される
     expect(t.dayOfMonth, 25);
+    expect(t.intervalDays, 90);
     expect(t.anchorDate, CivilDate.parse('2026-05-01'));
     expect(t.archived, isTrue);
   });

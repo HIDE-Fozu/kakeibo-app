@@ -54,14 +54,22 @@ class RecurringRules extends Table {
 }
 
 /// つきいちタスク（低頻度の家事リマインダー）。routine-reminder から v2.2.0 で合体。
-/// 次回期日は保存せず、常に「毎月dayOfMonth日」から導出する。v7で追加・v8で毎月N日化。
+/// 次回期日は保存せず、repeatUnit に応じて「毎月dayOfMonth日」または
+/// 「最後の記録＋intervalDays」から導出する。v7で追加・v8で毎月N日化・v9で両対応。
 @DataClassName('ChoreTaskRow')
 class ChoreTasks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().withLength(min: 1, max: 30)();
   TextColumn get emoji => text().withDefault(const Constant('📌'))();
+  /// 繰り返し方（v9で追加）。monthlyDay=毎月N日 / everyDays=N日ごと。
+  TextColumn get repeatUnit => textEnum<ChoreRepeatUnit>()
+      .withDefault(const Constant('monthlyDay'))();
+
   // 毎月の予定日 1..31（v8で間隔日数から変更。フォームで保証、DBはCHECKなし）
   IntColumn get dayOfMonth => integer()();
+
+  /// N日ごとの間隔 1..999（v7の interval_days を v9で復活）。
+  IntColumn get intervalDays => integer().withDefault(const Constant(30))();
   TextColumn get anchorDate => text().map(const CivilDateConverter())();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

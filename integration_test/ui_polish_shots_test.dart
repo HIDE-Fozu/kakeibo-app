@@ -51,13 +51,26 @@ void main() {
     await t.tap(find.byType(BackButton));
     await settle(t);
 
-    // つきいちフォーム: 毎月の予定日メニュー
+    // つきいちフォーム: 繰り返し単位＋値の2列
     await t.tap(find.byKey(const Key('hub-chore-add')));
     await settle(t);
     await shot(t, 'polish_4_chore_form');
     await t.tap(find.byKey(const Key('chore-form-day')), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_5_chore_day_menu');
+    await t.tapAt(const Offset(30, 120));
+    await settle(t);
+    // 繰り返し単位を「日ごと」へ → 右が間隔プルダウンに変わる
+    await t.tap(find.byKey(const Key('chore-form-unit')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_8_chore_unit_menu');
+    await t.tap(find.text('日ごと').last, warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_9_chore_interval');
+    await t.tap(find.byKey(const Key('chore-form-interval')),
+        warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_10_chore_interval_menu');
     await t.tapAt(const Offset(30, 120));
     await settle(t);
     await t.tap(find.byType(BackButton));

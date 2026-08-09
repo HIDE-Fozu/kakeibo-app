@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'backup_data.dart';
 import '../db/enums.dart';
 import '../../domain/money/civil_date.dart';
+import '../../domain/services/chore_schedule.dart'
+    show kChoreIntervalMin, kChoreIntervalMax;
 
 /// バックアップJSONの直列化と厳格検証。復元の唯一の門番。
 class BackupCodec {
@@ -12,9 +14,10 @@ class BackupCodec {
   ///     旧バックアップはルール空で復元。
   /// v5: choreTasks / choreRecords（つきいちタスク）を追加。
   ///     旧バックアップは空で復元。
-  /// v6: つきいちタスクを「毎月N日」方式に（intervalDays → dayOfMonth）。
-  ///     旧バックアップは次回期日（anchor+interval）の日を引き継ぐ。
-  static const int formatVersion = 6;
+  /// v6: つきいちタスクに dayOfMonth（毎月N日）を追加。
+  /// v7: つきいちタスクに repeatUnit（毎月N日 / N日ごと）と intervalDays を追加。
+  ///     v5以前は「N日ごと」だったので everyDays として復元する。
+  static const int formatVersion = 7;
 
   const BackupCodec();
 
@@ -78,7 +81,9 @@ class BackupCodec {
             'id': t.id,
             'name': t.name,
             'emoji': t.emoji,
+            'repeatUnit': t.repeatUnit.name,
             'dayOfMonth': t.dayOfMonth,
+            'intervalDays': t.intervalDays,
             'anchorDate': t.anchorDate.toIso(),
             'archived': t.archived,
             'createdAt': t.createdAt.toUtc().toIso8601String(),
@@ -356,6 +361,19 @@ class BackupCodec {
       if (dayOfMonth < 1 || dayOfMonth > 31) {
         throw BackupValidationError('$ctx.dayOfMonth が範囲外です: $dayOfMonth');
       }
+      final intervalDays = req<int>(raw, 'intervalDays', ctx);
+      if (intervalDays < kChoreIntervalMin ||
+          intervalDays > kChoreIntervalMax) {
+        throw BackupValidationError(
+            '$ctx.intervalDays が範囲外です: $intervalDays');
+      }
+      final unitRaw = req<String>(raw, 'repeatUnit', ctx);
+      final repeatUnit = ChoreRepeatUnit.values
+          .where((u) => u.name == unitRaw)
+          .firstOrNull;
+      if (repeatUnit == null) {
+        throw BackupValidationError('$ctx.repeatUnit が不正です: "$unitRaw"');
+      }
       final anchorRaw = req<String>(raw, 'anchorDate', ctx);
       final CivilDate anchorDate;
       try {
@@ -367,7 +385,9 @@ class BackupCodec {
         id: req<int>(raw, 'id', ctx),
         name: name,
         emoji: req<String>(raw, 'emoji', ctx),
+        repeatUnit: repeatUnit,
         dayOfMonth: dayOfMonth,
+        intervalDays: intervalDays,
         anchorDate: anchorDate,
         archived: req<bool>(raw, 'archived', ctx),
         createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
@@ -437,6 +457,8 @@ class BackupCodec {
           m = _migrateV4toV5(m);
         case 5:
           m = _migrateV5toV6(m);
+        case 6:
+          m = _migrateV6toV7(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -482,15 +504,16 @@ class BackupCodec {
     return root;
   }
 
-  /// v5→v6: つきいちタスクを「間隔日数」→「毎月N日」方式に。旧バックアップは
-  /// 次回期日（anchorDate + intervalDays）の「日」を毎月の予定日として引き継ぐ
-  /// （DBスキーマ v7→v8 と同じ規則）。不正値は後段の検証に任せる。
+  /// v5→v6: つきいちタスクに「毎月N日」を追加。v5は「N日ごと」しか無いので、
+  /// 次回期日（anchorDate + intervalDays）の「日」を毎月の予定日の初期値にする
+  /// （DBスキーマ v7→v9 と同じ規則）。intervalDays は残し、v6→v7 が
+  /// 「N日ごと」だったことの目印に使う。不正値は後段の検証に任せる。
   Map<String, dynamic> _migrateV5toV6(Map<String, dynamic> root) {
     final tasks = root['choreTasks'];
     if (tasks is List) {
       for (final t in tasks) {
         if (t is! Map<String, dynamic>) continue;
-        final interval = t.remove('intervalDays');
+        final interval = t['intervalDays'];
         final anchorRaw = t['anchorDate'];
         var day = 1;
         if (interval is int && interval >= 1 && anchorRaw is String) {
@@ -501,6 +524,25 @@ class BackupCodec {
           }
         }
         t['dayOfMonth'] = day;
+      }
+    }
+    return root;
+  }
+
+  /// v6→v7: 繰り返し方を明示する。intervalDays が残っていれば v5以前＝
+  /// 「N日ごと」だったバックアップなので everyDays として復元し、
+  /// 無ければ v6（毎月N日のみ）なので monthlyDay ＋既定間隔で補う。
+  Map<String, dynamic> _migrateV6toV7(Map<String, dynamic> root) {
+    final tasks = root['choreTasks'];
+    if (tasks is List) {
+      for (final t in tasks) {
+        if (t is! Map<String, dynamic>) continue;
+        final interval = t['intervalDays'];
+        final wasInterval = interval is int && interval >= kChoreIntervalMin;
+        t['repeatUnit'] = wasInterval
+            ? ChoreRepeatUnit.everyDays.name
+            : ChoreRepeatUnit.monthlyDay.name;
+        t['intervalDays'] = wasInterval ? interval : 30;
       }
     }
     return root;

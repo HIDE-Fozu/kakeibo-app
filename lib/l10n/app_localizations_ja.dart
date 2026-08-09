@@ -715,6 +715,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String choreNotificationBodyInterval(int days) {
+    return '前回から$days日たちました';
+  }
+
+  @override
   String get homeNavMonthly => '毎月';
 
   @override
@@ -796,7 +801,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get choreFormNameLabel => '項目名';
 
   @override
-  String get choreFormDayLabel => '毎月の予定日';
+  String get choreRepeatUnitLabel => '繰り返し';
+
+  @override
+  String get choreRepeatUnitMonthly => '毎月';
+
+  @override
+  String get choreRepeatUnitEveryDays => '日ごと';
+
+  @override
+  String get choreFormDayLabel => '予定日';
+
+  @override
+  String get choreFormIntervalLabel => '間隔';
+
+  @override
+  String choreIntervalDaysItem(int days) {
+    return '$days日';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return '$days日ごと';
+  }
 
   @override
   String get choreFormEmojiLabel => '絵文字（未入力なら📌）';

@@ -43,7 +43,9 @@ BackupPayload samplePayload() => BackupPayload(
       ],
       choreTasks: [
         BackupChoreTask(
-          id: 1, name: 'ハブラシ交換', emoji: '🪥', dayOfMonth: 30,
+          id: 1, name: 'ハブラシ交換', emoji: '🪥',
+          repeatUnit: ChoreRepeatUnit.monthlyDay, dayOfMonth: 30,
+          intervalDays: 30,
           anchorDate: const CivilDate(2026, 7, 1), archived: false,
           createdAt: DateTime.utc(2026, 7, 1, 0, 0, 0),
         ),
@@ -69,7 +71,7 @@ void main() {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 6);
+    expect(root['formatVersion'], 7);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -217,7 +219,7 @@ void main() {
 
     test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
       final payload = codec.decode(validV1Json());
-      expect(payload.formatVersion, 6); // decodeはマイグレーション後に現行版を返す
+      expect(payload.formatVersion, 7); // decodeはマイグレーション後に現行版を返す
       expect(payload.categories.every((c) => c.parentId == null), isTrue);
     });
 
@@ -266,7 +268,7 @@ void main() {
         r.remove('recurringRules');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 6);
+      expect(payload.formatVersion, 7);
       expect(payload.recurringRules, isEmpty);
     });
 
@@ -324,27 +326,46 @@ void main() {
     });
   });
 
-  group('formatVersion 6（つきいち毎月N日化）', () {
-    test('v5 JSON（intervalDays）はmigrateされ anchor+interval の日を引き継ぐ', () {
+  group('formatVersion 6/7（つきいちの繰り返し設定）', () {
+    test('v5 JSON（N日ごとの世代）は everyDays＋間隔そのままで復元', () {
       final json = mutate((r) {
         r['formatVersion'] = 5;
         final t = (r['choreTasks'] as List).first as Map<String, dynamic>;
-        t.remove('dayOfMonth');
-        t['intervalDays'] = 14; // anchor 7/1 + 14日 = 7/15 → 毎月15日
+        t..remove('dayOfMonth')
+         ..remove('repeatUnit');
+        t['intervalDays'] = 14; // anchor 7/1 + 14日 = 7/15 → 毎月の予定日は15
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 6);
-      expect(payload.choreTasks.single.dayOfMonth, 15);
+      expect(payload.formatVersion, 7);
+      final t = payload.choreTasks.single;
+      expect(t.repeatUnit, ChoreRepeatUnit.everyDays); // 間隔の意味を失わない
+      expect(t.intervalDays, 14);
+      expect(t.dayOfMonth, 15); // 単位を切り替えた時の初期値
     });
 
-    test('v5 JSON: 月をまたぐ引き継ぎ（7/1+45日=8/15→毎月15日）', () {
+    test('v5 JSON: 予定日の引き継ぎは月をまたぐ（7/1+45日=8/15→15）', () {
       final json = mutate((r) {
         r['formatVersion'] = 5;
         final t = (r['choreTasks'] as List).first as Map<String, dynamic>;
-        t.remove('dayOfMonth');
+        t..remove('dayOfMonth')
+         ..remove('repeatUnit');
         t['intervalDays'] = 45;
       });
       expect(codec.decode(json).choreTasks.single.dayOfMonth, 15);
+    });
+
+    test('v6 JSON（毎月N日のみの世代）は monthlyDay＋既定間隔で復元', () {
+      final json = mutate((r) {
+        r['formatVersion'] = 6;
+        final t = (r['choreTasks'] as List).first as Map<String, dynamic>;
+        t..remove('repeatUnit')
+         ..remove('intervalDays');
+        t['dayOfMonth'] = 27;
+      });
+      final t = codec.decode(json).choreTasks.single;
+      expect(t.repeatUnit, ChoreRepeatUnit.monthlyDay);
+      expect(t.dayOfMonth, 27);
+      expect(t.intervalDays, 30);
     });
   });
 
@@ -356,7 +377,7 @@ void main() {
         r.remove('choreRecords');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 6);
+      expect(payload.formatVersion, 7);
       expect(payload.choreTasks, isEmpty);
       expect(payload.choreRecords, isEmpty);
     });
@@ -367,7 +388,9 @@ void main() {
       expect(t.id, 1);
       expect(t.name, 'ハブラシ交換');
       expect(t.emoji, '🪥');
+      expect(t.repeatUnit, ChoreRepeatUnit.monthlyDay);
       expect(t.dayOfMonth, 30);
+      expect(t.intervalDays, 30);
       expect(t.anchorDate, const CivilDate(2026, 7, 1));
       expect(t.archived, isFalse);
       expect(t.createdAt, DateTime.utc(2026, 7, 1));
@@ -381,6 +404,27 @@ void main() {
       expect(
         () => codec.decode(mutate((r) {
           ((r['choreRecords'] as List).first as Map)['taskId'] = 999;
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+    });
+
+    test('不正なrepeatUnit・intervalDaysは拒否', () {
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreTasks'] as List).first as Map)['repeatUnit'] = 'weekly';
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreTasks'] as List).first as Map)['intervalDays'] = 0;
+        })),
+        throwsA(isA<BackupValidationError>()),
+      );
+      expect(
+        () => codec.decode(mutate((r) {
+          ((r['choreTasks'] as List).first as Map)['intervalDays'] = 1000;
         })),
         throwsA(isA<BackupValidationError>()),
       );

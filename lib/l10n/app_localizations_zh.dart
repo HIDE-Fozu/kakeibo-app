@@ -712,6 +712,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String choreNotificationBodyInterval(int days) {
+    return '距离上次已经$days天了';
+  }
+
+  @override
   String get homeNavMonthly => '每月';
 
   @override
@@ -793,7 +798,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get choreFormNameLabel => '项目名称';
 
   @override
-  String get choreFormDayLabel => '每月的日期';
+  String get choreRepeatUnitLabel => '重复';
+
+  @override
+  String get choreRepeatUnitMonthly => '每月';
+
+  @override
+  String get choreRepeatUnitEveryDays => '每隔几天';
+
+  @override
+  String get choreFormDayLabel => '日期';
+
+  @override
+  String get choreFormIntervalLabel => '间隔';
+
+  @override
+  String choreIntervalDaysItem(int days) {
+    return '$days天';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return '每$days天';
+  }
 
   @override
   String get choreFormEmojiLabel => '表情（留空则为📌）';

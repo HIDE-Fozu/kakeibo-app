@@ -4,17 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/cell_dropdown.dart';
+import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/services/chore_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chore_providers.dart';
 
 /// 新規/編集共用のつきいちタスクフォーム（routine-reminder の task_form.dart を移植）。
-/// `task: null`=新規（保存で createTask・初回期日=今日以降で最初の毎月N日）、
-/// 非null=編集。
+/// `task: null`=新規（保存で createTask）、非null=編集。
+///
+/// 繰り返しは「繰り返し」プルダウン（毎月 / 日ごと）＋横の値プルダウンの2列。
+/// 値は単位ごとに別々に保持するので、単位を往復しても入力が消えない。
 ///
 /// バリデーション: 名前1〜30文字・絵文字1グリフ採用/未入力なら📌。
-/// 予定日はプルダウン（1..31）なので不正値は入らない。
+/// 予定日/間隔はプルダウンなので不正値は入らない。
 /// 編集モードには「アーカイブする」「この項目を削除」（確認あり）が追加される。
 class ChoreTaskFormPage extends ConsumerStatefulWidget {
   const ChoreTaskFormPage({super.key, required this.task});
@@ -28,9 +31,11 @@ class ChoreTaskFormPage extends ConsumerStatefulWidget {
 class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
   late final TextEditingController _nameCtrl =
       TextEditingController(text: widget.task?.name ?? '');
-  // 新規の既定は今日の「日」（今日作れば今日が初回期日になる自然な既定）。
-  late int _day =
-      widget.task?.dayOfMonth ?? ref.read(choreTodayProvider).day;
+  late ChoreRepeatUnit _unit =
+      widget.task?.repeatUnit ?? ChoreRepeatUnit.monthlyDay;
+  // 毎月の既定は今日の「日」（今日作れば今日が初回期日になる自然な既定）。
+  late int _day = widget.task?.dayOfMonth ?? ref.read(choreTodayProvider).day;
+  late int _interval = widget.task?.intervalDays ?? 30;
   late final TextEditingController _emojiCtrl =
       TextEditingController(text: widget.task?.emoji ?? '');
 
@@ -46,6 +51,13 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
     _emojiCtrl.dispose();
     super.dispose();
   }
+
+  /// 間隔プルダウンの選択肢（1..180 ＋ 現在値）。
+  List<int> get _intervalChoices => <int>{
+        for (var d = kChoreIntervalMin; d <= kChoreIntervalPickerMax; d++) d,
+        _interval,
+      }.toList()
+        ..sort();
 
   /// 名前は空白のみを拒否するためtrim後で判定する。
   String get _trimmedName => _nameCtrl.text.trim();
@@ -66,13 +78,21 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
       final actions = ref.read(choreActionsProvider);
       final currentTask = widget.task;
       if (currentTask == null) {
-        await actions.createTask(name: name, emoji: emoji, dayOfMonth: _day);
+        await actions.createTask(
+          name: name,
+          emoji: emoji,
+          repeatUnit: _unit,
+          dayOfMonth: _day,
+          intervalDays: _interval,
+        );
       } else {
         await actions.updateTaskInfo(ChoreTask(
           id: currentTask.id,
           name: name,
           emoji: emoji,
+          repeatUnit: _unit,
           dayOfMonth: _day,
+          intervalDays: _interval,
           anchorDate: currentTask.anchorDate,
           archived: currentTask.archived,
         ));
@@ -161,18 +181,60 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 8),
-              CellDropdownField<int>(
-                key: const Key('chore-form-day'),
-                value: _day,
-                decoration: InputDecoration(
-                  labelText: l.choreFormDayLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                items: [
-                  for (var d = 1; d <= 31; d++)
-                    CellDropdownItem(d, l.dayOfMonthItem(d)),
+              // 「繰り返し」（毎月 / 日ごと）＋ 値（予定日 / 間隔）の2列。
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: CellDropdownField<ChoreRepeatUnit>(
+                      key: const Key('chore-form-unit'),
+                      value: _unit,
+                      decoration: InputDecoration(
+                        labelText: l.choreRepeatUnitLabel,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        CellDropdownItem(ChoreRepeatUnit.monthlyDay,
+                            l.choreRepeatUnitMonthly),
+                        CellDropdownItem(ChoreRepeatUnit.everyDays,
+                            l.choreRepeatUnitEveryDays),
+                      ],
+                      onChanged: (v) => setState(() => _unit = v),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _unit == ChoreRepeatUnit.monthlyDay
+                        ? CellDropdownField<int>(
+                            key: const Key('chore-form-day'),
+                            value: _day,
+                            decoration: InputDecoration(
+                              labelText: l.choreFormDayLabel,
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: [
+                              for (var d = 1; d <= 31; d++)
+                                CellDropdownItem(d, l.dayOfMonthItem(d)),
+                            ],
+                            onChanged: (v) => setState(() => _day = v),
+                          )
+                        : CellDropdownField<int>(
+                            key: const Key('chore-form-interval'),
+                            value: _interval,
+                            decoration: InputDecoration(
+                              labelText: l.choreFormIntervalLabel,
+                              border: const OutlineInputBorder(),
+                            ),
+                            // 復元データが上限を超える場合も選択肢に含める
+                            // （含めないと現在値が空表示になる）。
+                            items: [
+                              for (final d in _intervalChoices)
+                                CellDropdownItem(d, l.choreIntervalDaysItem(d)),
+                            ],
+                            onChanged: (v) => setState(() => _interval = v),
+                          ),
+                  ),
                 ],
-                onChanged: (v) => setState(() => _day = v),
               ),
               const SizedBox(height: 8),
               TextField(

@@ -2152,6 +2152,16 @@ class $ChoreTasksTable extends ChoreTasks
     requiredDuringInsert: false,
     defaultValue: const Constant('📌'),
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<ChoreRepeatUnit, String>
+  repeatUnit = GeneratedColumn<String>(
+    'repeat_unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('monthlyDay'),
+  ).withConverter<ChoreRepeatUnit>($ChoreTasksTable.$converterrepeatUnit);
   static const VerificationMeta _dayOfMonthMeta = const VerificationMeta(
     'dayOfMonth',
   );
@@ -2162,6 +2172,18 @@ class $ChoreTasksTable extends ChoreTasks
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
+    'intervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
+    'interval_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
   );
   @override
   late final GeneratedColumnWithTypeConverter<CivilDate, String> anchorDate =
@@ -2204,7 +2226,9 @@ class $ChoreTasksTable extends ChoreTasks
     id,
     name,
     emoji,
+    repeatUnit,
     dayOfMonth,
+    intervalDays,
     anchorDate,
     archived,
     createdAt,
@@ -2249,6 +2273,15 @@ class $ChoreTasksTable extends ChoreTasks
     } else if (isInserting) {
       context.missing(_dayOfMonthMeta);
     }
+    if (data.containsKey('interval_days')) {
+      context.handle(
+        _intervalDaysMeta,
+        intervalDays.isAcceptableOrUnknown(
+          data['interval_days']!,
+          _intervalDaysMeta,
+        ),
+      );
+    }
     if (data.containsKey('archived')) {
       context.handle(
         _archivedMeta,
@@ -2282,9 +2315,19 @@ class $ChoreTasksTable extends ChoreTasks
         DriftSqlType.string,
         data['${effectivePrefix}emoji'],
       )!,
+      repeatUnit: $ChoreTasksTable.$converterrepeatUnit.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}repeat_unit'],
+        )!,
+      ),
       dayOfMonth: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}day_of_month'],
+      )!,
+      intervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_days'],
       )!,
       anchorDate: $ChoreTasksTable.$converteranchorDate.fromSql(
         attachedDatabase.typeMapping.read(
@@ -2308,6 +2351,10 @@ class $ChoreTasksTable extends ChoreTasks
     return $ChoreTasksTable(attachedDatabase, alias);
   }
 
+  static JsonTypeConverter2<ChoreRepeatUnit, String, String>
+  $converterrepeatUnit = const EnumNameConverter<ChoreRepeatUnit>(
+    ChoreRepeatUnit.values,
+  );
   static TypeConverter<CivilDate, String> $converteranchorDate =
       const CivilDateConverter();
 }
@@ -2316,7 +2363,13 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
   final int id;
   final String name;
   final String emoji;
+
+  /// 繰り返し方（v9で追加）。monthlyDay=毎月N日 / everyDays=N日ごと。
+  final ChoreRepeatUnit repeatUnit;
   final int dayOfMonth;
+
+  /// N日ごとの間隔 1..999（v7の interval_days を v9で復活）。
+  final int intervalDays;
   final CivilDate anchorDate;
   final bool archived;
   final DateTime createdAt;
@@ -2324,7 +2377,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     required this.id,
     required this.name,
     required this.emoji,
+    required this.repeatUnit,
     required this.dayOfMonth,
+    required this.intervalDays,
     required this.anchorDate,
     required this.archived,
     required this.createdAt,
@@ -2335,7 +2390,13 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['emoji'] = Variable<String>(emoji);
+    {
+      map['repeat_unit'] = Variable<String>(
+        $ChoreTasksTable.$converterrepeatUnit.toSql(repeatUnit),
+      );
+    }
     map['day_of_month'] = Variable<int>(dayOfMonth);
+    map['interval_days'] = Variable<int>(intervalDays);
     {
       map['anchor_date'] = Variable<String>(
         $ChoreTasksTable.$converteranchorDate.toSql(anchorDate),
@@ -2351,7 +2412,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: Value(id),
       name: Value(name),
       emoji: Value(emoji),
+      repeatUnit: Value(repeatUnit),
       dayOfMonth: Value(dayOfMonth),
+      intervalDays: Value(intervalDays),
       anchorDate: Value(anchorDate),
       archived: Value(archived),
       createdAt: Value(createdAt),
@@ -2367,7 +2430,11 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       emoji: serializer.fromJson<String>(json['emoji']),
+      repeatUnit: $ChoreTasksTable.$converterrepeatUnit.fromJson(
+        serializer.fromJson<String>(json['repeatUnit']),
+      ),
       dayOfMonth: serializer.fromJson<int>(json['dayOfMonth']),
+      intervalDays: serializer.fromJson<int>(json['intervalDays']),
       anchorDate: serializer.fromJson<CivilDate>(json['anchorDate']),
       archived: serializer.fromJson<bool>(json['archived']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2380,7 +2447,11 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'emoji': serializer.toJson<String>(emoji),
+      'repeatUnit': serializer.toJson<String>(
+        $ChoreTasksTable.$converterrepeatUnit.toJson(repeatUnit),
+      ),
       'dayOfMonth': serializer.toJson<int>(dayOfMonth),
+      'intervalDays': serializer.toJson<int>(intervalDays),
       'anchorDate': serializer.toJson<CivilDate>(anchorDate),
       'archived': serializer.toJson<bool>(archived),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2391,7 +2462,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     int? id,
     String? name,
     String? emoji,
+    ChoreRepeatUnit? repeatUnit,
     int? dayOfMonth,
+    int? intervalDays,
     CivilDate? anchorDate,
     bool? archived,
     DateTime? createdAt,
@@ -2399,7 +2472,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
     id: id ?? this.id,
     name: name ?? this.name,
     emoji: emoji ?? this.emoji,
+    repeatUnit: repeatUnit ?? this.repeatUnit,
     dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+    intervalDays: intervalDays ?? this.intervalDays,
     anchorDate: anchorDate ?? this.anchorDate,
     archived: archived ?? this.archived,
     createdAt: createdAt ?? this.createdAt,
@@ -2409,9 +2484,15 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      repeatUnit: data.repeatUnit.present
+          ? data.repeatUnit.value
+          : this.repeatUnit,
       dayOfMonth: data.dayOfMonth.present
           ? data.dayOfMonth.value
           : this.dayOfMonth,
+      intervalDays: data.intervalDays.present
+          ? data.intervalDays.value
+          : this.intervalDays,
       anchorDate: data.anchorDate.present
           ? data.anchorDate.value
           : this.anchorDate,
@@ -2426,7 +2507,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('emoji: $emoji, ')
+          ..write('repeatUnit: $repeatUnit, ')
           ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('intervalDays: $intervalDays, ')
           ..write('anchorDate: $anchorDate, ')
           ..write('archived: $archived, ')
           ..write('createdAt: $createdAt')
@@ -2435,8 +2518,17 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, emoji, dayOfMonth, anchorDate, archived, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    emoji,
+    repeatUnit,
+    dayOfMonth,
+    intervalDays,
+    anchorDate,
+    archived,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2444,7 +2536,9 @@ class ChoreTaskRow extends DataClass implements Insertable<ChoreTaskRow> {
           other.id == this.id &&
           other.name == this.name &&
           other.emoji == this.emoji &&
+          other.repeatUnit == this.repeatUnit &&
           other.dayOfMonth == this.dayOfMonth &&
+          other.intervalDays == this.intervalDays &&
           other.anchorDate == this.anchorDate &&
           other.archived == this.archived &&
           other.createdAt == this.createdAt);
@@ -2454,7 +2548,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> emoji;
+  final Value<ChoreRepeatUnit> repeatUnit;
   final Value<int> dayOfMonth;
+  final Value<int> intervalDays;
   final Value<CivilDate> anchorDate;
   final Value<bool> archived;
   final Value<DateTime> createdAt;
@@ -2462,7 +2558,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.emoji = const Value.absent(),
+    this.repeatUnit = const Value.absent(),
     this.dayOfMonth = const Value.absent(),
+    this.intervalDays = const Value.absent(),
     this.anchorDate = const Value.absent(),
     this.archived = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2471,7 +2569,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     this.id = const Value.absent(),
     required String name,
     this.emoji = const Value.absent(),
+    this.repeatUnit = const Value.absent(),
     required int dayOfMonth,
+    this.intervalDays = const Value.absent(),
     required CivilDate anchorDate,
     this.archived = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2482,7 +2582,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? emoji,
+    Expression<String>? repeatUnit,
     Expression<int>? dayOfMonth,
+    Expression<int>? intervalDays,
     Expression<String>? anchorDate,
     Expression<bool>? archived,
     Expression<DateTime>? createdAt,
@@ -2491,7 +2593,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (emoji != null) 'emoji': emoji,
+      if (repeatUnit != null) 'repeat_unit': repeatUnit,
       if (dayOfMonth != null) 'day_of_month': dayOfMonth,
+      if (intervalDays != null) 'interval_days': intervalDays,
       if (anchorDate != null) 'anchor_date': anchorDate,
       if (archived != null) 'archived': archived,
       if (createdAt != null) 'created_at': createdAt,
@@ -2502,7 +2606,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     Value<int>? id,
     Value<String>? name,
     Value<String>? emoji,
+    Value<ChoreRepeatUnit>? repeatUnit,
     Value<int>? dayOfMonth,
+    Value<int>? intervalDays,
     Value<CivilDate>? anchorDate,
     Value<bool>? archived,
     Value<DateTime>? createdAt,
@@ -2511,7 +2617,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
       id: id ?? this.id,
       name: name ?? this.name,
       emoji: emoji ?? this.emoji,
+      repeatUnit: repeatUnit ?? this.repeatUnit,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      intervalDays: intervalDays ?? this.intervalDays,
       anchorDate: anchorDate ?? this.anchorDate,
       archived: archived ?? this.archived,
       createdAt: createdAt ?? this.createdAt,
@@ -2530,8 +2638,16 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
     if (emoji.present) {
       map['emoji'] = Variable<String>(emoji.value);
     }
+    if (repeatUnit.present) {
+      map['repeat_unit'] = Variable<String>(
+        $ChoreTasksTable.$converterrepeatUnit.toSql(repeatUnit.value),
+      );
+    }
     if (dayOfMonth.present) {
       map['day_of_month'] = Variable<int>(dayOfMonth.value);
+    }
+    if (intervalDays.present) {
+      map['interval_days'] = Variable<int>(intervalDays.value);
     }
     if (anchorDate.present) {
       map['anchor_date'] = Variable<String>(
@@ -2553,7 +2669,9 @@ class ChoreTasksCompanion extends UpdateCompanion<ChoreTaskRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('emoji: $emoji, ')
+          ..write('repeatUnit: $repeatUnit, ')
           ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('intervalDays: $intervalDays, ')
           ..write('anchorDate: $anchorDate, ')
           ..write('archived: $archived, ')
           ..write('createdAt: $createdAt')
@@ -4485,7 +4603,9 @@ typedef $$ChoreTasksTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       Value<String> emoji,
+      Value<ChoreRepeatUnit> repeatUnit,
       required int dayOfMonth,
+      Value<int> intervalDays,
       required CivilDate anchorDate,
       Value<bool> archived,
       Value<DateTime> createdAt,
@@ -4495,7 +4615,9 @@ typedef $$ChoreTasksTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String> emoji,
+      Value<ChoreRepeatUnit> repeatUnit,
       Value<int> dayOfMonth,
+      Value<int> intervalDays,
       Value<CivilDate> anchorDate,
       Value<bool> archived,
       Value<DateTime> createdAt,
@@ -4548,8 +4670,19 @@ class $$ChoreTasksTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<ChoreRepeatUnit, ChoreRepeatUnit, String>
+  get repeatUnit => $composableBuilder(
+    column: $table.repeatUnit,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   ColumnFilters<int> get dayOfMonth => $composableBuilder(
     column: $table.dayOfMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4619,8 +4752,18 @@ class $$ChoreTasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get repeatUnit => $composableBuilder(
+    column: $table.repeatUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get dayOfMonth => $composableBuilder(
     column: $table.dayOfMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4658,8 +4801,19 @@ class $$ChoreTasksTableAnnotationComposer
   GeneratedColumn<String> get emoji =>
       $composableBuilder(column: $table.emoji, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<ChoreRepeatUnit, String> get repeatUnit =>
+      $composableBuilder(
+        column: $table.repeatUnit,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<int> get dayOfMonth => $composableBuilder(
     column: $table.dayOfMonth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
     builder: (column) => column,
   );
 
@@ -4732,7 +4886,9 @@ class $$ChoreTasksTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> emoji = const Value.absent(),
+                Value<ChoreRepeatUnit> repeatUnit = const Value.absent(),
                 Value<int> dayOfMonth = const Value.absent(),
+                Value<int> intervalDays = const Value.absent(),
                 Value<CivilDate> anchorDate = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4740,7 +4896,9 @@ class $$ChoreTasksTableTableManager
                 id: id,
                 name: name,
                 emoji: emoji,
+                repeatUnit: repeatUnit,
                 dayOfMonth: dayOfMonth,
+                intervalDays: intervalDays,
                 anchorDate: anchorDate,
                 archived: archived,
                 createdAt: createdAt,
@@ -4750,7 +4908,9 @@ class $$ChoreTasksTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 Value<String> emoji = const Value.absent(),
+                Value<ChoreRepeatUnit> repeatUnit = const Value.absent(),
                 required int dayOfMonth,
+                Value<int> intervalDays = const Value.absent(),
                 required CivilDate anchorDate,
                 Value<bool> archived = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -4758,7 +4918,9 @@ class $$ChoreTasksTableTableManager
                 id: id,
                 name: name,
                 emoji: emoji,
+                repeatUnit: repeatUnit,
                 dayOfMonth: dayOfMonth,
+                intervalDays: intervalDays,
                 anchorDate: anchorDate,
                 archived: archived,
                 createdAt: createdAt,

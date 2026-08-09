@@ -718,6 +718,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String choreNotificationBodyInterval(int days) {
+    return '지난번부터 $days일이 지났습니다';
+  }
+
+  @override
   String get homeNavMonthly => '매월';
 
   @override
@@ -799,7 +804,29 @@ class AppLocalizationsKo extends AppLocalizations {
   String get choreFormNameLabel => '항목 이름';
 
   @override
-  String get choreFormDayLabel => '매월 예정일';
+  String get choreRepeatUnitLabel => '반복';
+
+  @override
+  String get choreRepeatUnitMonthly => '매월';
+
+  @override
+  String get choreRepeatUnitEveryDays => '며칠마다';
+
+  @override
+  String get choreFormDayLabel => '예정일';
+
+  @override
+  String get choreFormIntervalLabel => '간격';
+
+  @override
+  String choreIntervalDaysItem(int days) {
+    return '$days일';
+  }
+
+  @override
+  String choreIntervalEvery(int days) {
+    return '$days일마다';
+  }
 
   @override
   String get choreFormEmojiLabel => '이모지 (비우면 📌)';

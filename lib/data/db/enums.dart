@@ -9,5 +9,9 @@ enum PaymentMethod { cash, creditCard, eMoney, bankDraft, other }
 
 enum TxnSource { manual, receiptOcr, recurring }
 
+/// つきいちタスクの繰り返し方（v9で追加）。
+/// monthlyDay=毎月N日（dayOfMonth を使う）/ everyDays=N日ごと（intervalDays を使う）。
+enum ChoreRepeatUnit { monthlyDay, everyDays }
+
 CategoryType categoryTypeOf(TxnType t) =>
     t == TxnType.expense ? CategoryType.expense : CategoryType.income;

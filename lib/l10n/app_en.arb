@@ -547,6 +547,15 @@
     },
     "description": "Local notification body for a monthly chore due today"
   },
+  "choreNotificationBodyInterval": "It's been {days} days since last time",
+  "@choreNotificationBodyInterval": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "Local notification body for an interval-based chore due today"
+  },
   "homeNavMonthly": "Monthly",
   "@homeNavMonthly": {
     "description": "Bottom navigation label for the Monthly hub tab"
@@ -669,9 +678,37 @@
   "@choreFormNameLabel": {
     "description": "Chore form: name field label"
   },
-  "choreFormDayLabel": "Day of the month",
+  "choreRepeatUnitLabel": "Repeat",
+  "choreRepeatUnitMonthly": "Monthly",
+  "choreRepeatUnitEveryDays": "Every N days",
+  "choreFormDayLabel": "Day",
+  "choreFormIntervalLabel": "Interval",
+  "choreIntervalDaysItem": "{days} days",
+  "@choreIntervalDaysItem": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "Day-count item in the interval picker, e.g. '14 days'"
+  },
+  "choreIntervalEvery": "Every {days} days",
+  "@choreIntervalEvery": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "Interval description, e.g. 'Every 14 days'"
+  },
+  "@choreRepeatUnitLabel": {
+    "description": "Label for the repeat-unit picker (monthly / every N days)"
+  },
   "@choreFormDayLabel": {
     "description": "Label for the day-of-month picker in the chore form"
+  },
+  "@choreFormIntervalLabel": {
+    "description": "Label for the interval picker in the chore form"
   },
   "choreFormEmojiLabel": "Emoji (📌 if empty)",
   "@choreFormEmojiLabel": {

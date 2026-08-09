@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../data/db/enums.dart';
 import '../../../data/notifications/badge_service.dart';
 import '../../../data/notifications/notification_service.dart';
 import '../../../domain/entities.dart';
@@ -86,16 +87,21 @@ class ChoreActions {
     await resync();
   }
 
-  /// 新規タスクの作成。anchorDate=today で、初回期日は today 以降で最初の毎月N日。
+  /// 新規タスクの作成。anchorDate=today なので、初回期日は
+  /// 毎月N日なら today 以降で最初のN日、N日ごとなら today+間隔。
   Future<int> createTask({
     required String name,
     required String emoji,
+    ChoreRepeatUnit repeatUnit = ChoreRepeatUnit.monthlyDay,
     required int dayOfMonth,
+    int intervalDays = 30,
   }) async {
     final taskId = await _repo.addTask(
       name: name,
       emoji: emoji,
+      repeatUnit: repeatUnit,
       dayOfMonth: dayOfMonth,
+      intervalDays: intervalDays,
       anchorDate: _today(),
     );
     await _maybeRequestPermission();
@@ -103,7 +109,7 @@ class ChoreActions {
     return taskId;
   }
 
-  /// タスクの名前・毎月の予定日・絵文字・anchorDate・archivedを更新する。
+  /// タスクの名前・繰り返し設定・絵文字・anchorDate・archivedを更新する。
   Future<void> updateTaskInfo(ChoreTask task) async {
     await _repo.updateTask(task);
     await resync();
@@ -142,7 +148,12 @@ class ChoreActions {
         .map((p) => ScheduledNotification(
               id: p.taskId,
               title: '${p.emoji} ${p.name}',
-              body: l.choreNotificationBody(p.dayOfMonth),
+              body: switch (p.repeatUnit) {
+                ChoreRepeatUnit.monthlyDay =>
+                  l.choreNotificationBody(p.dayOfMonth),
+                ChoreRepeatUnit.everyDays =>
+                  l.choreNotificationBodyInterval(p.intervalDays),
+              },
               date: p.date,
               badge: p.badge,
             ))

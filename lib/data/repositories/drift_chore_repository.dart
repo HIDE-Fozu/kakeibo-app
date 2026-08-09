@@ -4,6 +4,7 @@ import '../../domain/entities.dart';
 import '../../domain/money/civil_date.dart';
 import '../../domain/repositories.dart';
 import '../db/daos.dart';
+import '../db/enums.dart';
 import '../db/database.dart';
 
 /// つきいちタスクのリポジトリ。DAO行 ↔ domain 変換をここに閉じ込める。
@@ -34,14 +35,19 @@ class DriftChoreRepository implements ChoreRepository {
   Future<int> addTask({
     required String name,
     required String emoji,
+    ChoreRepeatUnit repeatUnit = ChoreRepeatUnit.monthlyDay,
     required int dayOfMonth,
+    int intervalDays = 30,
     required CivilDate anchorDate,
   }) {
     assert(dayOfMonth >= 1 && dayOfMonth <= 31, 'dayOfMonth must be 1..31');
+    assert(intervalDays >= 1, 'intervalDays must be >= 1');
     return _dao.insertTask(ChoreTasksCompanion.insert(
       name: name,
       emoji: Value(emoji),
+      repeatUnit: Value(repeatUnit),
       dayOfMonth: dayOfMonth,
+      intervalDays: Value(intervalDays),
       anchorDate: anchorDate,
     ));
   }
@@ -52,7 +58,9 @@ class DriftChoreRepository implements ChoreRepository {
         ChoreTasksCompanion(
           name: Value(task.name),
           emoji: Value(task.emoji),
+          repeatUnit: Value(task.repeatUnit),
           dayOfMonth: Value(task.dayOfMonth),
+          intervalDays: Value(task.intervalDays),
           anchorDate: Value(task.anchorDate),
           archived: Value(task.archived),
         ),
@@ -97,7 +105,9 @@ class DriftChoreRepository implements ChoreRepository {
         id: r.id,
         name: r.name,
         emoji: r.emoji,
+        repeatUnit: r.repeatUnit,
         dayOfMonth: r.dayOfMonth,
+        intervalDays: r.intervalDays,
         anchorDate: r.anchorDate,
         archived: r.archived,
       );

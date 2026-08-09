@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/domain/services/chore_schedule.dart';
 
 /// routine-reminder の due_logic_test.dart を移植（DateOnly→CivilDate・
 /// Task→ChoreTask・buildPlans は文言レスの PlannedChore に変更）。
-/// v2.2.0で「毎月N日」方式に変更: 次回期日 = 記録が無ければ anchor 以降で
-/// 最初の毎月N日、あれば最後にやった月の翌月のN日（月末丸め）。
+/// v2.2.0で繰り返しが二本立てに: monthlyDay=記録が無ければ anchor 以降で最初の
+/// 毎月N日・あれば最後にやった月の翌月のN日（月末丸め）/ everyDays=最後にやった
+/// 日＋間隔（記録なしは anchor＋間隔）。
 ChoreTask task(int id,
         {int day = 1,
         String anchor = '2026-06-01',
@@ -18,6 +20,23 @@ ChoreTask task(int id,
         name: name,
         emoji: emoji,
         dayOfMonth: day,
+        anchorDate: CivilDate.parse(anchor),
+        archived: archived);
+
+/// 「N日ごと」のタスク（v2.2.0で毎月N日と選べる二本立てに戻した方）。
+ChoreTask intervalTask(int id,
+        {int interval = 30,
+        String anchor = '2026-06-01',
+        bool archived = false,
+        String name = 'ハブラシ交換',
+        String emoji = '🪥'}) =>
+    ChoreTask(
+        id: id,
+        name: name,
+        emoji: emoji,
+        repeatUnit: ChoreRepeatUnit.everyDays,
+        dayOfMonth: 1,
+        intervalDays: interval,
         anchorDate: CivilDate.parse(anchor),
         archived: archived);
 
@@ -64,12 +83,41 @@ void main() {
         isTrue));
   });
 
+  group('nextChoreDue（N日ごと）', () {
+    test('記録なし→anchor+interval', () => expect(
+        nextChoreDue(intervalTask(1, anchor: '2026-07-01', interval: 30), []),
+        CivilDate.parse('2026-07-31')));
+    test('記録1件→記録日+interval', () => expect(
+        nextChoreDue(intervalTask(1), [rec(1, 1, '2026-07-10')]),
+        CivilDate.parse('2026-08-09')));
+    test('複数記録→最新基準（並び順に依存しない）', () => expect(
+        nextChoreDue(intervalTask(1),
+            [rec(2, 1, '2026-07-10'), rec(1, 1, '2026-06-01')]),
+        CivilDate.parse('2026-08-09')));
+    test('遅れて実施→次回もその分ズレる（毎月N日との違い）', () => expect(
+        nextChoreDue(
+            intervalTask(1, anchor: '2026-06-01'), [rec(1, 1, '2026-07-05')]),
+        CivilDate.parse('2026-08-04')));
+    test('同じ設定でも単位が違えば期日が違う', () {
+      final r = [rec(1, 1, '2026-07-10')];
+      expect(nextChoreDue(intervalTask(1, interval: 30), r),
+          CivilDate.parse('2026-08-09'));
+      expect(nextChoreDue(task(1, day: 30), r), CivilDate.parse('2026-08-30'));
+    });
+  });
+
   group('choreDueAfterDone（スナックバー近似表示）', () {
-    test('記録月の翌月N日・月末丸め', () {
+    test('毎月N日: 記録月の翌月N日・月末丸め', () {
       expect(choreDueAfterDone(task(1, day: 10), CivilDate.parse('2026-07-08')),
           CivilDate.parse('2026-08-10'));
       expect(choreDueAfterDone(task(1, day: 31), CivilDate.parse('2026-01-20')),
           CivilDate.parse('2026-02-28'));
+    });
+    test('N日ごと: 記録日+間隔', () {
+      expect(
+          choreDueAfterDone(
+              intervalTask(1, interval: 14), CivilDate.parse('2026-07-08')),
+          CivilDate.parse('2026-07-22'));
     });
   });
 
@@ -143,6 +191,7 @@ void main() {
       // 文言はChoreActionsがl10nで組み立てるため、素材だけを持つ
       expect(p[1].emoji, '🛏️');
       expect(p[1].name, 'マットレス向き替え');
+      expect(p[1].repeatUnit, ChoreRepeatUnit.monthlyDay);
       expect(p[1].dayOfMonth, 20);
     });
     test('badge=期日以前の件数（同日複数は同値で加算）', () {
@@ -174,6 +223,25 @@ void main() {
       expect(buildChorePlans(tasks, [], today, limit: 3).length, 3);
       expect(
           buildChorePlans(tasks, [], today).any((e) => e.taskId == 99), isFalse);
+    });
+  });
+
+  group('繰り返し単位の混在', () {
+    test('毎月N日とN日ごとが同じ一覧に並び期日順にソートされる', () {
+      final tasks = [
+        task(1, anchor: '2026-07-01', day: 20), // due 7/20
+        intervalTask(2, anchor: '2026-07-01', interval: 5), // due 7/6 超過
+        intervalTask(3, anchor: '2026-07-10', interval: 8), // due 7/18
+      ];
+      final s = buildChoreStatuses(tasks, [], today);
+      expect(s.map((e) => e.task.id).toList(), [2, 3, 1]);
+      expect(s.first.isOverdue, isTrue);
+      expect(choreOverdueCount(tasks, [], today), 1);
+      // 通知プランは超過を除いた2件（素材に両単位の値が入る）
+      final p = buildChorePlans(tasks, [], today);
+      expect(p.map((e) => e.taskId).toList(), [3, 1]);
+      expect(p.first.repeatUnit, ChoreRepeatUnit.everyDays);
+      expect(p.first.intervalDays, 8);
     });
   });
 
