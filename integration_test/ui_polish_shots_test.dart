@@ -108,5 +108,14 @@ void main() {
     await t.tap(find.textContaining('複数のカテゴリ'), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_11_split_fields');
+    await t.tap(find.textContaining('やめる'), warnIfMissed: false);
+    await settle(t);
+
+    // カテゴリ追加ダイアログ（枠付きの入力欄になっているか）
+    await t.ensureVisible(find.byKey(const Key('cat-add')));
+    await settle(t);
+    await t.tap(find.byKey(const Key('cat-add')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_12_category_dialog');
   });
 }

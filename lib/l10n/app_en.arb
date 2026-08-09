@@ -463,7 +463,7 @@
   "@recurringAmountLabel": {
     "description": "Label of the amount field"
   },
-  "recurringDayLabel": "Day of month",
+  "recurringDayLabel": "Day to repeat",
   "@recurringDayLabel": {
     "description": "Label of the day-of-month picker"
   },
@@ -485,7 +485,7 @@
     },
     "description": "Short day-of-month item, e.g. 'Day 5'"
   },
-  "recurringDayClampNote": "In shorter months it falls on the last day (e.g. the 31st → Feb 28).",
+  "recurringDayClampNote": "If you choose the 31st, the entry falls on the last day of the month (e.g. Feb 28).",
   "@recurringDayClampNote": {
     "description": "Helper text: days beyond a month's end clamp to the last day"
   },

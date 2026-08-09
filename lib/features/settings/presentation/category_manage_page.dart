@@ -135,15 +135,22 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
           TextField(
             key: const Key('category-name-field'),
             controller: _name,
-            decoration: InputDecoration(labelText: l.categoryNameFieldLabel),
+            decoration: InputDecoration(
+              labelText: l.categoryNameFieldLabel,
+              border: const OutlineInputBorder(),
+            ),
           ),
-          if (isNew)
+          if (isNew) ...[
+            const SizedBox(height: 12),
             TextField(
               key: const Key('category-icon-field'),
               controller: _icon,
-              decoration:
-                  InputDecoration(labelText: l.categoryIconFieldLabel),
+              decoration: InputDecoration(
+                labelText: l.categoryIconFieldLabel,
+                border: const OutlineInputBorder(),
+              ),
             ),
+          ],
         ],
       ),
       actions: [

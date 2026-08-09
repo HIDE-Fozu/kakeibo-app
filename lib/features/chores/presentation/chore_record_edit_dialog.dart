@@ -128,7 +128,10 @@ class _ChoreRecordEditDialogState extends ConsumerState<ChoreRecordEditDialog> {
             key: const Key('chore-record-edit-memo'),
             controller: _memoCtrl,
             maxLength: kChoreMemoMax,
-            decoration: InputDecoration(labelText: l.choreMemoLabel),
+            decoration: InputDecoration(
+              labelText: l.choreMemoLabel,
+              border: const OutlineInputBorder(),
+            ),
           ),
         ],
       ),

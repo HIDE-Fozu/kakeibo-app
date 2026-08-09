@@ -656,7 +656,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recurringAmountLabel => '金额';
 
   @override
-  String get recurringDayLabel => '记录日期';
+  String get recurringDayLabel => '重复记录日';
 
   @override
   String recurringEveryMonthDay(int day) {
@@ -669,7 +669,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get recurringDayClampNote => '没有该日期的月份将记在月末（例如31日→2月记在28日）';
+  String get recurringDayClampNote => '选择31日时，将在当月最后一天记录（例如2月记在28日）';
 
   @override
   String get recurringStartMonthLabel => '开始';

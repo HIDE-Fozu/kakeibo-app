@@ -1291,7 +1291,7 @@ abstract class AppLocalizations {
   /// Label of the day-of-month picker
   ///
   /// In en, this message translates to:
-  /// **'Day of month'**
+  /// **'Day to repeat'**
   String get recurringDayLabel;
 
   /// Recurrence description, e.g. 'Day 5 every month'
@@ -1309,7 +1309,7 @@ abstract class AppLocalizations {
   /// Helper text: days beyond a month's end clamp to the last day
   ///
   /// In en, this message translates to:
-  /// **'In shorter months it falls on the last day (e.g. the 31st → Feb 28).'**
+  /// **'If you choose the 31st, the entry falls on the last day of the month (e.g. Feb 28).'**
   String get recurringDayClampNote;
 
   /// Label of the start month picker (new rules only)

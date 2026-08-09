@@ -682,7 +682,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get recurringAmountLabel => 'Valor';
 
   @override
-  String get recurringDayLabel => 'Dia do mês';
+  String get recurringDayLabel => 'Dia de repetição';
 
   @override
   String recurringEveryMonthDay(int day) {
@@ -696,7 +696,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get recurringDayClampNote =>
-      'Em meses mais curtos, é registrado no último dia (ex.: dia 31 → 28 de fevereiro).';
+      'Se você escolher o dia 31, o lançamento ocorre no último dia do mês (ex.: 28 de fevereiro).';
 
   @override
   String get recurringStartMonthLabel => 'Início';

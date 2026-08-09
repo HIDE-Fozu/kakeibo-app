@@ -658,7 +658,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recurringAmountLabel => '金額';
 
   @override
-  String get recurringDayLabel => '記録する日';
+  String get recurringDayLabel => '繰り返し入力する日';
 
   @override
   String recurringEveryMonthDay(int day) {
@@ -671,7 +671,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get recurringDayClampNote => 'その日がない月は月末に記録します（例: 31日→2月は28日）';
+  String get recurringDayClampNote => '31日で入力した場合は月末日に入力されます。例：2月は28日に入力';
 
   @override
   String get recurringStartMonthLabel => '開始';

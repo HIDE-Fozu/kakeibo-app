@@ -661,7 +661,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recurringAmountLabel => '금액';
 
   @override
-  String get recurringDayLabel => '기록일';
+  String get recurringDayLabel => '반복 입력일';
 
   @override
   String recurringEveryMonthDay(int day) {
@@ -674,7 +674,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get recurringDayClampNote => '해당 날짜가 없는 달은 말일에 기록됩니다(예: 31일→2월은 28일)';
+  String get recurringDayClampNote => '31일을 선택하면 그 달의 마지막 날에 입력됩니다(예: 2월은 28일)';
 
   @override
   String get recurringStartMonthLabel => '시작';

@@ -248,7 +248,7 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
                     decoration: InputDecoration(
                       labelText: l.recurringDayLabel,
                       helperText: l.recurringDayClampNote,
-                      helperMaxLines: 2,
+                      helperMaxLines: 3,
                       border: const OutlineInputBorder(),
                     ),
                     items: [

@@ -682,7 +682,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recurringAmountLabel => 'Betrag';
 
   @override
-  String get recurringDayLabel => 'Tag im Monat';
+  String get recurringDayLabel => 'Wiederholungstag';
 
   @override
   String recurringEveryMonthDay(int day) {
@@ -696,7 +696,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get recurringDayClampNote =>
-      'In kürzeren Monaten wird am letzten Tag gebucht (z. B. 31. → 28. Februar).';
+      'Wenn du den 31. wählst, wird am letzten Tag des Monats gebucht (z. B. 28. Februar).';
 
   @override
   String get recurringStartMonthLabel => 'Beginn';

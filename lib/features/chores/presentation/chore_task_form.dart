@@ -177,7 +177,10 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
                 key: const Key('chore-form-name'),
                 controller: _nameCtrl,
                 maxLength: kChoreNameMax,
-                decoration: InputDecoration(labelText: l.choreFormNameLabel),
+                decoration: InputDecoration(
+                  labelText: l.choreFormNameLabel,
+                  border: const OutlineInputBorder(),
+                ),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 8),
@@ -240,7 +243,10 @@ class _ChoreTaskFormPageState extends ConsumerState<ChoreTaskFormPage> {
               TextField(
                 key: const Key('chore-form-emoji'),
                 controller: _emojiCtrl,
-                decoration: InputDecoration(labelText: l.choreFormEmojiLabel),
+                decoration: InputDecoration(
+                  labelText: l.choreFormEmojiLabel,
+                  border: const OutlineInputBorder(),
+                ),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
