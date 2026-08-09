@@ -108,6 +108,12 @@ void main() {
     await t.tap(find.textContaining('複数のカテゴリ'), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_11_split_fields');
+    // ＋品目で行を増やした状態（帯が電卓の上にある構成で電卓が下がりすぎないか）
+    await t.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
+    await settle(t);
+    await t.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_13_split_three_lines');
     await t.tap(find.textContaining('やめる'), warnIfMissed: false);
     await settle(t);
 

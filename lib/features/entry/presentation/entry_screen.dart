@@ -205,9 +205,27 @@ class EntryScreen extends ConsumerWidget {
                           categoriesById: categoriesById,
                           pickableCategories: entryCats,
                         ),
-                      if (splitMode)
+                      // 分割中は「行 → カテゴリ帯 → 電卓」の順（2026-08-10・
+                      // ユーザー選択）。割り当て先の行と帯が隣接して視線移動が減り、
+                      // 電卓が下がって親指に近くなる。通常モードは従来どおり
+                      // 「電卓 → カテゴリ」で、帯/グリッドの位置がモードで入れ替わる。
+                      if (splitMode) ...[
                         SplitEntryPanel(
                             state: state, categoryNames: categoryNames),
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(left: 2, top: 6, bottom: 4),
+                          child: Text(l.entryCategoryHeading,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant)),
+                        ),
+                        const SplitCategoryStrip(),
+                        const SizedBox(height: 4),
+                      ],
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
                       if (!batchMode)
                         Numpad(
@@ -395,21 +413,8 @@ class EntryScreen extends ConsumerWidget {
                             );
                           }),
                         ),
-                      // カテゴリ: 分割中もグリッドと同じ位置（電卓の下・見出し付き）に
-                      // 常設の1行帯を出す（split_category_strip・タップ=アクティブ行へ割当）。
-                      // 通常/一括内訳では見出し＋グリッドを従来どおり表示。
-                      if (splitMode) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 2, bottom: 4),
-                          child: Text(l.entryCategoryHeading,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurfaceVariant)),
-                        ),
-                        const SplitCategoryStrip(),
-                      ],
+                      // 通常/一括内訳のカテゴリは見出し＋グリッド（電卓の下）。
+                      // 分割中の帯は行のすぐ下＝電卓の上（上の splitMode ブロック）。
                       if (!splitMode) ...[
                       // カテゴリ見出し。一括内訳中は右に詳細メモ欄を置く。
                       Padding(
