@@ -109,6 +109,12 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
     colorScheme: scheme,
     scaffoldBackgroundColor: bg,
     dividerColor: kLine,
+    // 文字を入力できる場所は白で塗る（ページ背景＝bgに同化して入力欄と
+    // 分からない、というFB・2026-08-09）。白ピル・カードと同じ kCard。
+    inputDecorationTheme: const InputDecorationTheme(
+      filled: true,
+      fillColor: kCard,
+    ),
     appBarTheme: AppBarTheme(backgroundColor: bg, foregroundColor: kInk),
     cardTheme: const CardThemeData(color: kCard),
     extensions: const [KakeiboColors.standard],

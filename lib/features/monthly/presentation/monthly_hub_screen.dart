@@ -306,17 +306,18 @@ class _SectionHeader extends StatelessWidget {
                   ),
             ),
           ),
-          // 「＋」だけでは入口と分かりにくいというFBで「＋ 追加」のラベル付きに
-          // （2026-08-09）。
+          // 「＋」だけでは入口と分かりにくいというFBで「＋ 追加」のラベル付きに、
+          // さらに目立つよう緑ベタのボタンに（2026-08-09）。
           if (onAdd != null)
-            TextButton.icon(
+            FilledButton.icon(
               key: addKey,
               icon: const Icon(Icons.add, size: 18),
               label: Text(AppLocalizations.of(context).commonAdd),
-              style: TextButton.styleFrom(
+              style: FilledButton.styleFrom(
                 visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 textStyle: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600),
+                    fontSize: 13, fontWeight: FontWeight.w700),
               ),
               onPressed: onAdd,
             ),

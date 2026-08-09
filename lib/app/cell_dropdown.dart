@@ -205,9 +205,11 @@ class CellDropdownField<T> extends StatelessWidget {
         if (picked != null) onChanged(picked);
       },
       child: InputDecorator(
-        decoration: decoration.copyWith(
-          suffixIcon: const Icon(Icons.arrow_drop_down),
-        ),
+        // InputDecorator は TextField と違いテーマ既定を自動では拾わないので
+        // 明示的に適用する（入力欄の白背景を同じ見た目で揃えるため）。
+        decoration: decoration
+            .copyWith(suffixIcon: const Icon(Icons.arrow_drop_down))
+            .applyDefaults(Theme.of(context).inputDecorationTheme),
         isEmpty: current == null,
         child: Text(
           current?.label ?? '',

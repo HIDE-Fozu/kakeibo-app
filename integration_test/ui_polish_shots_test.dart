@@ -99,5 +99,14 @@ void main() {
     await t.tap(find.byKey(const Key('entry-recurring-day')));
     await settle(t);
     await shot(t, 'polish_7_entry_pill_menu');
+    await t.tapAt(const Offset(30, 120));
+    await settle(t);
+
+    // 内訳入力（インラインの店名/メモ欄が白背景になっているか）
+    await t.tap(find.byKey(const Key('entry-recurring-btn'))); // トグルOFF
+    await settle(t);
+    await t.tap(find.textContaining('複数のカテゴリ'), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_11_split_fields');
   });
 }
