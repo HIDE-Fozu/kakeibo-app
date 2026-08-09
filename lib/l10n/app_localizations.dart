@@ -856,11 +856,11 @@ abstract class AppLocalizations {
   /// **'Memo'**
   String get splitMemoHint;
 
-  /// No description provided for @splitAddCategoryChip.
+  /// No description provided for @splitCategoryUnselected.
   ///
   /// In en, this message translates to:
-  /// **'+ Category'**
-  String get splitAddCategoryChip;
+  /// **'No category'**
+  String get splitCategoryUnselected;
 
   /// No description provided for @splitTaxIncludedAmount.
   ///

@@ -362,8 +362,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   ),
                 ),
               ),
-              // カテゴリ: 未選択は呼びかけボタン、選択済みはチップ。
-              // どちらもタップで電卓下のカテゴリ帯の割当先にする（選び直し可）。
+              // カテゴリ: 未選択は「カテゴリ未選択」の警告表示（塗りなし・
+              // 赤茶の文字と枠）、選択済みはチップ。どちらもタップで電卓下の
+              // カテゴリ帯の割当先にする（選び直し可）。警告色を kExpense の
+              // 赤ではなく赤茶（kWarnMuted）にしているのは、未選択の行では
+              // 常時出るため強すぎない主張にしたいから。
               InkWell(
                 key: Key('split-pickcat-$i'),
                 onTap: () => ctrl.openSplitCatPicker(i),
@@ -375,18 +378,19 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   ),
                   decoration: BoxDecoration(
                     color: catLabel == null
-                        ? scheme.primary
+                        ? null
                         : scheme.primaryContainer.withValues(alpha: 0.5),
+                    border: catLabel == null
+                        ? Border.all(color: kWarnMuted)
+                        : null,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    catLabel ?? l.splitAddCategoryChip,
+                    catLabel ?? l.splitCategoryUnselected,
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
-                      color: catLabel == null
-                          ? scheme.onPrimary
-                          : scheme.primary,
+                      color: catLabel == null ? kWarnMuted : scheme.primary,
                     ),
                   ),
                 ),

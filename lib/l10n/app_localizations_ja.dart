@@ -418,7 +418,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get splitMemoHint => 'メモ';
 
   @override
-  String get splitAddCategoryChip => '＋ カテゴリ';
+  String get splitCategoryUnselected => 'カテゴリ未選択';
 
   @override
   String splitTaxIncludedAmount(String amount) {

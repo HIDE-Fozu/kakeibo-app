@@ -124,7 +124,7 @@
   "splitTaxExcludedToggle": "HT",
   "splitTaxIndividual": "Individuel",
   "splitMemoHint": "Note",
-  "splitAddCategoryChip": "＋ Catégorie",
+  "splitCategoryUnselected": "Aucune catégorie",
   "splitTaxIncludedAmount": "TTC {amount}",
   "splitAddCategoryLabel": "Ajouter une catégorie",
   "splitOverLabel": "Dépassement",

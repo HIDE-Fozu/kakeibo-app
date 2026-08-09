@@ -124,7 +124,7 @@
   "splitTaxExcludedToggle": "外税",
   "splitTaxIndividual": "個別",
   "splitMemoHint": "メモ",
-  "splitAddCategoryChip": "＋ カテゴリ",
+  "splitCategoryUnselected": "カテゴリ未選択",
   "splitTaxIncludedAmount": "税込 {amount}",
   "splitAddCategoryLabel": "カテゴリを追加",
   "splitOverLabel": "超過",

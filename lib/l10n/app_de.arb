@@ -124,7 +124,7 @@
   "splitTaxExcludedToggle": "exkl.",
   "splitTaxIndividual": "Einzeln",
   "splitMemoHint": "Notiz",
-  "splitAddCategoryChip": "＋ Kategorie",
+  "splitCategoryUnselected": "Keine Kategorie",
   "splitTaxIncludedAmount": "inkl. MwSt. {amount}",
   "splitAddCategoryLabel": "Kategorie hinzufügen",
   "splitOverLabel": "Zu viel",

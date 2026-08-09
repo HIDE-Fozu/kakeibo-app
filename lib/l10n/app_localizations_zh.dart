@@ -417,7 +417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get splitMemoHint => '备注';
 
   @override
-  String get splitAddCategoryChip => '＋ 分类';
+  String get splitCategoryUnselected => '未选择分类';
 
   @override
   String splitTaxIncludedAmount(String amount) {

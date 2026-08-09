@@ -9,6 +9,10 @@ const kLine = Color(0xFFE3E2D8);
 const kPrimary = Color(0xFF1E6B5A);
 const kPrimarySoft = Color(0xFFE4EFE9);
 const kExpense = Color(0xFFB8433A);
+
+/// 常時表示される「未入力・未選択」の注意喚起に使う赤茶。エラー赤(kExpense)
+/// より彩度を落とし、出っぱなしでも刺さらない柔らかい警告色にしている。
+const kWarnMuted = Color(0xFFA35B4C);
 const kExpenseSoft = Color(0xFFF7E9E7);
 const kIncome = Color(0xFF2E6E93);
 const kIncomeSoft = Color(0xFFE7EFF5);

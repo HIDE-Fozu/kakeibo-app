@@ -420,7 +420,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get splitMemoHint => '메모';
 
   @override
-  String get splitAddCategoryChip => '＋ 카테고리';
+  String get splitCategoryUnselected => '카테고리 미선택';
 
   @override
   String splitTaxIncludedAmount(String amount) {

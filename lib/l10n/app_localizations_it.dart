@@ -435,7 +435,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get splitMemoHint => 'Nota';
 
   @override
-  String get splitAddCategoryChip => '＋ Categoria';
+  String get splitCategoryUnselected => 'Nessuna categoria';
 
   @override
   String splitTaxIncludedAmount(String amount) {

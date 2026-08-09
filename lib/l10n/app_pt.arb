@@ -124,7 +124,7 @@
   "splitTaxExcludedToggle": "Imp. à parte",
   "splitTaxIndividual": "Individual",
   "splitMemoHint": "Nota",
-  "splitAddCategoryChip": "＋ Categoria",
+  "splitCategoryUnselected": "Sem categoria",
   "splitTaxIncludedAmount": "C/ imposto {amount}",
   "splitAddCategoryLabel": "Adicionar categoria",
   "splitOverLabel": "Excedente",

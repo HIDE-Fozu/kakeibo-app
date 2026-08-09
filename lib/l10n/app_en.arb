@@ -278,7 +278,7 @@
   "splitTaxExcludedToggle": "Tax excl.",
   "splitTaxIndividual": "Custom",
   "splitMemoHint": "Memo",
-  "splitAddCategoryChip": "+ Category",
+  "splitCategoryUnselected": "No category",
   "splitTaxIncludedAmount": "Tax incl. {amount}",
   "@splitTaxIncludedAmount": {
     "placeholders": {

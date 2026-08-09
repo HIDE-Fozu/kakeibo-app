@@ -124,7 +124,7 @@
   "splitTaxExcludedToggle": "IVA escl.",
   "splitTaxIndividual": "Per voce",
   "splitMemoHint": "Nota",
-  "splitAddCategoryChip": "＋ Categoria",
+  "splitCategoryUnselected": "Nessuna categoria",
   "splitTaxIncludedAmount": "IVA incl. {amount}",
   "splitAddCategoryLabel": "Aggiungi categoria",
   "splitOverLabel": "In eccesso",

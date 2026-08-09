@@ -146,7 +146,7 @@ void main() {
     await settle(t);
     // 行0: 金額 → 行のカテゴリチップ → 帯で日用品(leaf)
     await typeDigits(t, dec ? '15.00' : intFor('1500'));
-    await t.tap(find.text(l.splitAddCategoryChip).first, warnIfMissed: false);
+    await t.tap(find.text(l.splitCategoryUnselected).first, warnIfMissed: false);
     await settle(t);
     await t.tap(
         find
