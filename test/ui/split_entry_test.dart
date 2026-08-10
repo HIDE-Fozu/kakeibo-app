@@ -43,8 +43,12 @@ void main() {
     expect(find.byKey(const Key('split-tax-mode')), findsOneWidget);
     expect(find.byKey(const Key('np-op-+')), findsOneWidget);
     expect(find.byKey(const Key('split-incl-0')), findsNothing);
-    // 残額行は最下段に固定表示
+    // 残額行は最下段に固定表示。行番号は入力行から続く連番（1品目→残額は2）。
     expect(find.byKey(const Key('split-line-remainder')), findsOneWidget);
+    expect(find.byKey(const Key('split-lineno-0')), findsOneWidget);
+    expect(find.byKey(const Key('split-lineno-1')), findsOneWidget);
+    expect(
+        tester.widget<Text>(find.byKey(const Key('split-lineno-1'))).data, '2');
 
     // 1行目は自動額なし
     expect(st().splitLineAmount(0), isNull);

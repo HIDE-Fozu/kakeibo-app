@@ -551,6 +551,22 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
           child: Row(
             children: [
+              // 行番号。残額行も「カテゴリを選べばその番号の品目になる枠」なので
+              // 入力行と同じ連番を振る（1品目なら2、＋品目で3…と自動で繰り上がる）。
+              // 番号だけ無いと最終行が別物に見える、というFB。
+              Padding(
+                padding: const EdgeInsets.only(right: 5),
+                child: Text(
+                  '${i + 1}',
+                  key: Key('split-lineno-$i'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: active ? scheme.primary : scheme.onSurfaceVariant,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
+              ),
               // 左: 入力行と同じく「カテゴリ未選択」/選択済みチップ。
               // タップでカテゴリ帯を開き、その行を割当先にする。
               InkWell(
