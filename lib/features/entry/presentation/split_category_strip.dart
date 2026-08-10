@@ -131,9 +131,28 @@ class SplitCategoryStrip extends ConsumerWidget {
 
     // タイル幅は通常グリッドと同じ計算（4つ見え＋続きが覗く）。高さも同じ56。
     // 開いている間は2行（縦に2枚ずつの列を横スクロール＝並び順が読み順のまま）。
+    // 2行目は電卓に「重ねて」出す（呼び出し側が1行ぶんの枠だけ確保している）。
+    // 電卓が透けないよう、開いている間だけ背景＋枠＋影を敷く。
     final expanded = state.splitCatPickerOpen;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: expanded
+          ? const EdgeInsets.symmetric(vertical: 5)
+          : EdgeInsets.zero,
+      decoration: expanded
+          ? BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: scheme.outlineVariant),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            )
+          : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final tileW = CatGridMetrics.fit(constraints.maxWidth).tileW;

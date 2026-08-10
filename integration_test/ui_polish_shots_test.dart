@@ -124,6 +124,10 @@ void main() {
     await t.tap(find.byKey(const Key('split-pickcat-1')), warnIfMissed: false);
     await settle(t);
     await shot(t, 'polish_14_strip_expanded');
+    // 帯を開いたままカテゴリを選ぶ（選択済みブロックの見え方＋電卓が動かないか）
+    await t.tap(find.text('日用品').first, warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'polish_16_after_pick');
     await t.tap(find.textContaining('やめる'), warnIfMissed: false);
     await settle(t);
 

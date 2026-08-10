@@ -71,6 +71,20 @@ class EntryScreen extends ConsumerWidget {
             ? activeSplitCategoryId
             : state.categoryId;
 
+    // 分割中は帯（1行）に譲るぶん電卓を大きく。通常モードは従来の詰め高さ。
+    final numpad = Numpad(
+      cellHeight: splitMode ? 60 : 46,
+      onDigit: splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
+      onDoubleZero:
+          splitMode ? ctrl.splitTapDoubleZero : ctrl.tapDoubleZero,
+      onBackspace: splitMode ? ctrl.splitBackspace : ctrl.backspace,
+      onOperator: splitMode ? ctrl.splitTapOperator : null,
+      // 小数桁のある通貨だけ「.」キーを出す。
+      onDecimal: currency.decimals > 0
+          ? (splitMode ? ctrl.splitTapDecimal : ctrl.tapDecimal)
+          : null,
+    );
+
     return Scaffold(
       appBar: AppBar(
         // タブ埋め込み時は左上に戻る（カレンダーへ）。タブからもカレンダーへ戻れる。
@@ -223,30 +237,31 @@ class EntryScreen extends ConsumerWidget {
                                       .colorScheme
                                       .onSurfaceVariant)),
                         ),
-                        const SplitCategoryStrip(),
+                        // 帯は「1行ぶんの枠」だけ確保し、2行に開いたときは電卓に
+                        // 重ねる（内訳チップの浮かせ表示と同じ手）。開閉で電卓や
+                        // 保存ボタンが動かないので、開いたまま数字も打てる。
+                        Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: kCatTileH + 6),
+                                if (!batchMode) numpad,
+                              ],
+                            ),
+                            const Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 0,
+                              child: SplitCategoryStrip(),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 4),
                       ],
                       // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
-                      if (!batchMode)
-                        Numpad(
-                          // 分割中はグリッド（2行）が1行の帯になるぶん
-                          // 空いた縦を電卓に回して大きく。通常モードは従来の詰め高さ。
-                          cellHeight: splitMode ? 60 : 46,
-                          onDigit:
-                              splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
-                          onDoubleZero: splitMode
-                              ? ctrl.splitTapDoubleZero
-                              : ctrl.tapDoubleZero,
-                          onBackspace:
-                              splitMode ? ctrl.splitBackspace : ctrl.backspace,
-                          onOperator: splitMode ? ctrl.splitTapOperator : null,
-                          // 小数桁のある通貨だけ「.」キーを出す。
-                          onDecimal: currency.decimals > 0
-                              ? (splitMode
-                                  ? ctrl.splitTapDecimal
-                                  : ctrl.tapDecimal)
-                              : null,
-                        ),
+                      // （分割中は上の Stack の中で電卓を出すのでここでは出さない）。
+                      if (!batchMode && !splitMode) numpad,
                       const SizedBox(height: 8),
                       // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
                       // 分割/一括/編集中と金額0では出さない。

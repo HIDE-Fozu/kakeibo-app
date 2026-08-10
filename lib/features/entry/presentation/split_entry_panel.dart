@@ -380,12 +380,13 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: catLabel == null
-                        ? null
-                        : scheme.primaryContainer.withValues(alpha: 0.5),
-                    border: catLabel == null
-                        ? Border.all(color: kWarnMuted)
-                        : null,
+                    // 選択済みは濃いめの塗り＋緑枠（行の中でカテゴリの塊が
+                    // どこまでか分かりにくい、というFB）。未選択は赤茶の枠のみ。
+                    color: catLabel == null ? null : scheme.primaryContainer,
+                    border: Border.all(
+                        color: catLabel == null
+                            ? kWarnMuted
+                            : scheme.primary.withValues(alpha: 0.45)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -581,12 +582,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: catLabel == null
-                          ? null
-                          : scheme.primaryContainer.withValues(alpha: 0.5),
-                      border: catLabel == null
-                          ? Border.all(color: kWarnMuted)
-                          : null,
+                      color: catLabel == null ? null : scheme.primaryContainer,
+                      border: Border.all(
+                          color: catLabel == null
+                              ? kWarnMuted
+                              : scheme.primary.withValues(alpha: 0.45)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
