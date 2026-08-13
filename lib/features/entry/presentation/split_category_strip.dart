@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
-import '../../../core/category_emoji.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -63,7 +62,8 @@ class SplitCategoryStrip extends ConsumerWidget {
         for (final s in subs)
           _catTile(
             key: Key('strip-cat-${s.id}'),
-            emoji: categoryEmoji(s.icon, s.slug),
+            icon: s.icon,
+            slug: s.slug,
             label: s.name,
             selected: line.categoryId == s.id,
             hasSubs: false,
@@ -78,7 +78,8 @@ class SplitCategoryStrip extends ConsumerWidget {
         for (final c in cats)
           _catTile(
             key: Key('strip-cat-${c.id}'),
-            emoji: categoryEmoji(c.icon, c.slug),
+            icon: c.icon,
+            slug: c.slug,
             label: (c.id == selectedGroupId && selected?.parentId != null)
                 ? selected!.name
                 : c.name,
@@ -202,17 +203,19 @@ class SplitCategoryStrip extends ConsumerWidget {
 
   Widget _catTile({
     required Key key,
-    required String emoji,
+    required String? icon,
+    required String? slug,
     required String label,
     required bool selected,
     required bool hasSubs,
     required VoidCallback onTap,
   }) => InkWell(
     key: key,
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(12),
     onTap: onTap,
     child: CategoryTileBox(
-      emoji: emoji,
+      icon: icon,
+      slug: slug,
       label: label,
       selected: selected,
       hasSubs: hasSubs,

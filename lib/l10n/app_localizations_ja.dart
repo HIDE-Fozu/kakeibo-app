@@ -187,7 +187,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => '複数のカテゴリを選択';
+  String get entryStartSplitButton => 'カテゴリを追加';
 
   @override
   String get entryCategoryHeading => 'カテゴリ';
@@ -371,7 +371,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get categorySubAddTitle => '内訳を追加';
 
   @override
-  String get categoryAddTitle => 'カテゴリを追加';
+  String get categoryAddTitle => '新しいカテゴリ';
 
   @override
   String get categorySubRenameTitle => '内訳を改名';
@@ -925,4 +925,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entryRecurringNoteSuffix => '日に自動で記帳します';
+
+  @override
+  String get entrySubcategoryAddButton => 'サブカテゴリを追加';
 }

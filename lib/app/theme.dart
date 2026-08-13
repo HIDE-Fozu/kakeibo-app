@@ -1,36 +1,79 @@
 import 'package:flutter/material.dart';
 
-// デザイントークン（docs/phase45-handoff.md「デザイントークン」の正）
-const kPaper = Color(0xFFF6F5F0);
-const kCard = Color(0xFFFFFFFF);
-const kInk = Color(0xFF20241F);
-const kMuted = Color(0xFF6F756A);
-const kLine = Color(0xFFE3E2D8);
-const kPrimary = Color(0xFF1E6B5A);
-const kPrimarySoft = Color(0xFFE4EFE9);
-const kExpense = Color(0xFFB8433A);
+// デザイントークン（2026-08-13 にユーザー指定のパレットへ全面差し替え）。
+//
+// 方針（ユーザー指定）: パステル調だが全体を低彩度にはしない。背景・Surfaceは
+// 高明度・低彩度、CTA・アイコン・選択状態は中〜高彩度。くすみカラーを多用せず、
+// 白背景に明るいパステルが映えるポップな家計簿UIにする。
+//
+// 役割分担: 指定の Primary(#6EDCC7) は明るく、**白背景の上の文字としては
+// 1.6:1 で読めない**。そこで同じく指定された Primary Dark を「文字・枠・
+// 小さいグリフ」に、Primary を「塗り・CTA・選択状態」に割り当てている。
+// CTAは Primary 塗り＋Text Primary 文字で 7.0:1 と、明るさと可読性が両立する。
 
-/// 常時表示される「未入力・未選択」の注意喚起に使う赤茶。エラー赤(kExpense)
-/// より彩度を落とし、出っぱなしでも刺さらない柔らかい警告色にしている。
-const kWarnMuted = Color(0xFFA35B4C);
-const kExpenseSoft = Color(0xFFF7E9E7);
-const kIncome = Color(0xFF2E6E93);
-const kIncomeSoft = Color(0xFFE7EFF5);
-const kConfidenceHighSoft = Color(0xFFE2F0E6);
-const kConfidenceMedium = Color(0xFFA8741A);
-const kConfidenceMediumSoft = Color(0xFFF6EDDC);
+const kPaper = Color(0xFFFFFCF7); // ベース背景
+const kCard = Color(0xFFFFFFFF); // Surface
+const kInk = Color(0xFF343A3A); // Text Primary
+const kMuted = Color(0xFF8B918F); // Text Secondary
+const kLine = Color(0xFFE9E6E1); // Border
 
-/// カレンダーの曜日ヘッダ配色（薄赤=日曜 / 薄青=土曜）。読みやすさ優先の柔らかいトーン。
-const kSunday = Color(0xFFD05C55);
-const kSaturday = Color(0xFF4F80B0);
+/// Primary（塗り・CTA・選択状態に使う明るいミント）。文字色には使わない。
+const kMint = Color(0xFF6EDCC7);
+
+/// Primary Light。選択タイル・チップの下地。
+const kPrimarySoft = Color(0xFFDDF7F0);
+
+/// Primary Dark。`scheme.primary` に入る実質の主色で、文字・枠・アイコン用。
+const kPrimary = Color(0xFF287F73);
+
+/// クローム面（バックアップ帯・電卓下の帯・レシート確認パネル等）。
+/// ベース背景よりわずかに沈ませた同系のクリーム。
+const kChrome = Color(0xFFFBF7F0);
+
+/// 下部タブのラベル色（未選択）。仕様の Text Secondary。
+/// NavigationBar の仕様上ラベルはタブ別に色を変えられないため共通。
+const kNavIdle = kMuted;
+
+/// 下部タブのアイコン色（タブごと）。仕様の Accent 4色をそのまま使う。
+const kNavMint = kMint;
+const kNavAmber = Color(0xFFF4C95D); // Accent Yellow
+const kNavCoral = Color(0xFFF4B557); // Accent Orange
+const kNavBlue = Color(0xFF65AFE0); // Accent Blue
+
+/// Accent Purple（現状カレンダー等では未使用。サマリの系列色などに使える）
+const kAccentPurple = Color(0xFF8B82E8);
+
+const kExpense = Color(0xFFF07878);
+const kExpenseSoft = Color(0xFFFFE5E3);
+const kIncome = Color(0xFF54C69A);
+
+/// Income の淡色は指定に無いため Expense Light と同じ明度感で作った派生。
+const kIncomeSoft = Color(0xFFE4F6ED);
+
+/// 常時表示される「未入力・未選択」の注意喚起に使う色。Expense(#F07878)は
+/// 背景の上で 2.7:1 と文字には薄いので、同系で締めた値（3.9:1）。
+const kWarnMuted = Color(0xFFC7605C);
+
+/// カテゴリアイコンの円の下地。イラストアセット（assets/category_icons）が
+/// 内包している色そのもので、絵文字フォールバック側の円をこれに合わせている。
+const kIconCircle = Color(0xFFF5F8F5);
+
+const kConfidenceHighSoft = kPrimarySoft;
+const kConfidenceMedium = Color(0xFFB8862B); // Accent Yellow を文字用に締めた値
+const kConfidenceMediumSoft = Color(0xFFFDF3DC);
+
+/// カレンダーの曜日ヘッダ配色（日曜=Expense系 / 土曜=Accent Blue系）。
+/// どちらも指定色そのままだと文字に薄いので、色相を保って締めてある。
+const kSunday = Color(0xFFD9605C);
+const kSaturday = Color(0xFF4E93C4);
 
 /// サマリ積み上げバーの深緑濃淡（5色循環）
 const kSubScale = <Color>[
-  Color(0xFF1E6B5A),
-  Color(0xFF4E937E),
-  Color(0xFF7BB3A0),
-  Color(0xFFA8CFC0),
-  Color(0xFFCFE4DB),
+  kPrimary,
+  Color(0xFF3FA595),
+  kMint,
+  Color(0xFFA9E9DB),
+  kPrimarySoft,
 ];
 
 /// 金額表示は等幅数字（桁が揃う）
@@ -107,6 +150,7 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
     error: kExpense,
     errorContainer: kExpenseSoft,
     onErrorContainer: kInk,
+    surfaceContainerHighest: kChrome,
   );
   return ThemeData(
     useMaterial3: true,
@@ -120,6 +164,40 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
       fillColor: kCard,
     ),
     appBarTheme: AppBarTheme(backgroundColor: bg, foregroundColor: kInk),
+    // CTA（保存など）は明るい Primary 塗り＋濃い文字。scheme.primary は文字用の
+    // Primary Dark なので、塗りだけここで明るいミントに差し替えている。
+    // 既定アクセントのときだけ（設定で色を変えている人は従来どおり seed 由来）。
+    filledButtonTheme: isDefaultAccent
+        ? FilledButtonThemeData(
+            style: FilledButton.styleFrom(
+              backgroundColor: kMint,
+              foregroundColor: kInk,
+              disabledBackgroundColor: kLine,
+              disabledForegroundColor: kMuted,
+            ),
+          )
+        : const FilledButtonThemeData(),
+    // FAB「金額を入力する」も同じCTA言語に揃える。
+    floatingActionButtonTheme: isDefaultAccent
+        ? const FloatingActionButtonThemeData(
+            backgroundColor: kMint,
+            foregroundColor: kInk,
+          )
+        : const FloatingActionButtonThemeData(),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: kCard,
+      indicatorColor: kPrimarySoft,
+      iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(
+            color: s.contains(WidgetState.selected) ? kPrimary : kNavIdle,
+          )),
+      labelTextStyle: WidgetStateProperty.resolveWith((s) => TextStyle(
+            fontSize: 12,
+            fontWeight: s.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w400,
+            color: s.contains(WidgetState.selected) ? kPrimary : kNavIdle,
+          )),
+    ),
     cardTheme: const CardThemeData(color: kCard),
     extensions: const [KakeiboColors.standard],
   );

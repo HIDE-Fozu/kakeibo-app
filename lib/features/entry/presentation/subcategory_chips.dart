@@ -16,11 +16,16 @@ class SubcategoryChips extends ConsumerWidget {
   final int? selectedId;
   final void Function(int subId) onToggle;
 
+  /// 「完了」: サブカテゴリを選ばず親のまま確定してチップ列を閉じる
+  /// （2026-08-13のFB。従来は閉じ方が分からず宙ぶらりんになっていた）。
+  final VoidCallback onDone;
+
   const SubcategoryChips({
     super.key,
     required this.parentId,
     required this.selectedId,
     required this.onToggle,
+    required this.onDone,
   });
 
   @override
@@ -71,13 +76,26 @@ class SubcategoryChips extends ConsumerWidget {
               ),
             ),
           ),
+          // 「サブカテゴリを追加」はラベルが長いのでアイコンのみ＋ツールチップ。
+          // 隣に確定の「完了」を置くため、横幅はチップ側（スクロール）に譲る。
           if (parentCat != null)
-            TextButton.icon(
+            IconButton(
               key: const Key('add-sub-inline'),
-              icon: const Icon(Icons.add_circle_outline, size: 20),
-              label: Text(l.commonAdd),
+              icon: const Icon(Icons.add_circle_outline, size: 22),
+              tooltip: l.entrySubcategoryAddButton,
+              visualDensity: VisualDensity.compact,
               onPressed: () => _showAddDialog(context, ref, parentCat),
             ),
+          const SizedBox(width: 4),
+          FilledButton(
+            key: const Key('sub-done'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: onDone,
+            child: Text(l.commonDone),
+          ),
         ],
       ),
     );

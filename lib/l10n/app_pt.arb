@@ -52,7 +52,7 @@
   "entryTypeExpense": "Despesa",
   "entryTypeIncome": "Receita",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Selecionar várias categorias",
+  "entryStartSplitButton": "Adicionar categoria",
   "entryCategoryHeading": "Categoria",
   "entryDetailMemoLabel": "Observações",
   "entryStoreNameLabel": "Nome da loja",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "Despesa",
   "categoryTabIncome": "Receita",
   "categorySubAddTitle": "Adicionar subcategoria",
-  "categoryAddTitle": "Adicionar categoria",
+  "categoryAddTitle": "Nova categoria",
   "categorySubRenameTitle": "Renomear subcategoria",
   "categoryRenameTitle": "Renomear categoria",
   "categorySubAddTooltip": "Adicionar subcategoria",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "Salvar (+ mensal)",
   "entrySaveWithRuleIncome": "Salvar (+ mensal)",
   "entryRecurringNotePrefix": "Registrado automaticamente no dia",
-  "entryRecurringNoteSuffix": "de cada mês"
+  "entryRecurringNoteSuffix": "de cada mês",
+  "entrySubcategoryAddButton": "Adicionar subcategoria"
 }

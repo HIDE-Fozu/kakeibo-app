@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/category_icon.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
-import '../../../core/category_emoji.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
@@ -72,12 +72,9 @@ class MonthlyHubScreen extends ConsumerWidget {
           ListTile(
             key: Key('hub-upcoming-ghost-${g.rule.id}'),
             dense: true,
-            leading: Text(
-              categoryEmoji(
-                catById[g.rule.categoryId]?.icon,
-                catById[g.rule.categoryId]?.slug,
-              ),
-              style: const TextStyle(fontSize: 20),
+            leading: CategoryIcon(
+              icon: catById[g.rule.categoryId]?.icon,
+              slug: catById[g.rule.categoryId]?.slug,
             ),
             title: Text(
               '${choreShortDate(context, g.date)}　'
@@ -171,12 +168,9 @@ class MonthlyHubScreen extends ConsumerWidget {
               for (final r in rules)
                 ListTile(
                   key: Key('hub-rule-${r.id}'),
-                  leading: Text(
-                    categoryEmoji(
-                      catById[r.categoryId]?.icon,
-                      catById[r.categoryId]?.slug,
-                    ),
-                    style: const TextStyle(fontSize: 20),
+                  leading: CategoryIcon(
+                    icon: catById[r.categoryId]?.icon,
+                    slug: catById[r.categoryId]?.slug,
                   ),
                   title: Text(
                       catById[r.categoryId]?.name ?? l.calendarCategoryUnknown),

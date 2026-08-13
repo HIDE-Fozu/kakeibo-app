@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/category_emoji.dart';
+import '../../../app/category_icon.dart';
 import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
@@ -208,8 +208,7 @@ class _CategoryTypeList extends ConsumerWidget {
                   key: ValueKey('cat-${p.id}'),
                   children: [
                     ListTile(
-                      leading: Text(categoryEmoji(p.icon, p.slug),
-                          style: const TextStyle(fontSize: 20)),
+                      leading: CategoryIcon(icon: p.icon, slug: p.slug),
                       title: Text(p.name),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -262,11 +261,13 @@ class _CategoryTypeList extends ConsumerWidget {
             children: [
               for (final c in archived)
                 ListTile(
-                  leading: Text(
-                      c.parentId != null
-                          ? '└ ${categoryEmoji(c.icon, c.slug)}'
-                          : categoryEmoji(c.icon, c.slug),
-                      style: const TextStyle(fontSize: 16)),
+                  leading: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (c.parentId != null) const Text('└ '),
+                      CategoryIcon(icon: c.icon, slug: c.slug, size: 24),
+                    ],
+                  ),
                   title: Text(l.categoryArchivedItemLabel(c.name)),
                   trailing: IconButton(
                     key: Key('unarchive-${c.id}'),
@@ -308,8 +309,13 @@ class _SubList extends ConsumerWidget {
             key: ValueKey('sub-${s.id}'),
             dense: true,
             contentPadding: const EdgeInsets.only(left: 32, right: 16),
-            leading: Text('└ ${categoryEmoji(s.icon, s.slug)}',
-                style: const TextStyle(fontSize: 16)),
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('└ '),
+                CategoryIcon(icon: s.icon, slug: s.slug, size: 24),
+              ],
+            ),
             title: Text(s.name),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

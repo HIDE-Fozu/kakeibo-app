@@ -52,7 +52,7 @@
   "entryTypeExpense": "支出",
   "entryTypeIncome": "收入",
   "entryDateLabel": "{year}年{month}月{day}日",
-  "entryStartSplitButton": "选择多个分类",
+  "entryStartSplitButton": "添加类别",
   "entryCategoryHeading": "分类",
   "entryDetailMemoLabel": "备注",
   "entryStoreNameLabel": "店铺名称",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "支出",
   "categoryTabIncome": "收入",
   "categorySubAddTitle": "添加子分类",
-  "categoryAddTitle": "添加分类",
+  "categoryAddTitle": "新建类别",
   "categorySubRenameTitle": "重命名子分类",
   "categoryRenameTitle": "重命名分类",
   "categorySubAddTooltip": "添加子分类",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "保存（+每月支出）",
   "entrySaveWithRuleIncome": "保存（+每月收入）",
   "entryRecurringNotePrefix": "每月",
-  "entryRecurringNoteSuffix": "日自动记录"
+  "entryRecurringNoteSuffix": "日自动记录",
+  "entrySubcategoryAddButton": "添加子类别"
 }

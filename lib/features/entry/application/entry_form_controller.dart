@@ -151,6 +151,11 @@ class EntryFormState {
   /// 「8/8に入力するが引き落としは毎月25日」のようなケースで上書きする。
   final int? recurringDay;
 
+  /// 保存を一度でも試したか。保存できない理由(saveHint)は**押してから**出す
+  /// （2026-08-13のFB。常時出していると縦を1行ぶん占め、「カテゴリを追加」を
+  /// 初期表示にすると画面が溢れる）。
+  final bool saveAttempted;
+
   const EntryFormState({
     required this.mode,
     this.editingId,
@@ -180,6 +185,7 @@ class EntryFormState {
     this.formSeq = 0,
     this.recurringOn = false,
     this.recurringDay,
+    this.saveAttempted = false,
   });
 
   /// 毎月ルールの実効記帳日（上書きが無ければ入力日付の日）。
@@ -353,6 +359,7 @@ class EntryFormState {
     int? formSeq,
     bool? recurringOn,
     Object? recurringDay = _unset,
+    bool? saveAttempted,
   }) =>
       EntryFormState(
         formSeq: formSeq ?? this.formSeq,
@@ -406,6 +413,7 @@ class EntryFormState {
         recurringDay: identical(recurringDay, _unset)
             ? this.recurringDay
             : recurringDay as int?,
+        saveAttempted: saveAttempted ?? this.saveAttempted,
       );
 }
 
@@ -566,6 +574,20 @@ class EntryFormController extends Notifier<EntryFormState?> {
     state = _s.copyWith(
       categoryId: categoryId,
       expandedParentId: hasSubs ? categoryId : null,
+    );
+  }
+
+  /// 「保存」を押したが未入力があった、という記録。以後 saveHint を表示する。
+  void markSaveAttempted() => state = _s.copyWith(saveAttempted: true);
+
+  /// 内訳チップの「完了」: サブカテゴリを選ばず、親カテゴリのままで確定する。
+  /// 親はチップ列を開いた時点で既に割り当て済み（tapCategory）なので、
+  /// ここは列を閉じるだけでよい。分割中はカテゴリ帯も一緒に閉じる。
+  void confirmParentCategory() {
+    if (_s.expandedParentId == null) return;
+    state = _s.copyWith(
+      expandedParentId: null,
+      splitCatPickerOpen: _s.splits == null ? null : false,
     );
   }
 
@@ -748,8 +770,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
     state = _s.copyWith(
       // 入力行1＋残額行(末尾・差分表示)で開始。既定は内税（入力額そのまま）。
+      // 1行目には**すでに選んでいるカテゴリを引き継ぐ**（2026-08-12のFB。
+      // 「1つだけカテゴリが入った状態から追加で増やす」流れにするため。
+      // 引き継がないと、カテゴリを選んでから追加した人が選び直しになる）。
       splits: [
-        SplitLine(taxIncluded: true, decimals: _decimals),
+        SplitLine(
+            taxIncluded: true,
+            decimals: _decimals,
+            categoryId: _s.categoryId),
         SplitLine(taxIncluded: true, decimals: _decimals),
       ],
       activeSplitIndex: 0,

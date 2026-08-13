@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/category_icon.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
@@ -124,12 +125,9 @@ class BatchItemizePanel extends ConsumerWidget {
 
     Widget leading;
     if (state.batchPaintMode) {
-      leading = Text(
-        cat == null ? '○' : categoryEmoji(cat.icon, cat.slug),
-        style: TextStyle(
-            fontSize: 15,
-            color: cat == null ? scheme.outline : null),
-      );
+      leading = cat == null
+          ? Text('○', style: TextStyle(fontSize: 15, color: scheme.outline))
+          : CategoryIcon(icon: cat.icon, slug: cat.slug, size: 22);
     } else {
       leading = Icon(
         b.selected ? Icons.check_box : Icons.check_box_outline_blank,
@@ -194,8 +192,7 @@ class BatchItemizePanel extends ConsumerWidget {
               if (!state.batchPaintMode && cat != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 4),
-                  child: Text(categoryEmoji(cat.icon, cat.slug),
-                      style: const TextStyle(fontSize: 14)),
+                  child: CategoryIcon(icon: cat.icon, slug: cat.slug, size: 20),
                 ),
               taxChip(8),
               taxChip(10),
@@ -355,8 +352,7 @@ class BatchItemizePanel extends ConsumerWidget {
             for (final c in pickableCategories)
               ListTile(
                 dense: true,
-                leading: Text(categoryEmoji(c.icon, c.slug),
-                    style: const TextStyle(fontSize: 18)),
+                leading: CategoryIcon(icon: c.icon, slug: c.slug, size: 26),
                 title: Text(c.name),
                 onTap: () => Navigator.pop(ctx, c.id),
               ),

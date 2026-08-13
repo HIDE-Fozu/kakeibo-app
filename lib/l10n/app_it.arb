@@ -52,7 +52,7 @@
   "entryTypeExpense": "Spesa",
   "entryTypeIncome": "Entrata",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Scegli più categorie",
+  "entryStartSplitButton": "Aggiungi categoria",
   "entryCategoryHeading": "Categoria",
   "entryDetailMemoLabel": "Note",
   "entryStoreNameLabel": "Nome del negozio",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "Spese",
   "categoryTabIncome": "Entrate",
   "categorySubAddTitle": "Aggiungi sottocategoria",
-  "categoryAddTitle": "Aggiungi categoria",
+  "categoryAddTitle": "Nuova categoria",
   "categorySubRenameTitle": "Rinomina sottocategoria",
   "categoryRenameTitle": "Rinomina categoria",
   "categorySubAddTooltip": "Aggiungi sottocategoria",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "Salva (+ mensile)",
   "entrySaveWithRuleIncome": "Salva (+ mensile)",
   "entryRecurringNotePrefix": "Registrata automaticamente il giorno",
-  "entryRecurringNoteSuffix": "di ogni mese"
+  "entryRecurringNoteSuffix": "di ogni mese",
+  "entrySubcategoryAddButton": "Aggiungi sottocategoria"
 }

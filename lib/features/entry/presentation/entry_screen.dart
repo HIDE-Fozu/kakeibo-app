@@ -127,7 +127,9 @@ class EntryScreen extends ConsumerWidget {
                   children: [
                       // 編集では型不変（DBのupdateFieldsがtypeを書かない。返品はspec §4.4）。
                       // 詳細入力/一括内訳中は場所を空けるため隠す（型は開始前に確定済み）。
-                      if (state.mode != EntryMode.edit && !splitMode && !batchMode)
+                      // 内訳中も出す（隠すと「カテゴリを追加」の前後で品目行と
+                      // カテゴリの位置が飛ぶ・2026-08-13のFB）。
+                      if (state.mode != EntryMode.edit && !batchMode)
                         SegmentedButton<TxnType>(
                           segments: [
                             ButtonSegment(
@@ -259,20 +261,43 @@ class EntryScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                       ],
-                      // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
-                      // （分割中は上の Stack の中で電卓を出すのでここでは出さない）。
-                      if (!batchMode && !splitMode) numpad,
-                      const SizedBox(height: 8),
-                      // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
-                      // 分割/一括/編集中と金額0では出さない。
-                      // 左隣に「毎月の費用/収入」トグル（単体登録専用。グループ
-                      // 再保存=replacesTxIds中とレシート確認では出さない）。
-                      // Wrap: 幅が足りない言語では2行に折り返す（Spacer+Flexibleの
-                      // Rowはflex均等割りで右ボタンが「複数のカ…」に切れる罠がある）。
+                      // 通常/一括内訳のカテゴリは見出し＋グリッド（電卓の下）。
+                      // 分割中の帯は行のすぐ下＝電卓の上（上の splitMode ブロック）。
+                      // 1品目の状態でも「内訳の1行目」として見せる（2026-08-12の
+                      // FB。ここから「カテゴリを追加」で2行に増えて内訳画面に
+                      // 育つ、という連続した流れにするため）。行の見た目は
+                      // split_entry_panel の行に合わせてある。
+                      // 店名は品目行の上（内訳画面と同じ位置）。
                       if (!splitMode &&
                           !batchMode &&
-                          state.mode != EntryMode.edit &&
-                          state.amountYen > 0)
+                          state.mode != EntryMode.receiptConfirm) ...[
+                        TextFormField(
+                          key: ValueKey('store-field-${state.formSeq}'),
+                          initialValue: state.storeName,
+                          decoration: InputDecoration(
+                            // 収入は店ではなく勤め先なので「会社名」（2026-08-09 FB）。
+                            labelText: state.type == TxnType.income
+                                ? l.entryCompanyNameLabel
+                                : l.entryStoreNameLabel,
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: ctrl.setStoreName,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      // 「カテゴリを追加」は**消費税行と同じ位置**に置く（2026-08-13のFB）。
+                      // 押すと内訳になりここに消費税行が出るので、ボタン⇄消費税行の
+                      // 入れ替わりだけになり、品目行とカテゴリの位置が動かない。
+                      // 金額0でも出す＝初期表示（2026-08-13のFB）。保存できない理由は
+                      // 「保存」を押すまで出さないので、縦は増えない。
+                      if (!splitMode &&
+                          !batchMode &&
+                          state.mode != EntryMode.edit) ...[
+                        const SizedBox(height: 4),
+                        // 左=毎月の費用 / 右=カテゴリを追加。内訳の「内訳＋消費税」行と
+                        // 同じ左右構成・同じ位置に揃える（2026-08-13のFB）。
+                        // Wrap: 幅が足りない言語では2行に折り返す。
                         Wrap(
                           alignment: WrapAlignment.spaceBetween,
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -317,7 +342,7 @@ class EntryScreen extends ConsumerWidget {
                                     const EdgeInsets.symmetric(horizontal: 8),
                                 visualDensity: VisualDensity.compact,
                               ),
-                              icon: const Icon(Icons.call_split, size: 18),
+                              icon: const Icon(Icons.add, size: 18),
                               label: Text(l.entryStartSplitButton),
                             ),
                           ],
@@ -428,8 +453,47 @@ class EntryScreen extends ConsumerWidget {
                             );
                           }),
                         ),
-                      // 通常/一括内訳のカテゴリは見出し＋グリッド（電卓の下）。
-                      // 分割中の帯は行のすぐ下＝電卓の上（上の splitMode ブロック）。
+                      ],
+                      if (!splitMode && !batchMode)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 2, right: 2, bottom: 6),
+                          child: Container(
+                            key: const Key('single-item-row'),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 6),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 5),
+                                  child: Text('1',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                        fontFeatures: kTabularFigures,
+                                      )),
+                                ),
+                                // 金額は上部に大きく出ているので行には出さない
+                                // （1品目では必ず総額と同じ＝二重表示になる）。
+                                // 長い言語(de)で溢れないよう Flexible + 省略。
+                                Flexible(
+                                  child: _singleCatChip(context,
+                                      categoryNames[state.categoryId], l),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       if (!splitMode) ...[
                       // カテゴリ見出し。一括内訳中は右に詳細メモ欄を置く。
                       Padding(
@@ -492,25 +556,18 @@ class EntryScreen extends ConsumerWidget {
                                   onTapCategory: ctrl.tapCategory,
                                 ),
                                 const SizedBox(height: 8),
+                                // 一括内訳中はテンキー不要（金額は明細から）。スペースを譲る
+                                // （分割中は上の Stack の中で電卓を出すのでここでは出さない）。
+                                if (!batchMode && !splitMode) numpad,
+                                const SizedBox(height: 8),
+                                // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
+                                // 分割/一括/編集中と金額0では出さない。
+                                // 左隣に「毎月の費用/収入」トグル（単体登録専用。グループ
+                                // 再保存=replacesTxIds中とレシート確認では出さない）。
+                                // Wrap: 幅が足りない言語では2行に折り返す（Spacer+Flexibleの
+                                // Rowはflex均等割りで右ボタンが「複数のカ…」に切れる罠がある）。
                                 // レシート確認では店舗名は上のレビューパネルで扱うため
                                 // 詳細メモのみ。
-                                if (state.mode != EntryMode.receiptConfirm) ...[
-                                  TextFormField(
-                                    key: ValueKey('store-field-${state.formSeq}'),
-                                    initialValue: state.storeName,
-                                    decoration: InputDecoration(
-                                      // 収入は店ではなく勤め先なので「会社名」
-                                      // （2026-08-09 FB）。
-                                      labelText:
-                                          state.type == TxnType.income
-                                              ? l.entryCompanyNameLabel
-                                              : l.entryStoreNameLabel,
-                                      border: const OutlineInputBorder(),
-                                    ),
-                                    onChanged: ctrl.setStoreName,
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
                                 TextFormField(
                                   key: ValueKey('memo-field-${state.formSeq}'),
                                   initialValue: state.memo,
@@ -545,7 +602,10 @@ class EntryScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (!state.canSave && state.saveHint(l) != null)
+                  // 押す前は出さない（常時表示だと縦を1行占める・2026-08-13のFB）
+                  if (state.saveAttempted &&
+                      !state.canSave &&
+                      state.saveHint(l) != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
@@ -562,8 +622,10 @@ class EntryScreen extends ConsumerWidget {
                           Expanded(
                             child: FilledButton(
                               key: const Key('save-btn'),
-                              onPressed: state.canSave
-                                  ? () async {
+                              onPressed: () async {
+                                // 押せないボタンにはせず、押したら未入力の理由を出す（2026-08-13のFB）
+                                if (!state.canSave) return ctrl.markSaveAttempted();
+
                                       final date = state.date;
                                       await ctrl.save();
                                       if (embedded) {
@@ -581,7 +643,7 @@ class EntryScreen extends ConsumerWidget {
                                         Navigator.pop(context);
                                       }
                                     }
-                                  : null,
+                                  ,
                               // 「毎月の費用/収入」ON時はルールも作ることを予告
                               child: Text(state.recurringOn
                                   ? (state.type == TxnType.expense
@@ -596,8 +658,10 @@ class EntryScreen extends ConsumerWidget {
                             Expanded(
                               child: OutlinedButton(
                                 key: const Key('save-continue-btn'),
-                                onPressed: state.canSave
-                                    ? () async {
+                                onPressed: () async {
+                                  // 押せないボタンにはせず、押したら未入力の理由を出す（2026-08-13のFB）
+                                  if (!state.canSave) return ctrl.markSaveAttempted();
+
                                         final messenger = ScaffoldMessenger.of(
                                           context,
                                         );
@@ -608,8 +672,7 @@ class EntryScreen extends ConsumerWidget {
                                                 Text(l.entrySavedSnackbar),
                                           ),
                                         );
-                                      }
-                                    : null,
+                                },
                                 child: Text(l.entrySaveContinueButton),
                               ),
                             ),
@@ -656,6 +719,7 @@ class EntryScreen extends ConsumerWidget {
           parentId: state.expandedParentId!,
           selectedId: gridSelectedId,
           onToggle: ctrl.toggleSubcategory,
+          onDone: ctrl.confirmParentCategory,
         ),
       );
 
@@ -763,4 +827,31 @@ class EntryScreen extends ConsumerWidget {
     await ref.read(entryFormControllerProvider.notifier).deleteEditing();
     if (context.mounted) Navigator.pop(context);
   }
+}
+
+/// 1品目行のカテゴリ表示。内訳行のチップと同じ見た目に揃える（未選択は赤茶の枠）。
+/// 内訳行と違いタップ対象は下のグリッドなので、ここは表示専用。
+Widget _singleCatChip(BuildContext context, String? label, AppLocalizations l) {
+  final scheme = Theme.of(context).colorScheme;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: label == null ? null : scheme.primaryContainer,
+      border: Border.all(
+          color: label == null
+              ? kWarnMuted
+              : scheme.primary.withValues(alpha: 0.45)),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Text(
+      label ?? l.splitCategoryUnselected,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w700,
+        color: label == null ? kWarnMuted : scheme.primary,
+      ),
+    ),
+  );
 }

@@ -52,7 +52,7 @@
   "entryTypeExpense": "Ausgabe",
   "entryTypeIncome": "Einnahme",
   "entryDateLabel": "{day}.{month}.{year}",
-  "entryStartSplitButton": "Mehrere Kategorien wählen",
+  "entryStartSplitButton": "Kategorie hinzufügen",
   "entryCategoryHeading": "Kategorie",
   "entryDetailMemoLabel": "Notizen",
   "entryStoreNameLabel": "Geschäftsname",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "Ausgaben",
   "categoryTabIncome": "Einnahmen",
   "categorySubAddTitle": "Unterkategorie hinzufügen",
-  "categoryAddTitle": "Kategorie hinzufügen",
+  "categoryAddTitle": "Neue Kategorie",
   "categorySubRenameTitle": "Unterkategorie umbenennen",
   "categoryRenameTitle": "Kategorie umbenennen",
   "categorySubAddTooltip": "Unterkategorie hinzufügen",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "Speichern (+ monatlich)",
   "entrySaveWithRuleIncome": "Speichern (+ monatlich)",
   "entryRecurringNotePrefix": "Wird monatlich am Tag",
-  "entryRecurringNoteSuffix": "automatisch erfasst"
+  "entryRecurringNoteSuffix": "automatisch erfasst",
+  "entrySubcategoryAddButton": "Unterkategorie hinzufügen"
 }

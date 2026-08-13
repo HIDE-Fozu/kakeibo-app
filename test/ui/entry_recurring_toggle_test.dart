@@ -6,6 +6,7 @@ import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
 import 'package:kakeibo_app/features/entry/presentation/entry_screen.dart';
+import 'package:kakeibo_app/features/entry/presentation/numpad.dart';
 
 import '../support/test_app.dart';
 
@@ -105,7 +106,8 @@ void main() {
 
     await tester.tap(find.text('収入'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1'));
+    await tester.tap(find.descendant(
+        of: find.byType(Numpad), matching: find.text('1')));
     await tester.tap(find.byKey(const Key('np-00')));
     await tester.pump();
 
@@ -134,7 +136,8 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1'));
+    await tester.tap(find.descendant(
+        of: find.byType(Numpad), matching: find.text('1')));
     await tester.tap(find.byKey(const Key('np-00')));
     await tester.tap(find.byKey(const Key('np-0')));
     await tester.pump();

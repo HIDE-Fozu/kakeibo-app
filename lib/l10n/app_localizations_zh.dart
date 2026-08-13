@@ -187,7 +187,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => '选择多个分类';
+  String get entryStartSplitButton => '添加类别';
 
   @override
   String get entryCategoryHeading => '分类';
@@ -370,7 +370,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categorySubAddTitle => '添加子分类';
 
   @override
-  String get categoryAddTitle => '添加分类';
+  String get categoryAddTitle => '新建类别';
 
   @override
   String get categorySubRenameTitle => '重命名子分类';
@@ -922,4 +922,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get entryRecurringNoteSuffix => '日自动记录';
+
+  @override
+  String get entrySubcategoryAddButton => '添加子类别';
 }

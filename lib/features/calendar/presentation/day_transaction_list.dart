@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/category_emoji.dart';
+import '../../../app/category_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/providers.dart';
@@ -116,8 +116,7 @@ class DayTransactionList extends ConsumerWidget {
     final store = g.rule.storeName;
     return ListTile(
       key: ValueKey('ghost-${g.rule.id}'),
-      leading: Text(categoryEmoji(cat?.icon, cat?.slug),
-          style: const TextStyle(fontSize: 20)),
+      leading: CategoryIcon(icon: cat?.icon, slug: cat?.slug),
       title: Text(
         cat?.name ?? l.calendarCategoryUnknown,
         style: TextStyle(color: scheme.onSurfaceVariant),
@@ -253,8 +252,11 @@ class DayTransactionList extends ConsumerWidget {
       child: ListTile(
         dense: dense,
         visualDensity: dense ? VisualDensity.compact : null,
-        leading: Text(categoryEmoji(cat?.icon, cat?.slug),
-            style: TextStyle(fontSize: dense ? 17 : 20)),
+        leading: CategoryIcon(
+          icon: cat?.icon,
+          slug: cat?.slug,
+          size: dense ? 24 : 28,
+        ),
         title: Text(name),
         subtitle: !dense && txDisplayLabel(tx) != null
             ? Text(txDisplayLabel(tx)!)

@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/category_icon.dart';
 import '../../../app/providers.dart';
-import '../../../core/category_emoji.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../settings/application/settings_controller.dart';
@@ -443,7 +443,8 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
     bool elevated = false,
   }) =>
       CategoryTileBox(
-        emoji: categoryEmoji(c.icon, c.slug),
+        icon: c.icon,
+        slug: c.slug,
         label: selectedSubName ?? c.name,
         selected: isSelectedGroup,
         hasSubs: hasSubs,
@@ -459,17 +460,23 @@ class _CategoryGridState extends ConsumerState<CategoryGrid>
   }
 }
 
-/// カテゴリタイルの見た目（絵文字＋名前・56高想定）。
+/// カテゴリタイルの見た目（イラスト＋名前・56高想定）。
 /// 通常グリッドと内訳の1行帯（split_category_strip）で共用し、サイズ・配色を揃える。
+///
+/// 2026-08-11 のデザイン適用で「白カード＋円のイラスト＋緑ラベル」に変更。
+/// 選択中の見え方（濃い下地＋2px枠）は 08-11 のFBで詰めた挙動をそのまま維持する。
 class CategoryTileBox extends StatelessWidget {
-  final String emoji;
+  /// カテゴリの icon 列（ユーザー設定の絵文字）と slug。[CategoryIcon] に渡す。
+  final String? icon;
+  final String? slug;
   final String label;
   final bool selected;
   final bool hasSubs;
   final bool elevated;
   const CategoryTileBox({
     super.key,
-    required this.emoji,
+    required this.icon,
+    required this.slug,
     required this.label,
     required this.selected,
     this.hasSubs = false,
@@ -481,9 +488,12 @@ class CategoryTileBox extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: selected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-        border: selected ? Border.all(color: scheme.primary, width: 2) : null,
+        borderRadius: BorderRadius.circular(12),
+        color: selected ? scheme.primaryContainer : scheme.surface,
+        border: Border.all(
+          color: selected ? scheme.primary : scheme.outlineVariant,
+          width: selected ? 2 : 1,
+        ),
         boxShadow: elevated
             ? [
                 BoxShadow(
@@ -497,10 +507,16 @@ class CategoryTileBox extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
+          CategoryIcon(icon: icon, slug: slug, size: 26),
+          const SizedBox(height: 1),
           Text(
             hasSubs ? '$label ▾' : label,
-            style: const TextStyle(fontSize: 11),
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.15,
+              color: scheme.primary,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

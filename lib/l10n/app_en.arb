@@ -151,7 +151,7 @@
       }
     }
   },
-  "entryStartSplitButton": "Select multiple categories",
+  "entryStartSplitButton": "Add category",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",
@@ -256,7 +256,7 @@
   "categoryTabExpense": "Expense",
   "categoryTabIncome": "Income",
   "categorySubAddTitle": "Add Sub-category",
-  "categoryAddTitle": "Add Category",
+  "categoryAddTitle": "New category",
   "categorySubRenameTitle": "Rename Sub-category",
   "categoryRenameTitle": "Rename Category",
   "categorySubAddTooltip": "Add sub-category",
@@ -849,5 +849,6 @@
   },
   "@entryRecurringNoteSuffix": {
     "description": "Monthly-toggle note: text after the inline day dropdown"
-  }
+  },
+  "entrySubcategoryAddButton": "Add subcategory"
 }

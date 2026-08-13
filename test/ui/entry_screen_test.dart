@@ -56,10 +56,13 @@ void main() {
     expect(find.text('入力'), findsOneWidget);
     expect(find.text('2026年7月15日'), findsOneWidget); // 日付は常に表示（年月日）
 
-    // 保存はamount+categoryが揃うまで無効
-    expect(
-        tester.widget<FilledButton>(find.byKey(const Key('save-btn'))).onPressed,
-        isNull);
+    // 保存ボタンは常に押せる（2026-08-13のFB）。未入力のまま押すと
+    // 「押した時だけ」保存できない理由が出る。押す前は出ていない。
+    expect(find.byKey(const Key('save-hint')), findsNothing);
+    await tester.tap(find.byKey(const Key('save-btn')));
+    await tester.pump();
+    expect(find.byKey(const Key('save-hint')), findsOneWidget);
+    expect(container.read(entryFormControllerProvider)!.saveAttempted, isTrue);
 
     await tester.tap(find.text('5'));
     await tester.tap(find.byKey(const Key('np-00')));

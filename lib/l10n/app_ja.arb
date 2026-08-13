@@ -52,7 +52,7 @@
   "entryTypeExpense": "支出",
   "entryTypeIncome": "収入",
   "entryDateLabel": "{year}年{month}月{day}日",
-  "entryStartSplitButton": "複数のカテゴリを選択",
+  "entryStartSplitButton": "カテゴリを追加",
   "entryCategoryHeading": "カテゴリ",
   "entryDetailMemoLabel": "詳細メモ",
   "entryStoreNameLabel": "店舗名",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "支出",
   "categoryTabIncome": "収入",
   "categorySubAddTitle": "内訳を追加",
-  "categoryAddTitle": "カテゴリを追加",
+  "categoryAddTitle": "新しいカテゴリ",
   "categorySubRenameTitle": "内訳を改名",
   "categoryRenameTitle": "カテゴリを改名",
   "categorySubAddTooltip": "内訳を追加",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "保存（＋毎月の費用に登録）",
   "entrySaveWithRuleIncome": "保存（＋毎月の収入に登録）",
   "entryRecurringNotePrefix": "毎月",
-  "entryRecurringNoteSuffix": "日に自動で記帳します"
+  "entryRecurringNoteSuffix": "日に自動で記帳します",
+  "entrySubcategoryAddButton": "サブカテゴリを追加"
 }

@@ -16,6 +16,7 @@ import '../features/summary/presentation/summary_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'l10n_providers.dart';
 import 'navigation.dart';
+import 'theme.dart';
 import 'providers.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
@@ -142,17 +143,26 @@ class _HomeShellState extends ConsumerState<HomeShell>
               selectedIndex: navSelected < 0 ? 0 : navSelected,
               onDestinationSelected: _onSelect,
               destinations: [
+                // 未選択はタブごとのアクセント色。選択中は Primary Dark に切り替える
+                // ——選択中は下地が Primary Light の丸になるので、明るいアクセントの
+                // ままだとアイコンが下地に埋もれて消える（ミント×Primary Lightで1.3:1）。
                 NavigationDestination(
-                    icon: const Icon(Icons.calendar_month),
+                    icon: const Icon(Icons.calendar_month, color: kNavMint),
+                    selectedIcon:
+                        const Icon(Icons.calendar_month, color: kPrimary),
                     label: l.homeNavCalendar),
                 NavigationDestination(
-                    icon: const Icon(Icons.event_repeat),
+                    icon: const Icon(Icons.event_repeat, color: kNavAmber),
+                    selectedIcon:
+                        const Icon(Icons.event_repeat, color: kPrimary),
                     label: l.homeNavMonthly),
                 NavigationDestination(
-                    icon: const Icon(Icons.bar_chart),
+                    icon: const Icon(Icons.bar_chart, color: kNavCoral),
+                    selectedIcon: const Icon(Icons.bar_chart, color: kPrimary),
                     label: l.homeNavSummary),
                 NavigationDestination(
-                    icon: const Icon(Icons.settings),
+                    icon: const Icon(Icons.settings, color: kNavBlue),
+                    selectedIcon: const Icon(Icons.settings, color: kPrimary),
                     label: l.homeNavSettings),
               ],
             ),

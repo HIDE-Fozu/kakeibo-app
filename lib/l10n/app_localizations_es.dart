@@ -196,7 +196,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => 'Elegir varias categorías';
+  String get entryStartSplitButton => 'Añadir categoría';
 
   @override
   String get entryCategoryHeading => 'Categoría';
@@ -386,7 +386,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get categorySubAddTitle => 'Añadir subcategoría';
 
   @override
-  String get categoryAddTitle => 'Añadir categoría';
+  String get categoryAddTitle => 'Nueva categoría';
 
   @override
   String get categorySubRenameTitle => 'Cambiar nombre de subcategoría';
@@ -959,4 +959,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get entryRecurringNoteSuffix => 'de cada mes';
+
+  @override
+  String get entrySubcategoryAddButton => 'Añadir subcategoría';
 }

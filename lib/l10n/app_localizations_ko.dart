@@ -188,7 +188,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get entryStartSplitButton => '여러 카테고리 선택';
+  String get entryStartSplitButton => '카테고리 추가';
 
   @override
   String get entryCategoryHeading => '카테고리';
@@ -373,7 +373,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get categorySubAddTitle => '세부 카테고리 추가';
 
   @override
-  String get categoryAddTitle => '카테고리 추가';
+  String get categoryAddTitle => '새 카테고리';
 
   @override
   String get categorySubRenameTitle => '세부 카테고리 이름 변경';
@@ -928,4 +928,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entryRecurringNoteSuffix => '일에 자동으로 기록됩니다';
+
+  @override
+  String get entrySubcategoryAddButton => '하위 카테고리 추가';
 }

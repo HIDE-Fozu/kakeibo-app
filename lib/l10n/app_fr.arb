@@ -52,7 +52,7 @@
   "entryTypeExpense": "Dépense",
   "entryTypeIncome": "Revenu",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Choisir plusieurs catégories",
+  "entryStartSplitButton": "Ajouter une catégorie",
   "entryCategoryHeading": "Catégorie",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Nom du magasin",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "Dépenses",
   "categoryTabIncome": "Revenus",
   "categorySubAddTitle": "Ajouter une sous-catégorie",
-  "categoryAddTitle": "Ajouter une catégorie",
+  "categoryAddTitle": "Nouvelle catégorie",
   "categorySubRenameTitle": "Renommer la sous-catégorie",
   "categoryRenameTitle": "Renommer la catégorie",
   "categorySubAddTooltip": "Ajouter une sous-catégorie",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "Enregistrer (+ mensuel)",
   "entrySaveWithRuleIncome": "Enregistrer (+ mensuel)",
   "entryRecurringNotePrefix": "Enregistré automatiquement le jour",
-  "entryRecurringNoteSuffix": "de chaque mois"
+  "entryRecurringNoteSuffix": "de chaque mois",
+  "entrySubcategoryAddButton": "Ajouter une sous-catégorie"
 }

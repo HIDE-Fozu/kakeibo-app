@@ -52,7 +52,7 @@
   "entryTypeExpense": "Gasto",
   "entryTypeIncome": "Ingreso",
   "entryDateLabel": "{day}/{month}/{year}",
-  "entryStartSplitButton": "Elegir varias categorías",
+  "entryStartSplitButton": "Añadir categoría",
   "entryCategoryHeading": "Categoría",
   "entryDetailMemoLabel": "Notas",
   "entryStoreNameLabel": "Nombre de la tienda",
@@ -109,7 +109,7 @@
   "categoryTabExpense": "Gastos",
   "categoryTabIncome": "Ingresos",
   "categorySubAddTitle": "Añadir subcategoría",
-  "categoryAddTitle": "Añadir categoría",
+  "categoryAddTitle": "Nueva categoría",
   "categorySubRenameTitle": "Cambiar nombre de subcategoría",
   "categoryRenameTitle": "Cambiar nombre de categoría",
   "categorySubAddTooltip": "Añadir subcategoría",
@@ -275,5 +275,6 @@
   "entrySaveWithRuleExpense": "Guardar (+ mensual)",
   "entrySaveWithRuleIncome": "Guardar (+ mensual)",
   "entryRecurringNotePrefix": "Se registrará automáticamente el día",
-  "entryRecurringNoteSuffix": "de cada mes"
+  "entryRecurringNoteSuffix": "de cada mes",
+  "entrySubcategoryAddButton": "Añadir subcategoría"
 }

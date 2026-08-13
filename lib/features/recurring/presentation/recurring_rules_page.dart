@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/category_icon.dart';
 import '../../../app/cell_dropdown.dart';
 import '../../../app/keyboard_done_bar.dart';
 import '../../../app/l10n_providers.dart';
@@ -63,12 +64,9 @@ class RecurringRulesPage extends ConsumerWidget {
                 for (final r in rules)
                   ListTile(
                     key: Key('recurring-rule-${r.id}'),
-                    leading: Text(
-                      categoryEmoji(
-                        catById[r.categoryId]?.icon,
-                        catById[r.categoryId]?.slug,
-                      ),
-                      style: const TextStyle(fontSize: 20),
+                    leading: CategoryIcon(
+                      icon: catById[r.categoryId]?.icon,
+                      slug: catById[r.categoryId]?.slug,
                     ),
                     title: Text(
                       catById[r.categoryId]?.name ?? l.calendarCategoryUnknown,

@@ -26,8 +26,9 @@ void main() {
     ctrl.startCreate(day);
     await tester.pumpAndSettle();
 
-    // 金額0では内訳入力ボタンは出ない
-    expect(find.byKey(const Key('start-split')), findsNothing);
+    // 「カテゴリを追加」は金額0でも初期表示（2026-08-13のFB。押した時だけ
+    // エラーを出すぶん縦に余裕ができたので、常に見えるようにした）
+    expect(find.byKey(const Key('start-split')), findsOneWidget);
 
     // 合計 1000 → 開始
     ctrl.tapDigit(1);

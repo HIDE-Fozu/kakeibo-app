@@ -427,7 +427,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryStartSplitButton.
   ///
   /// In en, this message translates to:
-  /// **'Select multiple categories'**
+  /// **'Add category'**
   String get entryStartSplitButton;
 
   /// No description provided for @entryCategoryHeading.
@@ -769,7 +769,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoryAddTitle.
   ///
   /// In en, this message translates to:
-  /// **'Add Category'**
+  /// **'New category'**
   String get categoryAddTitle;
 
   /// No description provided for @categorySubRenameTitle.
@@ -1767,6 +1767,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'of every month'**
   String get entryRecurringNoteSuffix;
+
+  /// No description provided for @entrySubcategoryAddButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subcategory'**
+  String get entrySubcategoryAddButton;
 }
 
 class _AppLocalizationsDelegate

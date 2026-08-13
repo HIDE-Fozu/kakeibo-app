@@ -40,6 +40,15 @@ class CalendarScreen extends ConsumerWidget {
         children: [
           const BackupBanner(),
           _MonthHeader(year: year, month: month, summary: summary),
+          // ヘッダ（バックアップ帯＋月サマリ）はベース背景のまま、
+          // カレンダー本体と記録一覧だけ白のカードにする（2026-08-13のFB）。
+          // Container(color:) だと ListTile のインク波紋が隠れる（Flutterの警告）。
+          // Material にして「白い面」自体を Material ancestor にする。
+          Expanded(
+            child: Material(
+              color: kCard,
+              child: Column(
+                children: [
           TableCalendar<int>(
             firstDay: DateTime(2000, 1, 1),
             lastDay: DateTime(2100, 12, 31),
@@ -89,6 +98,10 @@ class CalendarScreen extends ConsumerWidget {
                 hasChores: choreMarks.isNotEmpty, hasGhosts: ghosts.isNotEmpty),
           const Divider(height: 1),
           Expanded(child: DayTransactionList(day: selected)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
