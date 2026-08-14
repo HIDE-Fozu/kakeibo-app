@@ -167,12 +167,13 @@ class _CalendarLegend extends StatelessWidget {
 enum _DayStyle { normal, selected, today }
 
 // 選択/今日のリング色（数字に被らないよう小さめの丸で数字だけを囲む）。
-const _kSelectedRing = Color(0xFF5C6BC0);
-const _kTodayRing = Color(0xFF9FA8DA);
+// デザインシートのモック: 選択=メイングリーン塗り、今日=メイングリーンの輪郭。
+const _kSelectedRing = kMint;
+const _kTodayRing = kMint;
 
-// 家事ドットの色（やった=緑 / 期日=橙 / 超過=赤。routine-reminder踏襲）。
-const _kDotDone = Color(0xFF43A047);
-const _kDotDue = Color(0xFFFB8C00);
+// 家事ドットの色（やった=収入グリーン / 期日=注意アンバー / 超過=支出コーラル）。
+const _kDotDone = kIncome;
+const _kDotDue = kAttention;
 const _kDotOverdue = kExpense;
 
 /// カレンダーの1日セル。数字→家事ドット→支出額→予定額（グレー）の縦積み。

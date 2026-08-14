@@ -702,11 +702,11 @@ class EntryScreen extends ConsumerWidget {
         height: 66,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          // 淡い緑（背景に馴染みすぎず主張しすぎない）＋柔らかい緑枠。
+          // ソフトミント（背景に馴染みすぎず主張しすぎない）＋ボーダー色の枠。
           // 浮かせて出すので下の内容と区別できるよう軽い影を付ける。
-          color: const Color(0xFFEAF4EF),
+          color: kPrimarySoft,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFCFE4DB)),
+          border: Border.all(color: kLine),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.12),

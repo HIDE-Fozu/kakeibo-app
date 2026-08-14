@@ -340,9 +340,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
           decoration: BoxDecoration(
+            // 未選択の行も白（シートの「ホワイト＝カード・入力面」）。
+            // アクティブ行だけソフトミントを薄く敷いて焦点を示す。
             color: active
                 ? scheme.primaryContainer.withValues(alpha: 0.35)
-                : null,
+                : kCard,
             border: Border.all(
               color: active ? scheme.primary : scheme.outlineVariant,
               width: active ? 1.4 : 1,
@@ -625,16 +627,17 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               InkWell(
                 key: const Key('split-add'),
                 onTap: ctrl.addSplitLine,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(14),
                 child: Container(
                   width: 27,
                   height: 27,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: scheme.primary,
-                    borderRadius: BorderRadius.circular(8),
+                  // シートのモックに合わせてメイングリーンの丸ボタン。
+                  decoration: const BoxDecoration(
+                    color: kMint,
+                    shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.add, size: 18, color: scheme.onPrimary),
+                  child: const Icon(Icons.add, size: 18, color: Colors.white),
                 ),
               ),
             ],

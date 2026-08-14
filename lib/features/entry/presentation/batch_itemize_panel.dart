@@ -291,7 +291,7 @@ class BatchItemizePanel extends ConsumerWidget {
         border: Border.all(color: scheme.outlineVariant),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x14202420), blurRadius: 3, offset: Offset(0, 1)),
+              color: Color(0x142F3A3D), blurRadius: 3, offset: Offset(0, 1)),
         ],
       ),
       child: Column(
