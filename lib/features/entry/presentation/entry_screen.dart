@@ -350,10 +350,10 @@ class EntryScreen extends ConsumerWidget {
                       // ON時の予告帯: 「毎月N日に自動で記帳します（この入力が1回目）」
                       // 記帳日は入力日付の日が既定。「記帳日を変更」で毎月N日を上書き
                       // できる（8/8に入力して引き落としは毎月25日、のようなケース）。
-                      if (!splitMode &&
-                          !batchMode &&
-                          state.recurringOn &&
-                          state.amountYen > 0)
+                      // 金額未入力でも出す。以前は amountYen > 0 を条件にしていて、
+                      // 金額を入れる前に押すとボタンだけ緑になって帯も記帳日も
+                      // 出ず「効かない」ように見えた（FB 2026-08-15）。
+                      if (!splitMode && !batchMode && state.recurringOn)
                         Container(
                           key: const Key('entry-recurring-note'),
                           margin: const EdgeInsets.only(bottom: 6),
