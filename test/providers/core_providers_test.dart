@@ -62,6 +62,38 @@ void main() {
         newAccent.toARGB32());
   });
 
+  test('旧既定色が保存されていたら未設定に移行し、新パレットに追従する', () async {
+    // ピッカーの「既定に戻す」は当時の既定値をそのまま保存するため、
+    // 旧既定（深緑など）が残っているとパレット更新が反映されない。
+    final h2 = await createHarness(prefs: {
+      'onboardingDone': true,
+      'locale': 'ja',
+      'accentColor': 0xFF2F7A6A, // build 41-42 の既定緑
+      'pageColor': 0xFFFFFCF7, // build 40 の既定背景
+    });
+    addTearDown(h2.dispose);
+    final c2 = ProviderContainer(overrides: h2.overrides());
+    addTearDown(c2.dispose);
+    expect(c2.read(appSettingsProvider).accentColor.toARGB32(),
+        kPrimary.toARGB32());
+    expect(c2.read(appSettingsProvider).pageColor.toARGB32(),
+        kPaper.toARGB32());
+    // キーごと消えている（次回以降も既定に追従）
+    expect(h2.prefs.getInt('accentColor'), isNull);
+    expect(h2.prefs.getInt('pageColor'), isNull);
+
+    // 旧既定と一致しないカスタム色は移行されない
+    final h3 = await createHarness(prefs: {
+      'onboardingDone': true,
+      'locale': 'ja',
+      'accentColor': 0xFF4F80B0,
+    });
+    addTearDown(h3.dispose);
+    final c3 = ProviderContainer(overrides: h3.overrides());
+    addTearDown(c3.dispose);
+    expect(c3.read(appSettingsProvider).accentColor.toARGB32(), 0xFF4F80B0);
+  });
+
   test('カテゴリ並び順モードの既定と永続化', () async {
     // 既定は「最近使った順」
     expect(container.read(appSettingsProvider).categoryOrder,

@@ -54,11 +54,36 @@ class AppSettings extends Notifier<SettingsState> {
   static const kCurrency = 'currency';
   static const kForecastAnchorDay = 'forecastAnchorDay';
 
+  /// 歴代の既定色。ピッカーの「既定に戻す」は当時の既定値をそのまま保存する
+  /// ため、パレットを更新しても保存済みの旧既定が勝ち続けてしまう
+  /// （build 43 で「青が反映されない」実機FB）。旧既定と一致する保存値は
+  /// 「未設定」に移行し、常にその時点の既定パレットへ追従させる。
+  /// 明示的に選ばれたカスタム色（旧既定と一致しない値）はそのまま尊重する。
+  static const _legacyAccents = {
+    0xFF1E6B5A, // v2.0〜v2.2 build36 の深緑
+    0xFF2F8570, // build 37-39 の緑
+    0xFF287F73, // build 40
+    0xFF2F7A6A, // build 41-42
+  };
+  static const _legacyPages = {
+    0xFFF6F5F0, // v2.0〜 の生成り
+    0xFFFFFFFF, // build 37-39 の純白
+    0xFFFFFCF7, // build 40
+  };
+
   @override
   SettingsState build() {
     final p = ref.watch(sharedPreferencesProvider);
-    final page = p.getInt(kPageColor);
-    final accent = p.getInt(kAccentColor);
+    var page = p.getInt(kPageColor);
+    var accent = p.getInt(kAccentColor);
+    if (page != null && _legacyPages.contains(page)) {
+      page = null;
+      p.remove(kPageColor); // fire-and-forget（キャッシュは同期更新）
+    }
+    if (accent != null && _legacyAccents.contains(accent)) {
+      accent = null;
+      p.remove(kAccentColor);
+    }
     return SettingsState(
       onboardingDone: p.getBool(kOnboardingDone) ?? false,
       retainReceiptImages: p.getBool(kRetainReceiptImages) ?? false,
