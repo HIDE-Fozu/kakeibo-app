@@ -152,6 +152,7 @@
     }
   },
   "entryStartSplitButton": "Add category",
+  "entrySplitNeedsAmountSnack": "Enter an amount first",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",

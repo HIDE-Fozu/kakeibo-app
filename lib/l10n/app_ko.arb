@@ -53,6 +53,7 @@
   "entryTypeIncome": "수입",
   "entryDateLabel": "{year}년 {month}월 {day}일",
   "entryStartSplitButton": "카테고리 추가",
+  "entrySplitNeedsAmountSnack": "먼저 금액을 입력해 주세요",
   "entryCategoryHeading": "카테고리",
   "entryDetailMemoLabel": "상세 메모",
   "entryStoreNameLabel": "매장명",

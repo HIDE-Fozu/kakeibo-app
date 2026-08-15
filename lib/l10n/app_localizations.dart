@@ -430,6 +430,12 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get entryStartSplitButton;
 
+  /// No description provided for @entrySplitNeedsAmountSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount first'**
+  String get entrySplitNeedsAmountSnack;
+
   /// No description provided for @entryCategoryHeading.
   ///
   /// In en, this message translates to:

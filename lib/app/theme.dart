@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 
-// デザイントークン（2026-08-14 にデザインシート「落ち着き × 親しみやすさ 改善案」
-// のパレットへ差し替え）。
+// デザイントークン（2026-08-14 デザインシート「落ち着き × 親しみやすさ 改善案」
+// のパレットを土台に、2026-08-15 主色を締まったブルーへ変更。4案を実ビルドで
+// 比較してユーザーが②を選定）。
 //
-// 方針: ウォームアイボリーの地に白いカードを置き、主役はメイングリーン。
+// 方針: ウォームアイボリーの地に白いカードを置き、主役はブルー。
 // アクセント（アプリコット／コーラル）は面ではなく点（アイコン・状態）に使う。
+// 支出=コーラル／収入=グリーンの意味色と背景はシートのまま据え置き。
 //
-// 役割分担: 指定の Main Green(#6FB6A3) は白背景の文字だと 2.4:1 で読めない。
-// そこで「塗り・CTA・選択状態」は Main Green、「文字・枠・小さいグリフ」は
-// 同系を締めた Primary Dark(#2F7A6A, 白地 5.1:1) に割り当てている。
+// 役割分担: 「塗り・CTA・選択状態」は Primary Fill(#4A7FB5・白文字 4.2:1)、
+// 「文字・枠・小さいグリフ」は同系を締めた Primary Dark(#2F5C8A・白地 7.0:1)。
 
 const kPaper = Color(0xFFFAF8F4); // ウォームアイボリー（全体背景）
 const kCard = Color(0xFFFFFFFF); // ホワイト（カード・入力面）
 const kInk = Color(0xFF2F3A3D); // メインテキスト
 const kMuted = Color(0xFF748089); // セカンダリテキスト
-const kLine = Color(0xFFD9E3DF); // ボーダー／区切り線
+const kLine = Color(0xFFD9E1EA); // ボーダー／区切り線（青寄りに調整）
 
-/// メイングリーン（塗り・CTA・選択状態）。白地の文字色には使わない。
-const kMint = Color(0xFF6FB6A3);
+/// Primary Fill（塗り・CTA・選択状態のブルー）。白地の文字色には使わない。
+const kPrimaryFill = Color(0xFF4A7FB5);
 
-/// ソフトミント（背景・ハイライト）。選択タイル・チップの下地。
-const kPrimarySoft = Color(0xFFDCEFE8);
+/// ソフトブルー（背景・ハイライト）。選択タイル・チップの下地。
+const kPrimarySoft = Color(0xFFDDE8F4);
 
 /// Primary Dark。`scheme.primary` に入る実質の主色で、文字・枠・アイコン用。
-/// シートに無い派生値（メイングリーンと同色相を白地 5.1:1 まで締めたもの）。
-const kPrimary = Color(0xFF2F7A6A);
+/// Primary Fill と同色相を白地 7.0:1 まで締めた派生値。
+const kPrimary = Color(0xFF2F5C8A);
 
 /// ウォームアプリコット（アクセント・強調）。
 const kApricot = Color(0xFFF2B885);
@@ -46,12 +47,12 @@ const kChrome = Color(0xFFF4F2ED);
 /// NavigationBar の仕様上ラベルはタブ別に色を変えられないため共通。
 const kNavIdle = kMuted;
 
-/// 下部タブのアイコン色（タブごと）。シートのモックに合わせて
-/// カレンダー=グリーン / 毎月=アプリコット / サマリ=コーラル / 設定=グレー。
-const kNavMint = kMint;
-const kNavAmber = kApricot;
-const kNavCoral = kCoral;
-const kNavBlue = kMuted;
+/// 下部タブのアイコン色（タブごと）。
+/// カレンダー=ブルー / 毎月=アプリコット / サマリ=コーラル / 設定=グレー。
+const kNavCalendar = kPrimaryFill;
+const kNavMonthly = kApricot;
+const kNavSummary = kCoral;
+const kNavSettings = kMuted;
 
 const kExpense = Color(0xFFD97C6C); // 支出（状態）
 const kExpenseSoft = Color(0xFFF7E4DF);
@@ -76,7 +77,7 @@ const kConfidenceMedium = Color(0xFFA87F32);
 const kConfidenceMediumSoft = Color(0xFFFBF1DC);
 
 /// カレンダーの曜日ヘッダ配色（日曜=支出系 / 土曜=情報系）。
-/// どちらも指定色そのままだと文字に薄いので、色相を保って締めてある。
+/// 主色がブルーになったため土曜と同系になるが、慣習（土曜=青）を優先して残す。
 const kSunday = kWarnMuted;
 const kSaturday = Color(0xFF5F80AE);
 
@@ -91,12 +92,12 @@ const kCardShadow = BoxShadow(
 const kRadius = 16.0;
 const kSpace = 8.0;
 
-/// サマリ積み上げバーのグリーン濃淡（5色循環）
+/// サマリ積み上げバーのブルー濃淡（5色循環）
 const kSubScale = <Color>[
   kPrimary,
-  Color(0xFF4E9B87),
-  kMint,
-  Color(0xFFA7D3C6),
+  Color(0xFF3F6FA0),
+  kPrimaryFill,
+  Color(0xFFA3C0DC),
   kPrimarySoft,
 ];
 
@@ -188,13 +189,13 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
       fillColor: kCard,
     ),
     appBarTheme: AppBarTheme(backgroundColor: bg, foregroundColor: kInk),
-    // CTA（保存など）はメイングリーン塗り＋白文字（シートのモックどおり）。
+    // CTA（保存など）は Primary Fill 塗り＋白文字（4.2:1）。
     // scheme.primary は文字用の Primary Dark なので、塗りはここで差し替える。
     // 既定アクセントのときだけ（設定で色を変えている人は従来どおり seed 由来）。
     filledButtonTheme: isDefaultAccent
         ? FilledButtonThemeData(
             style: FilledButton.styleFrom(
-              backgroundColor: kMint,
+              backgroundColor: kPrimaryFill,
               foregroundColor: Colors.white,
               disabledBackgroundColor: kLine,
               disabledForegroundColor: kMuted,
@@ -204,7 +205,7 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
     // FAB「金額を入力する」も同じCTA言語に揃える。
     floatingActionButtonTheme: isDefaultAccent
         ? const FloatingActionButtonThemeData(
-            backgroundColor: kMint,
+            backgroundColor: kPrimaryFill,
             foregroundColor: Colors.white,
           )
         : const FloatingActionButtonThemeData(),

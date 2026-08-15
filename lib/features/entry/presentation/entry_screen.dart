@@ -327,7 +327,20 @@ class EntryScreen extends ConsumerWidget {
                               ),
                             TextButton.icon(
                               key: const Key('start-split'),
+                              // 内訳は「合計を品目に分ける」ので金額が先。金額0の
+                              // 間はグレー表示にし、押されたら理由を一言返す
+                              // （無反応だと壊れて見える。FB 2026-08-15）。
                               onPressed: () {
+                                if (state.amountYen <= 0) {
+                                  ScaffoldMessenger.of(context)
+                                    ..hideCurrentSnackBar()
+                                    ..showSnackBar(SnackBar(
+                                      content:
+                                          Text(l.entrySplitNeedsAmountSnack),
+                                      duration: const Duration(seconds: 2),
+                                    ));
+                                  return;
+                                }
                                 final hasItems =
                                     state.receipt?.itemLines.isNotEmpty ??
                                         false;
@@ -341,6 +354,11 @@ class EntryScreen extends ConsumerWidget {
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 8),
                                 visualDensity: VisualDensity.compact,
+                                foregroundColor: state.amountYen <= 0
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant
+                                    : null,
                               ),
                               icon: const Icon(Icons.add, size: 18),
                               label: Text(l.entryStartSplitButton),

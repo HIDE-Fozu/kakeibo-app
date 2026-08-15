@@ -147,21 +147,21 @@ class _HomeShellState extends ConsumerState<HomeShell>
                 // ——選択中は下地が Primary Light の丸になるので、明るいアクセントの
                 // ままだとアイコンが下地に埋もれて消える（ミント×Primary Lightで1.3:1）。
                 NavigationDestination(
-                    icon: const Icon(Icons.calendar_month, color: kNavMint),
+                    icon: const Icon(Icons.calendar_month, color: kNavCalendar),
                     selectedIcon:
                         const Icon(Icons.calendar_month, color: kPrimary),
                     label: l.homeNavCalendar),
                 NavigationDestination(
-                    icon: const Icon(Icons.event_repeat, color: kNavAmber),
+                    icon: const Icon(Icons.event_repeat, color: kNavMonthly),
                     selectedIcon:
                         const Icon(Icons.event_repeat, color: kPrimary),
                     label: l.homeNavMonthly),
                 NavigationDestination(
-                    icon: const Icon(Icons.bar_chart, color: kNavCoral),
+                    icon: const Icon(Icons.bar_chart, color: kNavSummary),
                     selectedIcon: const Icon(Icons.bar_chart, color: kPrimary),
                     label: l.homeNavSummary),
                 NavigationDestination(
-                    icon: const Icon(Icons.settings, color: kNavBlue),
+                    icon: const Icon(Icons.settings, color: kNavSettings),
                     selectedIcon: const Icon(Icons.settings, color: kPrimary),
                     label: l.homeNavSettings),
               ],

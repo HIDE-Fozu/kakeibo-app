@@ -636,9 +636,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   width: 27,
                   height: 27,
                   alignment: Alignment.center,
-                  // シートのモックに合わせてメイングリーンの丸ボタン。
+                  // 主色の丸ボタン（＋品目）。
                   decoration: const BoxDecoration(
-                    color: kMint,
+                    color: kPrimaryFill,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add, size: 18, color: Colors.white),

@@ -53,6 +53,7 @@
   "entryTypeIncome": "收入",
   "entryDateLabel": "{year}年{month}月{day}日",
   "entryStartSplitButton": "添加类别",
+  "entrySplitNeedsAmountSnack": "请先输入金额",
   "entryCategoryHeading": "分类",
   "entryDetailMemoLabel": "备注",
   "entryStoreNameLabel": "店铺名称",

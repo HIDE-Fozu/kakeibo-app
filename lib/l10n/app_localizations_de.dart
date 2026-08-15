@@ -198,6 +198,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get entryStartSplitButton => 'Kategorie hinzufügen';
 
   @override
+  String get entrySplitNeedsAmountSnack => 'Bitte zuerst einen Betrag eingeben';
+
+  @override
   String get entryCategoryHeading => 'Kategorie';
 
   @override

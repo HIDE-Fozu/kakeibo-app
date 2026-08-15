@@ -190,6 +190,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryStartSplitButton => '添加类别';
 
   @override
+  String get entrySplitNeedsAmountSnack => '请先输入金额';
+
+  @override
   String get entryCategoryHeading => '分类';
 
   @override
