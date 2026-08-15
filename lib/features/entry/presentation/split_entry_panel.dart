@@ -543,9 +543,13 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
           decoration: BoxDecoration(
+            // 品目行と同じ扱い: 普段は白、アクティブ行のときだけソフトミント。
+            // （超過だけは注意色を残す）
             color: over
                 ? scheme.errorContainer
-                : scheme.primaryContainer.withValues(alpha: 0.45),
+                : active
+                    ? scheme.primaryContainer.withValues(alpha: 0.35)
+                    : kCard,
             border: Border.all(
               color: active ? scheme.primary : scheme.outlineVariant,
               width: active ? 1.4 : 1,

@@ -106,6 +106,9 @@ Ver 2.0より9言語・16通貨に対応しました。※レシート読み取�
 ### アプリ名（30文字以内）
 
 - **第1案**: `Kakeibo – Household Budget`（26/30）
+
+
+
 - **代替案1**: `Kakeibo: Simple Budget Book`（27/30）
 - **代替案2**: `Kakeibo Expense Diary`（21/30）
 
