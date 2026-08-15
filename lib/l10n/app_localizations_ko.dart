@@ -182,9 +182,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryStartSplitButton => '카테고리 추가';
 
   @override
-  String get entrySplitNeedsAmountSnack => '먼저 금액을 입력해 주세요';
-
-  @override
   String get entryCategoryHeading => '카테고리';
 
   @override
@@ -426,6 +423,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get splitRemainingLabel => '남음';
+
+  @override
+  String get splitTotalLabel => '합계';
 
   @override
   String summaryMonthHeader(int year, int month) {

@@ -181,9 +181,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryStartSplitButton => 'カテゴリを追加';
 
   @override
-  String get entrySplitNeedsAmountSnack => '先に金額を入力してください';
-
-  @override
   String get entryCategoryHeading => 'カテゴリ';
 
   @override
@@ -424,6 +421,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get splitRemainingLabel => '残り';
+
+  @override
+  String get splitTotalLabel => '合計';
 
   @override
   String summaryMonthHeader(int year, int month) {

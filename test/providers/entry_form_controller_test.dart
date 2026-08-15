@@ -501,10 +501,81 @@ void main() {
       expect(st().amountYen, 100); // 合計は保持
     });
 
-    test('編集モード・金額0では開始できない', () {
-      ctrl().startCreate(day);
-      ctrl().startSplit(); // 金額0
+    test('編集モードでは開始できない', () async {
+      final repo = c.read(transactionRepositoryProvider);
+      await repo.add(TransactionEntity(
+          type: TxnType.expense,
+          amountYen: 100,
+          date: day,
+          categoryId: foodId,
+          source: TxnSource.manual));
+      final tx = (await repo.forMonth(2026, 7)).single;
+      ctrl().startEdit(tx);
+      ctrl().startSplit();
       expect(st().splits, isNull);
+    });
+
+    test('ボトムアップ（案B）: 金額0で開始→合計は総和・保存で2取引', () async {
+      ctrl().startCreate(day);
+      expect(st().amountYen, 0);
+      ctrl().startSplit(); // 金額0でも入れる（旧: 門前払いだった）
+      ctrl().setSplitBulkIncluded(true); // 税込＝入力額そのまま
+      expect(st().splits, hasLength(2));
+      expect(st().splitBottomUp, isTrue);
+      expect(st().displayAmountYen, 0);
+
+      // 行1: 300円＋食費。末尾は残額を担わない（合計行）
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero();
+      expect(st().splitLineAmount(0), 300);
+      expect(st().splitLineAmount(1), isNull);
+      expect(st().displayAmountYen, 300);
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isTrue); // 総和>0＋全行カテゴリありで保存できる
+
+      // ＋品目: 200円＋日用品 → 合計500
+      ctrl().addSplitLine();
+      ctrl().splitTapDigit(2);
+      ctrl().splitTapDoubleZero();
+      ctrl().tapCategory(
+          categoryId: dailyId, hasSubs: false, isSameGroup: false);
+      expect(st().displayAmountYen, 500);
+      expect(st().canSave, isTrue);
+
+      await ctrl().save();
+      final txs =
+          await c.read(transactionRepositoryProvider).forMonth(2026, 7);
+      expect(txs, hasLength(2));
+      expect(txs.map((t) => t.amountYen).toSet(), {300, 200});
+      expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
+      // 同じグループ（1枚のレシート扱い）
+      expect(txs.map((t) => t.splitGroupId).toSet(), hasLength(1));
+      expect(txs.first.splitGroupId, isNotNull);
+    });
+
+    test('ボトムアップ: saveHint は内訳の文言・不正な式は保存不可', () {
+      final jaL = lookupAppLocalizations(const Locale('ja'));
+      ctrl().startCreate(day);
+      ctrl().startSplit();
+      ctrl().setSplitBulkIncluded(true);
+      // 開始直後: 「金額を入力してください」の門前払いにしない
+      expect(st().canSave, isFalse);
+      expect(st().saveHint(jaL), '金額とカテゴリを入力してください');
+
+      // 金額ありカテゴリなし → 行番号で指す（トップダウンと同じ）
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero(); // 300
+      expect(st().saveHint(jaL), '品目1のカテゴリを選んでください');
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().canSave, isTrue);
+      expect(st().saveHint(jaL), isNull);
+
+      // 不正な式（300÷0=0除算→無効）はトップダウンなら合計不一致で
+      // 弾かれるが、ボトムアップは合計照合が無いので式の段階で弾く
+      ctrl().splitTapOperator('÷');
+      ctrl().splitTapDigit(0);
+      expect(st().splitLineAmount(0), isNull);
+      expect(st().canSave, isFalse);
     });
   });
 

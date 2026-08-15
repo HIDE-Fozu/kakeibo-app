@@ -187,9 +187,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryStartSplitButton => 'Add category';
 
   @override
-  String get entrySplitNeedsAmountSnack => 'Enter an amount first';
-
-  @override
   String get entryCategoryHeading => 'Category';
 
   @override
@@ -436,6 +433,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get splitRemainingLabel => 'Remaining';
+
+  @override
+  String get splitTotalLabel => 'Total';
 
   @override
   String summaryMonthHeader(int year, int month) {

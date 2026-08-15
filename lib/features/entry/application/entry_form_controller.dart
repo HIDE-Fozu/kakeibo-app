@@ -201,7 +201,8 @@ class EntryFormState {
   /// 表示文言はローカライズするので AppLocalizations を受け取る。
   String? saveHint(AppLocalizations l) {
     if (canSave) return null;
-    if (amountYen <= 0) return l.entryHintEnterAmount;
+    // ボトムアップ内訳は総額を後決めするので「金額を入力」の門前払いをしない。
+    if (amountYen <= 0 && !splitBottomUp) return l.entryHintEnterAmount;
     if (batchItems != null) {
       if (batchGroups.isEmpty) return l.entryHintAssignItemCategory;
       if (batchDiff < 0) return l.entryHintAssignExceedsTotal;
@@ -211,7 +212,10 @@ class EntryFormState {
       return null;
     }
     if (splits != null) {
-      if (splitRemainder < 0) return l.entryHintSplitExceedsTotal;
+      // ボトムアップでは残額の概念がない（合計＝品目の総和）ので超過/残りは見ない。
+      if (!splitBottomUp && splitRemainder < 0) {
+        return l.entryHintSplitExceedsTotal;
+      }
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {
@@ -224,7 +228,9 @@ class EntryFormState {
       }
       if (splitFixedSum <= 0) return l.entryHintEnterAmountAndCategory;
       // 金額はあるが合計に届かない（残りの行を追加/入力）
-      if (splitRemainder > 0) return l.entryHintEnterRemainingAmount;
+      if (!splitBottomUp && splitRemainder > 0) {
+        return l.entryHintEnterRemainingAmount;
+      }
       return l.entryHintEnterAmountAndCategory;
     }
     if (categoryId == null) return l.entryHintPickCategory;
@@ -279,6 +285,16 @@ class EntryFormState {
   /// 残額（合計 − 式あり行合計）。末尾の空行がこれを担う。マイナス=入れ過ぎ。
   int get splitRemainder => amountYen - splitFixedSum;
 
+  /// ボトムアップ内訳（案B）: 金額0のまま内訳に入った状態。総額を先に決めず、
+  /// 品目を打つと末尾の行が「残り」ではなく「合計」（品目の総和）を示す。
+  /// 内訳中は電卓が品目行を編集し amountYen は変わらないので、導出で足りる
+  /// （保存済みグループの開き直しは総和>0なので常にトップダウン）。
+  bool get splitBottomUp => splits != null && amountYen == 0;
+
+  /// 画面上部の金額表示用の総額。ボトムアップ内訳では品目の総和（入力に応じて
+  /// 増えていく）。それ以外は入力済みの総額そのまま。
+  int get displayAmountYen => splitBottomUp ? splitFixedSum : amountYen;
+
   /// 行の実効金額。空の式は「末尾の行だけ」残額を自動で担う。ただし1件も
   /// 手入力が無いうち（＝先頭行だけの初期状態）は自動額を入れない。残額は
   /// 「ユーザーが1行目を入れて初めて2行目以降に現れる」。他の空/不正行は null。
@@ -297,17 +313,26 @@ class EntryFormState {
 
   bool get _splitsValid {
     final lines = splits;
-    if (lines == null || amountYen <= 0) return false;
+    if (lines == null) return false;
+    if (!splitBottomUp && amountYen <= 0) return false;
     var sum = 0;
     var count = 0;
     for (var i = 0; i < lines.length; i++) {
       final a = splitLineAmount(i);
-      if (a == null) continue; // 空の行は無視（2行開始や「追加」の空枠）
+      if (a == null) {
+        // 空の行は無視（2行開始や「追加」の空枠）。ただしボトムアップでは
+        // 「合計に届かない」検出が無いので、式が不正な行をここで弾く
+        // （トップダウンなら sum ≠ amountYen で自然に検出される）。
+        if (splitBottomUp && lines[i].expr.isNotEmpty) return false;
+        continue;
+      }
       if (a <= 0 || lines[i].categoryId == null) return false; // 金額ありでカテゴリ無し
       sum += a;
       count++;
     }
-    return count > 0 && sum == amountYen;
+    if (count == 0) return false;
+    // ボトムアップは総和がそのまま合計になるので突き合わせ不要。
+    return splitBottomUp || sum == amountYen;
   }
 
   AmountCandidate? get matchedTotalCandidate {
@@ -765,7 +790,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
   // --- 詳細入力（分割）。合計をカテゴリ別に分けて複数取引として保存 ---
 
   void startSplit() {
-    if (_s.amountYen <= 0 || _s.mode == EntryMode.edit || _s.splits != null) {
+    // 金額0でも入れる（案B: 総額を後決めするボトムアップ内訳になる）。
+    if (_s.mode == EntryMode.edit || _s.splits != null) {
       return;
     }
     state = _s.copyWith(

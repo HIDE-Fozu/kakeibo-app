@@ -181,9 +181,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryStartSplitButton => '添加类别';
 
   @override
-  String get entrySplitNeedsAmountSnack => '请先输入金额';
-
-  @override
   String get entryCategoryHeading => '分类';
 
   @override
@@ -423,6 +420,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get splitRemainingLabel => '剩余';
+
+  @override
+  String get splitTotalLabel => '合计';
 
   @override
   String summaryMonthHeader(int year, int month) {

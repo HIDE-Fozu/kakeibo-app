@@ -519,6 +519,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 
   /// 残額行（最下段固定・差分表示）。カテゴリを付けるだけで最後の1品になる。
+  /// ボトムアップ内訳（案B・金額0で開始）では「合計」行になる: 品目の総和を
+  /// 示すだけで、カテゴリ枠・行番号は持たない（残額を担う枠ではないため）。
   Widget _remainderRow(BuildContext context, MoneyFormatter mf) {
     final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
@@ -527,8 +529,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
     final active = i == state.activeSplitIndex;
+    final bottomUp = state.splitBottomUp;
     final rem = state.splitRemainder;
-    final over = rem < 0;
+    final over = !bottomUp && rem < 0;
     final catLabel = line.categoryId == null
         ? null
         : categoryNames[line.categoryId];
@@ -562,58 +565,66 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ),
           child: Row(
             children: [
-              // 行番号。残額行も「カテゴリを選べばその番号の品目になる枠」なので
-              // 入力行と同じ連番を振る（1品目なら2、＋品目で3…と自動で繰り上がる）。
-              // 番号だけ無いと最終行が別物に見える、というFB。
-              Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: Text(
-                  '${i + 1}',
-                  key: Key('split-lineno-$i'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: active ? scheme.primary : scheme.onSurfaceVariant,
-                    fontFeatures: kTabularFigures,
+              if (!bottomUp) ...[
+                // 行番号。残額行も「カテゴリを選べばその番号の品目になる枠」なので
+                // 入力行と同じ連番を振る（1品目なら2、＋品目で3…と自動で繰り上がる）。
+                // 番号だけ無いと最終行が別物に見える、というFB。
+                Padding(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: Text(
+                    '${i + 1}',
+                    key: Key('split-lineno-$i'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: active ? scheme.primary : scheme.onSurfaceVariant,
+                      fontFeatures: kTabularFigures,
+                    ),
                   ),
                 ),
-              ),
-              // 左: 入力行と同じく「カテゴリ未選択」/選択済みチップ。
-              // タップでカテゴリ帯を開き、その行を割当先にする。
-              InkWell(
-                key: const Key('split-remainder'),
-                onTap: () => ctrl.openSplitCatPicker(i),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: catLabel == null ? null : scheme.primaryContainer,
-                      border: Border.all(
-                          color: catLabel == null
-                              ? kWarnMuted
-                              : scheme.primary.withValues(alpha: 0.45)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      catLabel ?? l.splitCategoryUnselected,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: catLabel == null ? kWarnMuted : scheme.primary,
+                // 左: 入力行と同じく「カテゴリ未選択」/選択済みチップ。
+                // タップでカテゴリ帯を開き、その行を割当先にする。
+                InkWell(
+                  key: const Key('split-remainder'),
+                  onTap: () => ctrl.openSplitCatPicker(i),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            catLabel == null ? null : scheme.primaryContainer,
+                        border: Border.all(
+                            color: catLabel == null
+                                ? kWarnMuted
+                                : scheme.primary.withValues(alpha: 0.45)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        catLabel ?? l.splitCategoryUnselected,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: catLabel == null ? kWarnMuted : scheme.primary,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
               const Spacer(),
-              // 右: 残り（差分・非タップ）
+              // 右: 残り（差分・非タップ）。ボトムアップでは合計（品目の総和）。
               Text(
-                over ? l.splitOverLabel : l.splitRemainingLabel,
+                bottomUp
+                    ? l.splitTotalLabel
+                    : over
+                        ? l.splitOverLabel
+                        : l.splitRemainingLabel,
+                key: const Key('split-tail-label'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -622,7 +633,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               ),
               const SizedBox(width: 6),
               Text(
-                mf.format(over ? -rem : rem),
+                mf.format(bottomUp ? state.splitFixedSum : (over ? -rem : rem)),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,

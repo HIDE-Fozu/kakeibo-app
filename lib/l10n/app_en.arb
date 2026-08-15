@@ -149,7 +149,6 @@
     }
   },
   "entryStartSplitButton": "Add category",
-  "entrySplitNeedsAmountSnack": "Enter an amount first",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",
@@ -290,6 +289,7 @@
   },
   "splitOverLabel": "Over",
   "splitRemainingLabel": "Remaining",
+  "splitTotalLabel": "Total",
   "summaryMonthHeader": "{month}/{year}",
   "@summaryMonthHeader": {
     "placeholders": {
