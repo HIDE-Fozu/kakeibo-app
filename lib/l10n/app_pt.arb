@@ -114,7 +114,6 @@
   "categoryArchiveBlockedSnackbar": "Arquive as subcategorias primeiro",
   "categoryArchivedSectionTitle": "Arquivadas",
   "categoryArchivedItemLabel": "{name} (Arquivada)",
-  "splitStoreNameHint": "Nome da loja",
   "splitCancel": "Cancelar",
   "splitBreakdownLabel": "Detalhamento",
   "splitTaxLabel": "Imposto",

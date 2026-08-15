@@ -114,7 +114,6 @@
   "categoryArchiveBlockedSnackbar": "Zuerst die Unterkategorien archivieren",
   "categoryArchivedSectionTitle": "Archiviert",
   "categoryArchivedItemLabel": "{name} (archiviert)",
-  "splitStoreNameHint": "Geschäft",
   "splitCancel": "Abbrechen",
   "splitBreakdownLabel": "Aufteilung",
   "splitTaxLabel": "MwSt.",

@@ -114,7 +114,6 @@
   "categoryArchiveBlockedSnackbar": "세부 카테고리를 먼저 보관하세요",
   "categoryArchivedSectionTitle": "보관됨",
   "categoryArchivedItemLabel": "{name} (보관됨)",
-  "splitStoreNameHint": "매장명",
   "splitCancel": "그만두기",
   "splitBreakdownLabel": "내역",
   "splitTaxLabel": "부가세",

@@ -404,9 +404,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get splitStoreNameHint => 'Tienda';
-
-  @override
   String get splitCancel => 'Cancelar';
 
   @override

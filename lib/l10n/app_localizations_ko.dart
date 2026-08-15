@@ -390,9 +390,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get splitStoreNameHint => '매장명';
-
-  @override
   String get splitCancel => '그만두기';
 
   @override

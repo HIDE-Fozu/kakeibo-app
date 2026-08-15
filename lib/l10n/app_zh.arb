@@ -114,7 +114,6 @@
   "categoryArchiveBlockedSnackbar": "请先归档其子分类",
   "categoryArchivedSectionTitle": "已归档",
   "categoryArchivedItemLabel": "{name}（已归档）",
-  "splitStoreNameHint": "店名",
   "splitCancel": "取消",
   "splitBreakdownLabel": "明细",
   "splitTaxLabel": "消费税",

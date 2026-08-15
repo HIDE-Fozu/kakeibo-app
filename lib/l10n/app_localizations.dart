@@ -796,12 +796,6 @@ abstract class AppLocalizations {
   /// **'{name} (Archived)'**
   String categoryArchivedItemLabel(String name);
 
-  /// No description provided for @splitStoreNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Store name'**
-  String get splitStoreNameHint;
-
   /// No description provided for @splitCancel.
   ///
   /// In en, this message translates to:

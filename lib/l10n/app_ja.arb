@@ -114,7 +114,6 @@
   "categoryArchiveBlockedSnackbar": "内訳を先にアーカイブしてください",
   "categoryArchivedSectionTitle": "アーカイブ済み",
   "categoryArchivedItemLabel": "{name}（アーカイブ）",
-  "splitStoreNameHint": "店名",
   "splitCancel": "やめる",
   "splitBreakdownLabel": "内訳",
   "splitTaxLabel": "消費税",

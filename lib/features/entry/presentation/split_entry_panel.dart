@@ -5,6 +5,7 @@ import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/money.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../data/db/enums.dart';
 import '../application/entry_form_controller.dart';
 import 'split_tax_dialog.dart';
 
@@ -90,7 +91,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                 initialValue: state.storeName,
                 style: const TextStyle(fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: l.splitStoreNameHint,
+                  // 通常入力と同じラベルに統一（「店名」表記ゆれのFB 2026-08-15）。
+                  hintText: state.type == TxnType.expense
+                      ? l.entryStoreNameLabel
+                      : l.entryCompanyNameLabel,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 6),
                   border: const UnderlineInputBorder(),

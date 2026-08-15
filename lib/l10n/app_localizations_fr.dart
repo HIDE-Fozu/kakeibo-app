@@ -407,9 +407,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get splitStoreNameHint => 'Nom du magasin';
-
-  @override
   String get splitCancel => 'Annuler';
 
   @override

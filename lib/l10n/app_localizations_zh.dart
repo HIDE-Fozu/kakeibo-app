@@ -387,9 +387,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get splitStoreNameHint => '店名';
-
-  @override
   String get splitCancel => '取消';
 
   @override
