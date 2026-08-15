@@ -66,9 +66,6 @@
   "settingsCategoryManageTitle": "Manage categories",
   "settingsCategoryOrderTitle": "Arrange categories in my own order",
   "settingsCategoryOrderSubtitle": "Off = most recently used / On = fixed order (long-press a tile on the entry screen to reorder)",
-  "settingsPageColorTitle": "Page color (background)",
-  "settingsAccentColorTitle": "Accent color",
-  "settingsAccentColorSubtitle": "Color for buttons and selections",
   "settingsDataPolicyTitle": "About data handling",
   "settingsDataPolicyBody": "• Your records are stored only on this device. They are never sent externally automatically.\n• Automatic backups are made on this device, but please also save an export from Settings in case you switch devices or your device breaks.",
   "settingsPassphraseFieldLabel": "Passphrase (if encrypting)",
@@ -422,8 +419,6 @@
   "homeNavCalendar": "Calendar",
   "homeNavSummary": "Summary",
   "homeNavSettings": "Settings",
-  "settingsColorPickerResetDefault": "Reset to default",
-  "settingsColorPickerConfirm": "Confirm",
   "categoryManualOrderSnackbar": "Switched to your custom order (you can change this back in Settings).",
   "entryHintEnterAmount": "Enter an amount",
   "entryHintAssignItemCategory": "Assign a category to each item",
@@ -851,5 +846,21 @@
   "@entryRecurringNoteSuffix": {
     "description": "Monthly-toggle note: text after the inline day dropdown"
   },
-  "entrySubcategoryAddButton": "Add subcategory"
+  "entrySubcategoryAddButton": "Add subcategory",
+  "settingsColorTitle": "Color",
+  "settingsColorSubtitle": "Backgrounds, borders, and highlights adjust to the color you choose",
+  "settingsColorPreset": "Presets",
+  "settingsColorCustom": "Custom",
+  "settingsColorApply": "Apply",
+  "settingsColorDefaultBadge": "Default",
+  "settingsColorBlue": "Blue",
+  "settingsColorGreen": "Green",
+  "settingsColorTeal": "Teal",
+  "settingsColorPurple": "Purple",
+  "settingsColorRose": "Rose",
+  "settingsColorOrange": "Orange",
+  "settingsColorMustard": "Mustard",
+  "settingsColorGray": "Gray",
+  "settingsColorTerracotta": "Terracotta",
+  "settingsColorNavy": "Navy"
 }

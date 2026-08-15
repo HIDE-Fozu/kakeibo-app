@@ -636,9 +636,9 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   width: 27,
                   height: 27,
                   alignment: Alignment.center,
-                  // 主色の丸ボタン（＋品目）。
-                  decoration: const BoxDecoration(
-                    color: kPrimaryFill,
+                  // 主色の丸ボタン（＋品目）。カスタムテーマに追従。
+                  decoration: BoxDecoration(
+                    color: context.kakeiboPalette.fill,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add, size: 18, color: Colors.white),

@@ -102,15 +102,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '끄기=최근 사용순 / 켜기=고정순 (입력 화면에서 타일 길게 눌러→정렬)';
 
   @override
-  String get settingsPageColorTitle => '페이지 색 (배경)';
-
-  @override
-  String get settingsAccentColorTitle => '강조 색';
-
-  @override
-  String get settingsAccentColorSubtitle => '버튼과 선택 항목 색';
-
-  @override
   String get settingsDataPolicyTitle => '데이터 처리 안내';
 
   @override
@@ -600,12 +591,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeNavSettings => '설정';
 
   @override
-  String get settingsColorPickerResetDefault => '기본값으로 되돌리기';
-
-  @override
-  String get settingsColorPickerConfirm => '확인';
-
-  @override
   String get categoryManualOrderSnackbar =>
       '직접 정렬한 순서로 변경했습니다 (설정에서 되돌릴 수 있습니다)';
 
@@ -934,4 +919,52 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => '하위 카테고리 추가';
+
+  @override
+  String get settingsColorTitle => '색상';
+
+  @override
+  String get settingsColorSubtitle => '선택한 색상에 맞춰 배경·선·강조색이 자동으로 조정됩니다';
+
+  @override
+  String get settingsColorPreset => '프리셋';
+
+  @override
+  String get settingsColorCustom => '커스텀';
+
+  @override
+  String get settingsColorApply => '적용';
+
+  @override
+  String get settingsColorDefaultBadge => '기본';
+
+  @override
+  String get settingsColorBlue => '블루';
+
+  @override
+  String get settingsColorGreen => '그린';
+
+  @override
+  String get settingsColorTeal => '틸';
+
+  @override
+  String get settingsColorPurple => '퍼플';
+
+  @override
+  String get settingsColorRose => '로즈';
+
+  @override
+  String get settingsColorOrange => '오렌지';
+
+  @override
+  String get settingsColorMustard => '머스터드';
+
+  @override
+  String get settingsColorGray => '그레이';
+
+  @override
+  String get settingsColorTerracotta => '테라코타';
+
+  @override
+  String get settingsColorNavy => '네이비';
 }

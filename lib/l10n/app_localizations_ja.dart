@@ -101,15 +101,6 @@ class AppLocalizationsJa extends AppLocalizations {
       'オフ=最近使った順 / オン=固定順（入力画面でタイル長押し→並べ替え）';
 
   @override
-  String get settingsPageColorTitle => 'ページの色（背景）';
-
-  @override
-  String get settingsAccentColorTitle => 'アクセント色';
-
-  @override
-  String get settingsAccentColorSubtitle => 'ボタンや選択の色';
-
-  @override
   String get settingsDataPolicyTitle => 'データの取り扱いについて';
 
   @override
@@ -598,12 +589,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeNavSettings => '設定';
 
   @override
-  String get settingsColorPickerResetDefault => '既定に戻す';
-
-  @override
-  String get settingsColorPickerConfirm => '決定';
-
-  @override
   String get categoryManualOrderSnackbar => '自分で並べた順にしました（設定で戻せます）';
 
   @override
@@ -931,4 +916,52 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => 'サブカテゴリを追加';
+
+  @override
+  String get settingsColorTitle => '色';
+
+  @override
+  String get settingsColorSubtitle => '選んだ色に合わせて、背景・罫線・強調色を自動で調整します';
+
+  @override
+  String get settingsColorPreset => 'プリセット';
+
+  @override
+  String get settingsColorCustom => 'カスタム';
+
+  @override
+  String get settingsColorApply => '適用';
+
+  @override
+  String get settingsColorDefaultBadge => '既定';
+
+  @override
+  String get settingsColorBlue => 'ブルー';
+
+  @override
+  String get settingsColorGreen => 'グリーン';
+
+  @override
+  String get settingsColorTeal => 'ティール';
+
+  @override
+  String get settingsColorPurple => 'パープル';
+
+  @override
+  String get settingsColorRose => 'ローズ';
+
+  @override
+  String get settingsColorOrange => 'オレンジ';
+
+  @override
+  String get settingsColorMustard => 'マスタード';
+
+  @override
+  String get settingsColorGray => 'グレー';
+
+  @override
+  String get settingsColorTerracotta => 'テラコッタ';
+
+  @override
+  String get settingsColorNavy => 'ネイビー';
 }

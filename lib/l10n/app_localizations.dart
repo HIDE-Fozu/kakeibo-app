@@ -286,24 +286,6 @@ abstract class AppLocalizations {
   /// **'Off = most recently used / On = fixed order (long-press a tile on the entry screen to reorder)'**
   String get settingsCategoryOrderSubtitle;
 
-  /// No description provided for @settingsPageColorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Page color (background)'**
-  String get settingsPageColorTitle;
-
-  /// No description provided for @settingsAccentColorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Accent color'**
-  String get settingsAccentColorTitle;
-
-  /// No description provided for @settingsAccentColorSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Color for buttons and selections'**
-  String get settingsAccentColorSubtitle;
-
   /// No description provided for @settingsDataPolicyTitle.
   ///
   /// In en, this message translates to:
@@ -1174,18 +1156,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get homeNavSettings;
 
-  /// No description provided for @settingsColorPickerResetDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset to default'**
-  String get settingsColorPickerResetDefault;
-
-  /// No description provided for @settingsColorPickerConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get settingsColorPickerConfirm;
-
   /// No description provided for @categoryManualOrderSnackbar.
   ///
   /// In en, this message translates to:
@@ -1779,6 +1749,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add subcategory'**
   String get entrySubcategoryAddButton;
+
+  /// No description provided for @settingsColorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get settingsColorTitle;
+
+  /// No description provided for @settingsColorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backgrounds, borders, and highlights adjust to the color you choose'**
+  String get settingsColorSubtitle;
+
+  /// No description provided for @settingsColorPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get settingsColorPreset;
+
+  /// No description provided for @settingsColorCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get settingsColorCustom;
+
+  /// No description provided for @settingsColorApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get settingsColorApply;
+
+  /// No description provided for @settingsColorDefaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settingsColorDefaultBadge;
+
+  /// No description provided for @settingsColorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get settingsColorBlue;
+
+  /// No description provided for @settingsColorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get settingsColorGreen;
+
+  /// No description provided for @settingsColorTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get settingsColorTeal;
+
+  /// No description provided for @settingsColorPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get settingsColorPurple;
+
+  /// No description provided for @settingsColorRose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get settingsColorRose;
+
+  /// No description provided for @settingsColorOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get settingsColorOrange;
+
+  /// No description provided for @settingsColorMustard.
+  ///
+  /// In en, this message translates to:
+  /// **'Mustard'**
+  String get settingsColorMustard;
+
+  /// No description provided for @settingsColorGray.
+  ///
+  /// In en, this message translates to:
+  /// **'Gray'**
+  String get settingsColorGray;
+
+  /// No description provided for @settingsColorTerracotta.
+  ///
+  /// In en, this message translates to:
+  /// **'Terracotta'**
+  String get settingsColorTerracotta;
+
+  /// No description provided for @settingsColorNavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Navy'**
+  String get settingsColorNavy;
 }
 
 class _AppLocalizationsDelegate

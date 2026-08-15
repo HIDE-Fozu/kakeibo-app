@@ -108,16 +108,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Aus = zuletzt verwendet / Ein = feste Reihenfolge (Kachel im Eingabebildschirm lang drücken zum Umordnen)';
 
   @override
-  String get settingsPageColorTitle => 'Seitenfarbe (Hintergrund)';
-
-  @override
-  String get settingsAccentColorTitle => 'Akzentfarbe';
-
-  @override
-  String get settingsAccentColorSubtitle =>
-      'Farbe für Schaltflächen und Auswahl';
-
-  @override
   String get settingsDataPolicyTitle => 'Zum Umgang mit Daten';
 
   @override
@@ -618,12 +608,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeNavSettings => 'Einstellungen';
 
   @override
-  String get settingsColorPickerResetDefault => 'Zurücksetzen';
-
-  @override
-  String get settingsColorPickerConfirm => 'Übernehmen';
-
-  @override
   String get categoryManualOrderSnackbar =>
       'Auf deine eigene Reihenfolge umgestellt (in den Einstellungen wieder änderbar).';
 
@@ -963,4 +947,53 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => 'Unterkategorie hinzufügen';
+
+  @override
+  String get settingsColorTitle => 'Farbe';
+
+  @override
+  String get settingsColorSubtitle =>
+      'Hintergründe, Linien und Akzente passen sich der gewählten Farbe an';
+
+  @override
+  String get settingsColorPreset => 'Voreinstellungen';
+
+  @override
+  String get settingsColorCustom => 'Benutzerdefiniert';
+
+  @override
+  String get settingsColorApply => 'Übernehmen';
+
+  @override
+  String get settingsColorDefaultBadge => 'Standard';
+
+  @override
+  String get settingsColorBlue => 'Blau';
+
+  @override
+  String get settingsColorGreen => 'Grün';
+
+  @override
+  String get settingsColorTeal => 'Türkis';
+
+  @override
+  String get settingsColorPurple => 'Lila';
+
+  @override
+  String get settingsColorRose => 'Rosé';
+
+  @override
+  String get settingsColorOrange => 'Orange';
+
+  @override
+  String get settingsColorMustard => 'Senf';
+
+  @override
+  String get settingsColorGray => 'Grau';
+
+  @override
+  String get settingsColorTerracotta => 'Terrakotta';
+
+  @override
+  String get settingsColorNavy => 'Marineblau';
 }

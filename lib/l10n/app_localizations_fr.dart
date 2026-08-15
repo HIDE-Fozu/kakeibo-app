@@ -111,16 +111,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Désactivé = ordre d\'utilisation récente / Activé = ordre fixe (appui long sur une tuile de l\'écran de saisie pour réorganiser)';
 
   @override
-  String get settingsPageColorTitle => 'Couleur de la page (arrière-plan)';
-
-  @override
-  String get settingsAccentColorTitle => 'Couleur d\'accentuation';
-
-  @override
-  String get settingsAccentColorSubtitle =>
-      'Couleur des boutons et des sélections';
-
-  @override
   String get settingsDataPolicyTitle => 'À propos du traitement des données';
 
   @override
@@ -622,12 +612,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeNavSettings => 'Réglages';
 
   @override
-  String get settingsColorPickerResetDefault => 'Réinitialiser';
-
-  @override
-  String get settingsColorPickerConfirm => 'Confirmer';
-
-  @override
   String get categoryManualOrderSnackbar =>
       'Passé à votre ordre personnalisé (modifiable dans les réglages)';
 
@@ -971,4 +955,53 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => 'Ajouter une sous-catégorie';
+
+  @override
+  String get settingsColorTitle => 'Couleur';
+
+  @override
+  String get settingsColorSubtitle =>
+      'Le fond, les lignes et les accents s’ajustent à la couleur choisie';
+
+  @override
+  String get settingsColorPreset => 'Préréglages';
+
+  @override
+  String get settingsColorCustom => 'Personnalisée';
+
+  @override
+  String get settingsColorApply => 'Appliquer';
+
+  @override
+  String get settingsColorDefaultBadge => 'Par défaut';
+
+  @override
+  String get settingsColorBlue => 'Bleu';
+
+  @override
+  String get settingsColorGreen => 'Vert';
+
+  @override
+  String get settingsColorTeal => 'Bleu canard';
+
+  @override
+  String get settingsColorPurple => 'Violet';
+
+  @override
+  String get settingsColorRose => 'Rose';
+
+  @override
+  String get settingsColorOrange => 'Orange';
+
+  @override
+  String get settingsColorMustard => 'Moutarde';
+
+  @override
+  String get settingsColorGray => 'Gris';
+
+  @override
+  String get settingsColorTerracotta => 'Terracotta';
+
+  @override
+  String get settingsColorNavy => 'Bleu marine';
 }

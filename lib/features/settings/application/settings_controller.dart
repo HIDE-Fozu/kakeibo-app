@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
-import '../../../app/theme.dart';
 
 /// 入力グリッドのカテゴリ並び順。
 /// recentlyUsed=最近使った順（既定）/ manual=自分で決めた固定順（sortOrder）。
@@ -16,8 +15,7 @@ class SettingsState {
   final bool autoUploadTestData;
 
   /// ページ背景色・アクセント（テーマ）色。未設定なら既定（kPaper / kPrimary）。
-  final Color pageColor;
-  final Color accentColor;
+  final Color? themeColor;
   final CategoryOrderMode categoryOrder;
 
   /// 表示言語。null = 端末のシステム言語に追従。
@@ -33,8 +31,7 @@ class SettingsState {
     required this.onboardingDone,
     required this.retainReceiptImages,
     this.autoUploadTestData = false,
-    required this.pageColor,
-    required this.accentColor,
+    this.themeColor,
     required this.categoryOrder,
     this.locale,
     this.currencyCode = 'JPY',
@@ -47,49 +44,28 @@ class AppSettings extends Notifier<SettingsState> {
   static const kOnboardingDone = 'onboardingDone';
   static const kRetainReceiptImages = 'retainReceiptImages';
   static const kAutoUploadTestData = 'autoUploadTestData';
-  static const kPageColor = 'pageColor';
-  static const kAccentColor = 'accentColor';
+  static const kThemeColor = 'themeColor';
+  // 旧キー（〜build 44 の背景色/テーマ色2本立て）。読み込まず、起動時に削除する。
+  static const kLegacyPageColor = 'pageColor';
+  static const kLegacyAccentColor = 'accentColor';
   static const kCategoryOrder = 'categoryOrder';
   static const kLocale = 'locale';
   static const kCurrency = 'currency';
   static const kForecastAnchorDay = 'forecastAnchorDay';
 
-  /// 歴代の既定色。ピッカーの「既定に戻す」は当時の既定値をそのまま保存する
-  /// ため、パレットを更新しても保存済みの旧既定が勝ち続けてしまう
-  /// （build 43 で「青が反映されない」実機FB）。旧既定と一致する保存値は
-  /// 「未設定」に移行し、常にその時点の既定パレットへ追従させる。
-  /// 明示的に選ばれたカスタム色（旧既定と一致しない値）はそのまま尊重する。
-  static const _legacyAccents = {
-    0xFF1E6B5A, // v2.0〜v2.2 build36 の深緑
-    0xFF2F8570, // build 37-39 の緑
-    0xFF287F73, // build 40
-    0xFF2F7A6A, // build 41-42
-  };
-  static const _legacyPages = {
-    0xFFF6F5F0, // v2.0〜 の生成り
-    0xFFFFFFFF, // build 37-39 の純白
-    0xFFFFFCF7, // build 40
-  };
-
   @override
   SettingsState build() {
     final p = ref.watch(sharedPreferencesProvider);
-    var page = p.getInt(kPageColor);
-    var accent = p.getInt(kAccentColor);
-    if (page != null && _legacyPages.contains(page)) {
-      page = null;
-      p.remove(kPageColor); // fire-and-forget（キャッシュは同期更新）
-    }
-    if (accent != null && _legacyAccents.contains(accent)) {
-      accent = null;
-      p.remove(kAccentColor);
-    }
+    // 旧2本立ての色設定は無条件に破棄（色設定を使った既存ユーザーは
+    // いないことをユーザーが確認済み・2026-08-15）。以後は themeColor 1本。
+    if (p.containsKey(kLegacyPageColor)) p.remove(kLegacyPageColor);
+    if (p.containsKey(kLegacyAccentColor)) p.remove(kLegacyAccentColor);
+    final theme = p.getInt(kThemeColor);
     return SettingsState(
       onboardingDone: p.getBool(kOnboardingDone) ?? false,
       retainReceiptImages: p.getBool(kRetainReceiptImages) ?? false,
       autoUploadTestData: p.getBool(kAutoUploadTestData) ?? false,
-      pageColor: page == null ? kPaper : Color(page),
-      accentColor: accent == null ? kPrimary : Color(accent),
+      themeColor: theme == null ? null : Color(theme),
       categoryOrder: p.getString(kCategoryOrder) == 'manual'
           ? CategoryOrderMode.manual
           : CategoryOrderMode.recentlyUsed,
@@ -127,19 +103,17 @@ class AppSettings extends Notifier<SettingsState> {
     ref.invalidateSelf();
   }
 
-  Future<void> setPageColor(Color value) async {
-    await ref
-        .read(sharedPreferencesProvider)
-        .setInt(kPageColor, value.toARGB32());
+  /// null = 既定（キー削除）。値を焼き込まないので、パレット更新に常に追従する。
+  Future<void> setThemeColor(Color? value) async {
+    final p = ref.read(sharedPreferencesProvider);
+    if (value == null) {
+      await p.remove(kThemeColor);
+    } else {
+      await p.setInt(kThemeColor, value.toARGB32());
+    }
     ref.invalidateSelf();
   }
 
-  Future<void> setAccentColor(Color value) async {
-    await ref
-        .read(sharedPreferencesProvider)
-        .setInt(kAccentColor, value.toARGB32());
-    ref.invalidateSelf();
-  }
 
   Future<void> setCategoryOrder(CategoryOrderMode value) async {
     await ref.read(sharedPreferencesProvider).setString(

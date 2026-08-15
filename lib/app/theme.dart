@@ -48,8 +48,8 @@ const kChrome = Color(0xFFF4F2ED);
 const kNavIdle = kMuted;
 
 /// 下部タブのアイコン色（タブごと）。
-/// カレンダー=ブルー / 毎月=アプリコット / サマリ=コーラル / 設定=グレー。
-const kNavCalendar = kPrimaryFill;
+/// カレンダー=主色（パレット追従のため home_shell 側で取得）/
+/// 毎月=アプリコット / サマリ=コーラル / 設定=グレー。
 const kNavMonthly = kApricot;
 const kNavSummary = kCoral;
 const kNavSettings = kMuted;
@@ -155,72 +155,177 @@ extension KakeiboColorsX on BuildContext {
   KakeiboColors get kakeiboColors => Theme.of(this).extension<KakeiboColors>()!;
 }
 
-/// [background]（ページ背景）と [accent]（テーマ色）は設定で上書き可能。
-/// 無指定＝既定（kPaper / kPrimary）。既定アクセント時は従来の見た目を厳密に維持し、
-/// カスタム時のみ container 系を seed から派生させる。
-ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
-  final bg = background ?? kPaper;
-  final ac = accent ?? kPrimary;
-  final seeded = ColorScheme.fromSeed(seedColor: ac);
-  final isDefaultAccent = ac.toARGB32() == kPrimary.toARGB32();
-  final scheme = seeded.copyWith(
-    primary: ac,
-    primaryContainer: isDefaultAccent ? kPrimarySoft : seeded.primaryContainer,
-    onPrimaryContainer: isDefaultAccent ? kInk : seeded.onPrimaryContainer,
+/// テーマ1色から導出した実効パレット。ウィジェットが `kPrimaryFill` 等の
+/// 定数を直接使うとカスタム色に追従できないため、主色まわりは必ず
+/// `context.kakeiboPalette` 経由で読む。既定テーマでは各値が
+/// kPaper/kPrimaryFill/kPrimary/kPrimarySoft/kLine/kChrome とバイト一致する。
+@immutable
+class KakeiboPalette extends ThemeExtension<KakeiboPalette> {
+  final Color fill; // 塗り・CTA・選択状態
+  final Color dark; // 文字・枠（= scheme.primary）
+  final Color soft; // 選択タイル・チップの下地
+  final Color line; // ボーダー
+  final Color bg; // ページ背景
+  final Color chrome; // バックアップ帯などの沈んだ面
+  const KakeiboPalette({
+    required this.fill,
+    required this.dark,
+    required this.soft,
+    required this.line,
+    required this.bg,
+    required this.chrome,
+  });
+
+  static const standard = KakeiboPalette(
+    fill: kPrimaryFill,
+    dark: kPrimary,
+    soft: kPrimarySoft,
+    line: kLine,
+    bg: kPaper,
+    chrome: kChrome,
+  );
+
+  @override
+  KakeiboPalette copyWith({
+    Color? fill,
+    Color? dark,
+    Color? soft,
+    Color? line,
+    Color? bg,
+    Color? chrome,
+  }) =>
+      KakeiboPalette(
+        fill: fill ?? this.fill,
+        dark: dark ?? this.dark,
+        soft: soft ?? this.soft,
+        line: line ?? this.line,
+        bg: bg ?? this.bg,
+        chrome: chrome ?? this.chrome,
+      );
+
+  @override
+  KakeiboPalette lerp(KakeiboPalette? other, double t) {
+    if (other == null) return this;
+    return KakeiboPalette(
+      fill: Color.lerp(fill, other.fill, t)!,
+      dark: Color.lerp(dark, other.dark, t)!,
+      soft: Color.lerp(soft, other.soft, t)!,
+      line: Color.lerp(line, other.line, t)!,
+      bg: Color.lerp(bg, other.bg, t)!,
+      chrome: Color.lerp(chrome, other.chrome, t)!,
+    );
+  }
+}
+
+extension KakeiboPaletteX on BuildContext {
+  KakeiboPalette get kakeiboPalette =>
+      Theme.of(this).extension<KakeiboPalette>()!;
+}
+
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  final hi = la > lb ? la : lb;
+  final lo = la > lb ? lb : la;
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/// テーマ1色 → 全パレット導出（設定の「色」機能の中核。モックのJSと同じ規則）。
+/// - 塗り: 白文字が読める濃さ（3.5:1）まで明度を下げる
+/// - 文字・枠: 同色相を白地4.5:1まで締める
+/// - 選択面/背景/罫線/クローム: 同色相の薄いティント
+KakeiboPalette derivePalette(Color seed) {
+  final hsl = HSLColor.fromColor(seed);
+  final h = hsl.hue;
+  final sat = hsl.saturation;
+  Color at(double s1, double l1) =>
+      HSLColor.fromAHSL(1, h, s1.clamp(0.0, 1.0), l1.clamp(0.0, 1.0))
+          .toColor();
+
+  var fl = hsl.lightness;
+  var fill = at(sat, fl);
+  while (fl > 0.20 && _contrast(Colors.white, fill) < 3.5) {
+    fl -= 0.01;
+    fill = at(sat, fl);
+  }
+
+  final ds = (sat + 0.08).clamp(0.0, 1.0);
+  var dl = fl < 0.50 ? fl : 0.50;
+  var dark = at(ds, dl);
+  while (dl > 0.10 && _contrast(dark, Colors.white) < 4.5) {
+    dl -= 0.01;
+    dark = at(ds, dl);
+  }
+
+  double atLeast(double v, double min) => v < min ? min : v;
+  return KakeiboPalette(
+    fill: fill,
+    dark: dark,
+    soft: at(atLeast(sat * 0.45, 0.08), 0.92),
+    line: at(atLeast(sat * 0.22, 0.04), 0.87),
+    bg: at(atLeast(sat * 0.35, 0.06), 0.97),
+    chrome: at(atLeast(sat * 0.30, 0.05), 0.94),
+  );
+}
+
+/// [themeColor] は設定の「色」。null = 既定（現行トークンとバイト一致）。
+/// 1色から導出したパレットが scheme・CTA・タブ・カード等に一括で入る。
+ThemeData buildKakeiboTheme({Color? themeColor}) {
+  final p =
+      themeColor == null ? KakeiboPalette.standard : derivePalette(themeColor);
+  final scheme = ColorScheme.fromSeed(seedColor: p.dark).copyWith(
+    primary: p.dark,
+    primaryContainer: p.soft,
+    onPrimaryContainer: kInk,
     surface: kCard,
     onSurface: kInk,
     onSurfaceVariant: kMuted,
-    outline: kLine,
-    outlineVariant: kLine,
+    outline: p.line,
+    outlineVariant: p.line,
     error: kExpense,
     errorContainer: kExpenseSoft,
     onErrorContainer: kInk,
-    surfaceContainerHighest: kChrome,
+    surfaceContainerHighest: p.chrome,
   );
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: bg,
-    dividerColor: kLine,
-    // 文字を入力できる場所は白で塗る（ページ背景＝bgに同化して入力欄と
+    scaffoldBackgroundColor: p.bg,
+    dividerColor: p.line,
+    // 文字を入力できる場所は白で塗る（ページ背景に同化して入力欄と
     // 分からない、というFB・2026-08-09）。白ピル・カードと同じ kCard。
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: kCard,
     ),
-    appBarTheme: AppBarTheme(backgroundColor: bg, foregroundColor: kInk),
-    // CTA（保存など）は Primary Fill 塗り＋白文字（4.2:1）。
-    // scheme.primary は文字用の Primary Dark なので、塗りはここで差し替える。
-    // 既定アクセントのときだけ（設定で色を変えている人は従来どおり seed 由来）。
-    filledButtonTheme: isDefaultAccent
-        ? FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              backgroundColor: kPrimaryFill,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: kLine,
-              disabledForegroundColor: kMuted,
-            ),
-          )
-        : const FilledButtonThemeData(),
+    appBarTheme: AppBarTheme(backgroundColor: p.bg, foregroundColor: kInk),
+    // CTA（保存など）は塗り＋白文字。scheme.primary は文字用の濃色なので、
+    // 塗りはここで導出パレットの fill に差し替える。
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: p.fill,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: p.line,
+        disabledForegroundColor: kMuted,
+      ),
+    ),
     // FAB「金額を入力する」も同じCTA言語に揃える。
-    floatingActionButtonTheme: isDefaultAccent
-        ? const FloatingActionButtonThemeData(
-            backgroundColor: kPrimaryFill,
-            foregroundColor: Colors.white,
-          )
-        : const FloatingActionButtonThemeData(),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: p.fill,
+      foregroundColor: Colors.white,
+    ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: kCard,
-      indicatorColor: kPrimarySoft,
+      indicatorColor: p.soft,
       iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(
-            color: s.contains(WidgetState.selected) ? kPrimary : kNavIdle,
+            color: s.contains(WidgetState.selected) ? p.dark : kNavIdle,
           )),
       labelTextStyle: WidgetStateProperty.resolveWith((s) => TextStyle(
             fontSize: 12,
             fontWeight: s.contains(WidgetState.selected)
                 ? FontWeight.w600
                 : FontWeight.w400,
-            color: s.contains(WidgetState.selected) ? kPrimary : kNavIdle,
+            color: s.contains(WidgetState.selected) ? p.dark : kNavIdle,
           )),
     ),
     // カードはシート指定の角丸16px。影はトークン（kCardShadow）を使う箇所で
@@ -230,6 +335,6 @@ ThemeData buildKakeiboTheme({Color? background, Color? accent}) {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadius)),
     ),
-    extensions: const [KakeiboColors.standard],
+    extensions: [KakeiboColors.standard, p],
   );
 }

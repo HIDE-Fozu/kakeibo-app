@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:kakeibo_app/app/providers.dart';
-import 'package:kakeibo_app/app/theme.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
@@ -45,53 +44,34 @@ void main() {
     expect(container.read(appSettingsProvider).retainReceiptImages, isTrue);
   });
 
-  test('ページ色/アクセント色の既定と永続化', () async {
-    // 未設定なら既定（kPaper / kPrimary）
-    expect(container.read(appSettingsProvider).pageColor.toARGB32(),
-        kPaper.toARGB32());
-    expect(container.read(appSettingsProvider).accentColor.toARGB32(),
-        kPrimary.toARGB32());
+  test('テーマ色の既定と永続化（null=既定・キー削除で常に既定へ追従）', () async {
+    // 未設定なら null（= 既定パレット）
+    expect(container.read(appSettingsProvider).themeColor, isNull);
 
-    const newPage = Color(0xFFEAF4EF);
-    const newAccent = Color(0xFF4F80B0);
-    await container.read(appSettingsProvider.notifier).setPageColor(newPage);
-    await container.read(appSettingsProvider.notifier).setAccentColor(newAccent);
-    expect(container.read(appSettingsProvider).pageColor.toARGB32(),
-        newPage.toARGB32());
-    expect(container.read(appSettingsProvider).accentColor.toARGB32(),
-        newAccent.toARGB32());
+    const custom = Color(0xFF4F80B0);
+    await container.read(appSettingsProvider.notifier).setThemeColor(custom);
+    expect(container.read(appSettingsProvider).themeColor?.toARGB32(),
+        custom.toARGB32());
+
+    // null を渡すとキーごと消える（値を焼き込まない）
+    await container.read(appSettingsProvider.notifier).setThemeColor(null);
+    expect(container.read(appSettingsProvider).themeColor, isNull);
+    expect(h.prefs.getInt('themeColor'), isNull);
   });
 
-  test('旧既定色が保存されていたら未設定に移行し、新パレットに追従する', () async {
-    // ピッカーの「既定に戻す」は当時の既定値をそのまま保存するため、
-    // 旧既定（深緑など）が残っているとパレット更新が反映されない。
+  test('旧2本立ての色設定（pageColor/accentColor）は起動時に破棄される', () async {
     final h2 = await createHarness(prefs: {
       'onboardingDone': true,
       'locale': 'ja',
-      'accentColor': 0xFF2F7A6A, // build 41-42 の既定緑
-      'pageColor': 0xFFFFFCF7, // build 40 の既定背景
+      'accentColor': 0xFF2F7A6A,
+      'pageColor': 0xFFFFFCF7,
     });
     addTearDown(h2.dispose);
     final c2 = ProviderContainer(overrides: h2.overrides());
     addTearDown(c2.dispose);
-    expect(c2.read(appSettingsProvider).accentColor.toARGB32(),
-        kPrimary.toARGB32());
-    expect(c2.read(appSettingsProvider).pageColor.toARGB32(),
-        kPaper.toARGB32());
-    // キーごと消えている（次回以降も既定に追従）
+    expect(c2.read(appSettingsProvider).themeColor, isNull);
     expect(h2.prefs.getInt('accentColor'), isNull);
     expect(h2.prefs.getInt('pageColor'), isNull);
-
-    // 旧既定と一致しないカスタム色は移行されない
-    final h3 = await createHarness(prefs: {
-      'onboardingDone': true,
-      'locale': 'ja',
-      'accentColor': 0xFF4F80B0,
-    });
-    addTearDown(h3.dispose);
-    final c3 = ProviderContainer(overrides: h3.overrides());
-    addTearDown(c3.dispose);
-    expect(c3.read(appSettingsProvider).accentColor.toARGB32(), 0xFF4F80B0);
   });
 
   test('カテゴリ並び順モードの既定と永続化', () async {

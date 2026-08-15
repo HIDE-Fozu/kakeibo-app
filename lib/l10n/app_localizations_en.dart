@@ -107,15 +107,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Off = most recently used / On = fixed order (long-press a tile on the entry screen to reorder)';
 
   @override
-  String get settingsPageColorTitle => 'Page color (background)';
-
-  @override
-  String get settingsAccentColorTitle => 'Accent color';
-
-  @override
-  String get settingsAccentColorSubtitle => 'Color for buttons and selections';
-
-  @override
   String get settingsDataPolicyTitle => 'About data handling';
 
   @override
@@ -613,12 +604,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavSettings => 'Settings';
 
   @override
-  String get settingsColorPickerResetDefault => 'Reset to default';
-
-  @override
-  String get settingsColorPickerConfirm => 'Confirm';
-
-  @override
   String get categoryManualOrderSnackbar =>
       'Switched to your custom order (you can change this back in Settings).';
 
@@ -956,4 +941,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => 'Add subcategory';
+
+  @override
+  String get settingsColorTitle => 'Color';
+
+  @override
+  String get settingsColorSubtitle =>
+      'Backgrounds, borders, and highlights adjust to the color you choose';
+
+  @override
+  String get settingsColorPreset => 'Presets';
+
+  @override
+  String get settingsColorCustom => 'Custom';
+
+  @override
+  String get settingsColorApply => 'Apply';
+
+  @override
+  String get settingsColorDefaultBadge => 'Default';
+
+  @override
+  String get settingsColorBlue => 'Blue';
+
+  @override
+  String get settingsColorGreen => 'Green';
+
+  @override
+  String get settingsColorTeal => 'Teal';
+
+  @override
+  String get settingsColorPurple => 'Purple';
+
+  @override
+  String get settingsColorRose => 'Rose';
+
+  @override
+  String get settingsColorOrange => 'Orange';
+
+  @override
+  String get settingsColorMustard => 'Mustard';
+
+  @override
+  String get settingsColorGray => 'Gray';
+
+  @override
+  String get settingsColorTerracotta => 'Terracotta';
+
+  @override
+  String get settingsColorNavy => 'Navy';
 }

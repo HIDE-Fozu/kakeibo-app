@@ -18,7 +18,7 @@ import '../application/settings_controller.dart';
 import '../../chores/presentation/chore_notification_settings_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import 'category_manage_page.dart';
-import 'color_picker_dialog.dart';
+import 'theme_color_sheet.dart';
 import 'restore_picker_page.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -175,35 +175,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
-            key: const Key('page-color-tile'),
+            key: const Key('theme-color-tile'),
             leading: const Icon(Icons.palette_outlined),
-            title: Text(l.settingsPageColorTitle),
-            trailing: _swatch(settings.pageColor),
-            onTap: () => _pickColor(
-              context,
-              ref,
-              title: l.settingsPageColorTitle,
-              current: settings.pageColor,
-              defaultColor: kPaper,
-              onPicked: (c) =>
-                  ref.read(appSettingsProvider.notifier).setPageColor(c),
-            ),
-          ),
-          ListTile(
-            key: const Key('accent-color-tile'),
-            leading: const Icon(Icons.format_color_fill),
-            title: Text(l.settingsAccentColorTitle),
-            subtitle: Text(l.settingsAccentColorSubtitle),
-            trailing: _swatch(settings.accentColor),
-            onTap: () => _pickColor(
-              context,
-              ref,
-              title: l.settingsAccentColorTitle,
-              current: settings.accentColor,
-              defaultColor: kPrimary,
-              onPicked: (c) =>
-                  ref.read(appSettingsProvider.notifier).setAccentColor(c),
-            ),
+            title: Text(l.settingsColorTitle),
+            subtitle: Text(l.settingsColorSubtitle),
+            trailing: _swatch(settings.themeColor ?? kPrimaryFill),
+            onTap: () => showThemeColorSheet(context, ref),
           ),
           const Divider(),
           ListTile(
@@ -227,23 +204,6 @@ class SettingsScreen extends ConsumerWidget {
           border: Border.all(color: kLine),
         ),
       );
-
-  Future<void> _pickColor(
-    BuildContext context,
-    WidgetRef ref, {
-    required String title,
-    required Color current,
-    required Color defaultColor,
-    required void Function(Color) onPicked,
-  }) async {
-    final picked = await showColorPickerDialog(
-      context,
-      initial: current,
-      title: title,
-      defaultColor: defaultColor,
-    );
-    if (picked != null) onPicked(picked);
-  }
 
   Future<void> _pickLanguage(
     BuildContext context,

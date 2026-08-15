@@ -101,15 +101,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '关=按最近使用 / 开=固定顺序（在录入界面长按图块→重新排序）';
 
   @override
-  String get settingsPageColorTitle => '页面颜色（背景）';
-
-  @override
-  String get settingsAccentColorTitle => '强调色';
-
-  @override
-  String get settingsAccentColorSubtitle => '按钮和选中项的颜色';
-
-  @override
   String get settingsDataPolicyTitle => '关于数据处理';
 
   @override
@@ -597,12 +588,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeNavSettings => '设置';
 
   @override
-  String get settingsColorPickerResetDefault => '恢复默认';
-
-  @override
-  String get settingsColorPickerConfirm => '确定';
-
-  @override
   String get categoryManualOrderSnackbar => '已切换为自定义顺序（可在设置中改回）';
 
   @override
@@ -928,4 +913,52 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get entrySubcategoryAddButton => '添加子类别';
+
+  @override
+  String get settingsColorTitle => '颜色';
+
+  @override
+  String get settingsColorSubtitle => '背景、线条和强调色会根据所选颜色自动调整';
+
+  @override
+  String get settingsColorPreset => '预设';
+
+  @override
+  String get settingsColorCustom => '自定义';
+
+  @override
+  String get settingsColorApply => '应用';
+
+  @override
+  String get settingsColorDefaultBadge => '默认';
+
+  @override
+  String get settingsColorBlue => '蓝色';
+
+  @override
+  String get settingsColorGreen => '绿色';
+
+  @override
+  String get settingsColorTeal => '青色';
+
+  @override
+  String get settingsColorPurple => '紫色';
+
+  @override
+  String get settingsColorRose => '玫瑰红';
+
+  @override
+  String get settingsColorOrange => '橙色';
+
+  @override
+  String get settingsColorMustard => '芥末黄';
+
+  @override
+  String get settingsColorGray => '灰色';
+
+  @override
+  String get settingsColorTerracotta => '陶土色';
+
+  @override
+  String get settingsColorNavy => '藏青色';
 }

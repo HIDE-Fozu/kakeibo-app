@@ -166,11 +166,6 @@ class _CalendarLegend extends StatelessWidget {
 
 enum _DayStyle { normal, selected, today }
 
-// 選択/今日のリング色（数字に被らないよう小さめの丸で数字だけを囲む）。
-// 選択=主色塗り＋白数字、今日=主色の輪郭。
-const _kSelectedRing = kPrimaryFill;
-const _kTodayRing = kPrimaryFill;
-
 // 家事ドットの色（やった=収入グリーン / 期日=注意アンバー / 超過=支出コーラル）。
 const _kDotDone = kIncome;
 const _kDotDue = kAttention;
@@ -193,15 +188,19 @@ Widget _dayCell(
   BoxDecoration? deco;
   var numColor = kInk;
   var weight = FontWeight.w400;
+  // 選択/今日のリング色（数字に被らないよう小さめの丸で数字だけを囲む）。
+  // 選択=主色塗り＋白数字、今日=主色の輪郭。カスタムテーマに追従させるため
+  // 定数ではなくパレットから取る。
+  final ring = context.kakeiboPalette.fill;
   switch (style) {
     case _DayStyle.selected:
-      deco = const BoxDecoration(color: _kSelectedRing, shape: BoxShape.circle);
+      deco = BoxDecoration(color: ring, shape: BoxShape.circle);
       numColor = Colors.white;
       weight = FontWeight.w600;
     case _DayStyle.today:
       deco = BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: _kTodayRing, width: 1.6),
+        border: Border.all(color: ring, width: 1.6),
       );
       weight = FontWeight.w700;
     case _DayStyle.normal:

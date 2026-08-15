@@ -556,7 +556,7 @@ class EntryScreen extends ConsumerWidget {
                         if (state.expandedParentId != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: _subcategoryPanel(state, ctrl, gridSelectedId),
+                            child: _subcategoryPanel(context, state, ctrl, gridSelectedId),
                           ),
                       ] else
                         // 通常/レシート確認: 内訳チップはグリッド直下に「浮かせて」出す。
@@ -604,6 +604,7 @@ class EntryScreen extends ConsumerWidget {
                                 top: kCatGridHeight + 4,
                                 height: 66,
                                 child: _subcategoryPanel(
+                                    context,
                                     state, ctrl, gridSelectedId),
                               ),
                           ],
@@ -711,6 +712,7 @@ class EntryScreen extends ConsumerWidget {
   /// 内訳チップのパネル（薄緑・66高）。通常モードではグリッド直下に浮かせ、
   /// 一括内訳では in-flow で使う（見た目は共通）。
   Widget _subcategoryPanel(
+    BuildContext context,
     EntryFormState state,
     EntryFormController ctrl,
     int? gridSelectedId,
@@ -720,11 +722,11 @@ class EntryScreen extends ConsumerWidget {
         height: 66,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          // ソフトミント（背景に馴染みすぎず主張しすぎない）＋ボーダー色の枠。
+          // ソフト面（背景に馴染みすぎず主張しすぎない）＋ボーダー色の枠。
           // 浮かせて出すので下の内容と区別できるよう軽い影を付ける。
-          color: kPrimarySoft,
+          color: context.kakeiboPalette.soft,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: kLine),
+          border: Border.all(color: context.kakeiboPalette.line),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.12),

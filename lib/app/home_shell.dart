@@ -147,7 +147,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
                 // ——選択中は下地が Primary Light の丸になるので、明るいアクセントの
                 // ままだとアイコンが下地に埋もれて消える（ミント×Primary Lightで1.3:1）。
                 NavigationDestination(
-                    icon: const Icon(Icons.calendar_month, color: kNavCalendar),
+                    icon: Icon(Icons.calendar_month, color: context.kakeiboPalette.fill),
                     selectedIcon:
                         const Icon(Icons.calendar_month, color: kPrimary),
                     label: l.homeNavCalendar),

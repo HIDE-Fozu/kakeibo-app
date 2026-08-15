@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
-import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
 import '../../../domain/entities.dart';
 import '../../settings/application/settings_controller.dart';
@@ -66,7 +65,7 @@ class SubcategoryChips extends ConsumerWidget {
                           selected: s.id == selectedId,
                           // 選択時は塗りを変えず、緑のチェックマークだけで表す
                           showCheckmark: true,
-                          checkmarkColor: kPrimary,
+                          checkmarkColor: Theme.of(context).colorScheme.primary,
                           backgroundColor: Colors.white,
                           selectedColor: Colors.white,
                           onSelected: (_) => onToggle(s.id),

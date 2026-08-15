@@ -21,10 +21,7 @@ class KakeiboApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       // null = 端末のシステム言語に追従。設定で明示選択したらそれを優先。
       locale: settings.locale,
-      theme: buildKakeiboTheme(
-        background: settings.pageColor,
-        accent: settings.accentColor,
-      ),
+      theme: buildKakeiboTheme(themeColor: settings.themeColor),
       home: const HomeShell(),
     );
   }
