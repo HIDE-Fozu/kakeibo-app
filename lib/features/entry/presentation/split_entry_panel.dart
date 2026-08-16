@@ -80,24 +80,22 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 店名行
+        // 店名行。欄の見た目は通常入力と完全に同じにする（「カテゴリを追加で
+        // サイズが小さくなる」FB 2026-08-16。以前の縮小スタイル＋アイコンは撤去。
+        // 右の「やめる」だけ内訳の都合で足される）。
         Row(
           children: [
-            Icon(Icons.call_split, size: 15, color: scheme.onSurfaceVariant),
-            const SizedBox(width: 6),
             Expanded(
               child: TextFormField(
                 key: ValueKey('split-store-${state.formSeq}'),
                 initialValue: state.storeName,
-                style: const TextStyle(fontSize: 14),
                 decoration: InputDecoration(
                   // 通常入力と同じラベルに統一（「店名」表記ゆれのFB 2026-08-15）。
-                  hintText: state.type == TxnType.expense
+                  labelText: state.type == TxnType.expense
                       ? l.entryStoreNameLabel
                       : l.entryCompanyNameLabel,
+                  border: const OutlineInputBorder(),
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                  border: const UnderlineInputBorder(),
                 ),
                 onChanged: ctrl.setStoreName,
               ),
@@ -576,7 +574,23 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 7),
+              // メモも入力行と同じくセル内に（「品目2にメモが出ない」FB
+              // 2026-08-16。カテゴリを付ければ最後の1品になる行なので、
+              // メモも同じように持てる）。
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: MemoPillButton(
+                    key: Key('split-memo-btn-$i'),
+                    memo: line.memo,
+                    onTap: () {
+                      ctrl.setActiveSplit(i);
+                      _editSplitMemo(context, i, line.memo);
+                    },
+                  ),
+                ),
+              ),
               // 右: 残り（差分・非タップ）
               Text(
                 over ? l.splitOverLabel : l.splitRemainingLabel,
@@ -709,11 +723,17 @@ class MemoPillButton extends StatelessWidget {
                 children: [
                   Icon(Icons.edit_note, size: 15, color: scheme.primary),
                   const SizedBox(width: 2),
-                  Text(l.splitMemoHint,
-                      style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.primary)),
+                  // 幅が足りない行（残額行など）では文言を省略して
+                  // オーバーフローさせない。
+                  Flexible(
+                    child: Text(l.splitMemoHint,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: scheme.primary)),
+                  ),
                 ],
               ),
             )

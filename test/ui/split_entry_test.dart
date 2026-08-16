@@ -136,8 +136,10 @@ void main() {
     // 帯内チップ＋行のチップ表示の2箇所
     expect(find.textContaining('日用品'), findsNWidgets(2));
 
-    // 残額行タップ → 帯の割当先が残額行になる（行のどこでも可）
-    await tester.tap(find.byKey(const Key('split-line-remainder')));
+    // 残額行タップ → 帯の割当先が残額行になる（背景ならどこでも可。
+    // 中央はメモボタンが占めるようになったので「残り」表示のあたりを狙う）
+    await tester.tap(find.byKey(const Key('split-tail-label')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
 
     // 食費（内訳あり親）→ 親を割当しつつ帯は内訳チップ表示に切替
@@ -179,7 +181,7 @@ void main() {
     ctrl.splitTapDoubleZero();
     await tester.pumpAndSettle();
     expect(st().activeSplitIndex, 0);
-    await tester.tap(find.byKey(const Key('split-line-remainder')),
+    await tester.tap(find.byKey(const Key('split-tail-label')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(st().activeSplitIndex, st().splits!.length - 1);
@@ -238,6 +240,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(st().splits![0].memo, '洗剤');
     expect(find.text('洗剤'), findsOneWidget);
+
+    // 残額行（＝カテゴリを付ければ最後の1品になる行）にもメモボタンがある
+    // （「品目2にメモが出ない」FB 2026-08-16）
+    final tailMemoBtn = find.byKey(const Key('split-memo-btn-1'));
+    expect(tailMemoBtn, findsOneWidget);
+    await tester.tap(tailMemoBtn, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('split-memo-field')), 'ラップ');
+    await tester.tap(find.byKey(const Key('split-memo-save')));
+    await tester.pumpAndSettle();
+    expect(st().splits![1].memo, 'ラップ');
+    expect(find.text('ラップ'), findsOneWidget);
 
     // 再度開くと現在値が入っている（編集）
     await tester.tap(memoBtn, warnIfMissed: false);

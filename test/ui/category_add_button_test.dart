@@ -62,7 +62,9 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-split')));
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('split-line-remainder')));
+    // 中央はメモボタンが占めるようになったので「残り」表示のあたりを狙う
+    await tester.tap(find.byKey(const Key('split-tail-label')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('split-cat-strip')), findsOneWidget);
