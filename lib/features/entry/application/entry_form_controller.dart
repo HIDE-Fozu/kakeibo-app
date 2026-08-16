@@ -125,6 +125,12 @@ class EntryFormState {
   /// 行の「カテゴリを追加」／選択済みチップのタップで開き、leaf確定で閉じる。
   final bool splitCatPickerOpen;
 
+  /// 金額0で内訳に入った直後の「まず合計を入力」フェーズ（FB 2026-08-16:
+  /// 押下を無視せず、合計値の入力から開始する。合計を入れるまで他は入力不可）。
+  /// この間は電卓が合計(amountYen)を編集し、行・カテゴリ帯・＋品目は無効。
+  /// 合計>0の状態で行に触れると解除され、以後は通常のトップダウン内訳。
+  final bool splitTotalPending;
+
   /// 一括内訳モード（OCR明細ベース）。null=非表示。amountYen が対象の合計。
   final List<BatchItem>? batchItems;
   final int batchHeaderTax; // レシート単位の税方式: 0=内税 / 8 / 10
@@ -174,6 +180,7 @@ class EntryFormState {
     this.splits,
     this.activeSplitIndex = 0,
     this.splitCatPickerOpen = false,
+    this.splitTotalPending = false,
     this.batchItems,
     this.batchHeaderTax = 0,
     this.batchPaintMode = false,
@@ -201,8 +208,7 @@ class EntryFormState {
   /// 表示文言はローカライズするので AppLocalizations を受け取る。
   String? saveHint(AppLocalizations l) {
     if (canSave) return null;
-    // ボトムアップ内訳は総額を後決めするので「金額を入力」の門前払いをしない。
-    if (amountYen <= 0 && !splitBottomUp) return l.entryHintEnterAmount;
+    if (amountYen <= 0) return l.entryHintEnterAmount;
     if (batchItems != null) {
       if (batchGroups.isEmpty) return l.entryHintAssignItemCategory;
       if (batchDiff < 0) return l.entryHintAssignExceedsTotal;
@@ -212,10 +218,7 @@ class EntryFormState {
       return null;
     }
     if (splits != null) {
-      // ボトムアップでは残額の概念がない（合計＝品目の総和）ので超過/残りは見ない。
-      if (!splitBottomUp && splitRemainder < 0) {
-        return l.entryHintSplitExceedsTotal;
-      }
+      if (splitRemainder < 0) return l.entryHintSplitExceedsTotal;
       for (var i = 0; i < splits!.length; i++) {
         final a = splitLineAmount(i);
         if (a != null && a > 0 && splits![i].categoryId == null) {
@@ -228,9 +231,7 @@ class EntryFormState {
       }
       if (splitFixedSum <= 0) return l.entryHintEnterAmountAndCategory;
       // 金額はあるが合計に届かない（残りの行を追加/入力）
-      if (!splitBottomUp && splitRemainder > 0) {
-        return l.entryHintEnterRemainingAmount;
-      }
+      if (splitRemainder > 0) return l.entryHintEnterRemainingAmount;
       return l.entryHintEnterAmountAndCategory;
     }
     if (categoryId == null) return l.entryHintPickCategory;
@@ -285,16 +286,6 @@ class EntryFormState {
   /// 残額（合計 − 式あり行合計）。末尾の空行がこれを担う。マイナス=入れ過ぎ。
   int get splitRemainder => amountYen - splitFixedSum;
 
-  /// ボトムアップ内訳（案B）: 金額0のまま内訳に入った状態。総額を先に決めず、
-  /// 品目を打つと末尾の行が「残り」ではなく「合計」（品目の総和）を示す。
-  /// 内訳中は電卓が品目行を編集し amountYen は変わらないので、導出で足りる
-  /// （保存済みグループの開き直しは総和>0なので常にトップダウン）。
-  bool get splitBottomUp => splits != null && amountYen == 0;
-
-  /// 画面上部の金額表示用の総額。ボトムアップ内訳では品目の総和（入力に応じて
-  /// 増えていく）。それ以外は入力済みの総額そのまま。
-  int get displayAmountYen => splitBottomUp ? splitFixedSum : amountYen;
-
   /// 行の実効金額。空の式は「末尾の行だけ」残額を自動で担う。ただし1件も
   /// 手入力が無いうち（＝先頭行だけの初期状態）は自動額を入れない。残額は
   /// 「ユーザーが1行目を入れて初めて2行目以降に現れる」。他の空/不正行は null。
@@ -313,26 +304,17 @@ class EntryFormState {
 
   bool get _splitsValid {
     final lines = splits;
-    if (lines == null) return false;
-    if (!splitBottomUp && amountYen <= 0) return false;
+    if (lines == null || amountYen <= 0) return false;
     var sum = 0;
     var count = 0;
     for (var i = 0; i < lines.length; i++) {
       final a = splitLineAmount(i);
-      if (a == null) {
-        // 空の行は無視（2行開始や「追加」の空枠）。ただしボトムアップでは
-        // 「合計に届かない」検出が無いので、式が不正な行をここで弾く
-        // （トップダウンなら sum ≠ amountYen で自然に検出される）。
-        if (splitBottomUp && lines[i].expr.isNotEmpty) return false;
-        continue;
-      }
+      if (a == null) continue; // 空の行は無視（2行開始や「追加」の空枠）
       if (a <= 0 || lines[i].categoryId == null) return false; // 金額ありでカテゴリ無し
       sum += a;
       count++;
     }
-    if (count == 0) return false;
-    // ボトムアップは総和がそのまま合計になるので突き合わせ不要。
-    return splitBottomUp || sum == amountYen;
+    return count > 0 && sum == amountYen;
   }
 
   AmountCandidate? get matchedTotalCandidate {
@@ -373,6 +355,7 @@ class EntryFormState {
     Object? splits = _unset,
     int? activeSplitIndex,
     bool? splitCatPickerOpen,
+    bool? splitTotalPending,
     Object? batchItems = _unset,
     int? batchHeaderTax,
     bool? batchPaintMode,
@@ -414,6 +397,7 @@ class EntryFormState {
             : splits as List<SplitLine>?,
         activeSplitIndex: activeSplitIndex ?? this.activeSplitIndex,
         splitCatPickerOpen: splitCatPickerOpen ?? this.splitCatPickerOpen,
+        splitTotalPending: splitTotalPending ?? this.splitTotalPending,
         batchItems: identical(batchItems, _unset)
             ? this.batchItems
             : batchItems as List<BatchItem>?,
@@ -590,6 +574,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
     // 分割モード中はアクティブ行のカテゴリに書く（食費=8%等を自動適用）
     if (_s.splits != null) {
+      if (!_leaveTotalPendingIfAble()) return;
       _updateActiveSplit((l) => _withSplitCategory(l, categoryId),
           expandedParentId: hasSubs ? categoryId : null);
       // leaf確定＝割当完了なのでカテゴリ帯を閉じる（内訳あり親はチップ選択待ち）。
@@ -790,7 +775,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   // --- 詳細入力（分割）。合計をカテゴリ別に分けて複数取引として保存 ---
 
   void startSplit() {
-    // 金額0でも入れる（案B: 総額を後決めするボトムアップ内訳になる）。
+    // 金額0でも入れるが「まず合計を入力」フェーズから始まる（FB 2026-08-16）。
     if (_s.mode == EntryMode.edit || _s.splits != null) {
       return;
     }
@@ -808,6 +793,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       ],
       activeSplitIndex: 0,
       splitCatPickerOpen: false,
+      splitTotalPending: _s.amountYen == 0,
       batchItems: null,
       expandedParentId: null,
       recurringOn: false, // 毎月の費用/収入は単体登録専用
@@ -815,11 +801,21 @@ class EntryFormController extends Notifier<EntryFormState?> {
     );
   }
 
+  /// 「まず合計を入力」フェーズ中の行操作ガード。合計が入っていれば
+  /// フェーズを解除して true（操作続行）、まだ0なら false（操作は無視）。
+  bool _leaveTotalPendingIfAble() {
+    if (!_s.splitTotalPending) return true;
+    if (_s.amountYen <= 0) return false;
+    state = _s.copyWith(splitTotalPending: false);
+    return true;
+  }
+
   /// カテゴリ帯の開閉。行の「カテゴリを追加」/選択済みチップから開く。
   /// 同じ行でもう一度呼ぶとトグルで閉じる。
   void openSplitCatPicker(int i) {
     final lines = _s.splits;
     if (lines == null || i < 0 || i >= lines.length) return;
+    if (!_leaveTotalPendingIfAble()) return;
     final toggleOff = _s.splitCatPickerOpen && _s.activeSplitIndex == i;
     state = _s.copyWith(
       activeSplitIndex: i,
@@ -840,6 +836,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   void addSplitLine() {
     final lines = _s.splits;
     if (lines == null) return;
+    if (!_leaveTotalPendingIfAble()) return;
     final last = lines.last;
     final i = lines.length - 1; // 残額行の位置＝挿入先
     final next = [...lines]
@@ -865,12 +862,13 @@ class EntryFormController extends Notifier<EntryFormState?> {
     }
   }
 
-  void cancelSplit() =>
-      state = _s.copyWith(splits: null, activeSplitIndex: 0);
+  void cancelSplit() => state = _s.copyWith(
+      splits: null, activeSplitIndex: 0, splitTotalPending: false);
 
   void setActiveSplit(int i) {
     final lines = _s.splits;
     if (lines == null || i < 0 || i >= lines.length) return;
+    if (!_leaveTotalPendingIfAble()) return;
     if (i == _s.activeSplitIndex) return;
     // 行が変わったらカテゴリ帯はその行の文脈（親一覧）に戻す。
     // 前の行で開いた内訳（外食等）が次の行の選択に残らないように。
@@ -911,12 +909,14 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void splitTapDigit(int digit) {
     assert(digit >= 0 && digit <= 9);
+    if (_s.splitTotalPending) return tapDigit(digit); // 合計を編集
     _retargetIfRemainder();
     _updateActiveSplit(
         (l) => l.expr.length >= 30 ? l : l.copyWith(expr: '${l.expr}$digit'));
   }
 
   void splitTapDoubleZero() {
+    if (_s.splitTotalPending) return tapDoubleZero(); // 合計を編集
     _updateActiveSplit((l) {
       // 通常モードの00と同じ思想: 数字の後にのみ意味を持つ
       if (!RegExp(r'\d$').hasMatch(l.expr)) return l;
@@ -928,6 +928,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// 現在入力中の数値セグメント（最後の演算子より後ろ）に既に小数点があれば無視。
   void splitTapDecimal() {
     if (_decimals == 0) return;
+    if (_s.splitTotalPending) return tapDecimal(); // 合計を編集
     _retargetIfRemainder();
     _updateActiveSplit((l) {
       final e = l.expr;
@@ -946,6 +947,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   /// 演算子キー。空の式には +/− のみ置ける（+100形式）。
   /// 末尾が演算子なら置き換え（連続演算子を作らない＝電卓の標準挙動）。
   void splitTapOperator(String op) {
+    if (_s.splitTotalPending) return; // 合計入力中は式なし（通常入力と同じ）
     _retargetIfRemainder();
     assert(const ['+', '-', '×', '÷'].contains(op));
     _updateActiveSplit((l) {
@@ -961,6 +963,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
   }
 
   void splitBackspace() {
+    if (_s.splitTotalPending) return backspace(); // 合計を編集
     _updateActiveSplit((l) => l.expr.isEmpty
         ? l
         : l.copyWith(expr: l.expr.substring(0, l.expr.length - 1)));

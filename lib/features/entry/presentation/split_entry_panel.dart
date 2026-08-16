@@ -112,120 +112,170 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
           ],
         ),
         const SizedBox(height: 4),
-        // タイトル行: 内訳＋消費税グループ（ラベル＋内税トグル＋8/10%＋個別を同背景に）。
-        // ＋品目は残額行の右端へ移動。「品目を追加」等の独立行は置かない（3行を保つ）。
-        Row(
-          children: [
-            Text(
-              l.splitBreakdownLabel,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w800,
-                color: scheme.primary,
-              ),
-            ),
-            const Spacer(),
-            // 消費税グループ: 内税トグルと8/10%は分離。個別も含め同じ薄緑背景でまとめる。
-            // 非JP（税プロファイル無効）では丸ごと非表示（入力額=税込扱い）。
-            if (taxEnabled)
-              Container(
-                padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+        // 「まず合計を入力」フェーズ（金額0で開始・FB 2026-08-16）: 合計が0の
+        // 間は内訳の中身を触れない（ディム＋タップ無効）。電卓は合計を編集する。
+        // 合計が入ったらディムを解いて「行をタップして続行」を促す（行に触れた
+        // 時点でフェーズ解除＝以後は通常のトップダウン。コントローラ側のガード）。
+        if (state.splitTotalPending)
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 4),
+            child: Row(
+              children: [
+                Icon(
+                  state.amountYen <= 0
+                      ? Icons.arrow_upward
+                      : Icons.arrow_downward,
+                  size: 14,
+                  color: scheme.primary,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                const SizedBox(width: 4),
+                Text(
+                  state.amountYen <= 0
+                      ? l.entrySplitEnterTotalFirst
+                      : l.entrySplitTapRowToStart,
+                  key: const Key('split-total-hint'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        IgnorePointer(
+          ignoring: state.splitTotalPending && state.amountYen <= 0,
+          child: Opacity(
+            opacity:
+                state.splitTotalPending && state.amountYen <= 0 ? 0.45 : 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // タイトル行: 内訳＋消費税グループ（ラベル＋内税トグル＋8/10%＋個別を同背景に）。
+                // ＋品目は残額行の右端へ移動。「品目を追加」等の独立行は置かない（3行を保つ）。
+                Row(
                   children: [
                     Text(
-                      l.splitTaxLabel,
+                      l.splitBreakdownLabel,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w800,
                         color: scheme.primary,
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    // 内税⇄外税トグル（単独・全行に即適用。外すと表記が「外税」に）
-                    InkWell(
-                      key: const Key('split-tax-mode'),
-                      onTap: () => ctrl.setSplitBulkIncluded(!incAll),
-                      borderRadius: BorderRadius.circular(7),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 4,
-                        ),
+                    const Spacer(),
+                    // 消費税グループ: 内税トグルと8/10%は分離。個別も含め同じ薄緑背景でまとめる。
+                    // 非JP（税プロファイル無効）では丸ごと非表示（入力額=税込扱い）。
+                    if (taxEnabled)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(8, 3, 6, 3),
                         decoration: BoxDecoration(
-                          color: scheme.primary.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(7),
+                          color: scheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
-                          incAll
-                              ? l.splitTaxIncludedToggle
-                              : l.splitTaxExcludedToggle,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: scheme.primary,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l.splitTaxLabel,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: scheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            // 内税⇄外税トグル（単独・全行に即適用。外すと表記が「外税」に）
+                            InkWell(
+                              key: const Key('split-tax-mode'),
+                              onTap: () => ctrl.setSplitBulkIncluded(!incAll),
+                              borderRadius: BorderRadius.circular(7),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: scheme.primary.withValues(alpha: 0.22),
+                                  borderRadius: BorderRadius.circular(7),
+                                ),
+                                child: Text(
+                                  incAll
+                                      ? l.splitTaxIncludedToggle
+                                      : l.splitTaxExcludedToggle,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: scheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            // 8%/10%（内税のときは淡色＝適用なし。タップで外税へ切替）
+                            Opacity(
+                              opacity: incAll ? 0.4 : 1,
+                              child: _seg(scheme, [
+                                _SegItem(
+                                  '8%',
+                                  excAll && bulkRate == 8,
+                                  () {
+                                    ctrl.setSplitBulkIncluded(false);
+                                    ctrl.setSplitBulkRate(8);
+                                  },
+                                  key: const Key('split-tax-8'),
+                                ),
+                                _SegItem(
+                                  '10%',
+                                  excAll && bulkRate == 10,
+                                  () {
+                                    ctrl.setSplitBulkIncluded(false);
+                                    ctrl.setSplitBulkRate(10);
+                                  },
+                                  key: const Key('split-tax-10'),
+                                ),
+                              ]),
+                            ),
+                            const SizedBox(width: 5),
+                            _chipButton(
+                              scheme,
+                              l.splitTaxIndividual,
+                              key: const Key('split-tax-per'),
+                              onTap: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (_) => SplitTaxDialog(
+                                    categoryLabels: categoryNames,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 5),
-                    // 8%/10%（内税のときは淡色＝適用なし。タップで外税へ切替）
-                    Opacity(
-                      opacity: incAll ? 0.4 : 1,
-                      child: _seg(scheme, [
-                        _SegItem('8%', excAll && bulkRate == 8, () {
-                          ctrl.setSplitBulkIncluded(false);
-                          ctrl.setSplitBulkRate(8);
-                        }, key: const Key('split-tax-8')),
-                        _SegItem(
-                          '10%',
-                          excAll && bulkRate == 10,
-                          () {
-                            ctrl.setSplitBulkIncluded(false);
-                            ctrl.setSplitBulkRate(10);
-                          },
-                          key: const Key('split-tax-10'),
-                        ),
-                      ]),
-                    ),
-                    const SizedBox(width: 5),
-                    _chipButton(
-                      scheme,
-                      l.splitTaxIndividual,
-                      key: const Key('split-tax-per'),
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) =>
-                              SplitTaxDialog(categoryLabels: categoryNames),
-                        );
-                      },
-                    ),
                   ],
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        // 入力行は2行分の高さに収め、3品目〜はスクロール（アクティブ行へ自動）。
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 104),
-          child: SingleChildScrollView(
-            controller: _scroll,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (var i = 0; i < inputCount; i++) _line(context, mf, i),
+                const SizedBox(height: 6),
+                // 入力行は2行分の高さに収め、3品目〜はスクロール（アクティブ行へ自動）。
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 104),
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < inputCount; i++)
+                          _line(context, mf, i),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                _remainderRow(context, mf),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        _remainderRow(context, mf),
       ],
     );
   }
@@ -388,9 +438,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     // どこまでか分かりにくい、というFB）。未選択は赤茶の枠のみ。
                     color: catLabel == null ? null : scheme.primaryContainer,
                     border: Border.all(
-                        color: catLabel == null
-                            ? kWarnMuted
-                            : scheme.primary.withValues(alpha: 0.45)),
+                      color: catLabel == null
+                          ? kWarnMuted
+                          : scheme.primary.withValues(alpha: 0.45),
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -452,8 +503,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.all(2),
-                    child: Icon(Icons.close,
-                        size: 16, color: scheme.onSurfaceVariant),
+                    child: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -466,7 +520,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
 
   /// 行メモの入力ダイアログ。保存でその行（＝そのカテゴリの取引）のメモになる。
   Future<void> _editSplitMemo(
-      BuildContext context, int i, String current) async {
+    BuildContext context,
+    int i,
+    String current,
+  ) async {
     final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final title =
@@ -480,9 +537,6 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 
   /// 残額行（最下段固定・差分表示）。カテゴリを付けるだけで最後の1品になる。
-  /// ボトムアップ内訳（案B・金額0で開始）でも見た目は従来どおり（ユーザーFB
-  /// 2026-08-16: 合計はヘッダの金額表示に一本化し、末尾は「残り」のまま）。
-  /// 総和がそのまま合計になるので残りは常に ¥0。
   Widget _remainderRow(BuildContext context, MoneyFormatter mf) {
     final l = AppLocalizations.of(context);
     final ctrl = ref.read(entryFormControllerProvider.notifier);
@@ -491,7 +545,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
     final active = i == state.activeSplitIndex;
-    final rem = state.splitBottomUp ? 0 : state.splitRemainder;
+    final rem = state.splitRemainder;
     final over = rem < 0;
     final catLabel = line.categoryId == null
         ? null
@@ -516,8 +570,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
             color: over
                 ? scheme.errorContainer
                 : active
-                    ? scheme.primaryContainer.withValues(alpha: 0.35)
-                    : kCard,
+                ? scheme.primaryContainer.withValues(alpha: 0.35)
+                : kCard,
             border: Border.all(
               color: active ? scheme.primary : scheme.outlineVariant,
               width: active ? 1.4 : 1,
@@ -558,9 +612,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
                     decoration: BoxDecoration(
                       color: catLabel == null ? null : scheme.primaryContainer,
                       border: Border.all(
-                          color: catLabel == null
-                              ? kWarnMuted
-                              : scheme.primary.withValues(alpha: 0.45)),
+                        color: catLabel == null
+                            ? kWarnMuted
+                            : scheme.primary.withValues(alpha: 0.45),
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -643,7 +698,11 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
 class SplitMemoDialog extends StatefulWidget {
   final String title;
   final String initial;
-  const SplitMemoDialog({super.key, required this.title, required this.initial});
+  const SplitMemoDialog({
+    super.key,
+    required this.title,
+    required this.initial,
+  });
 
   @override
   State<SplitMemoDialog> createState() => _SplitMemoDialogState();
@@ -675,12 +734,14 @@ class _SplitMemoDialogState extends State<SplitMemoDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.commonCancel)),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.commonCancel),
+        ),
         FilledButton(
-            key: const Key('split-memo-save'),
-            onPressed: () => Navigator.pop(context, _text.text),
-            child: Text(l.commonSave)),
+          key: const Key('split-memo-save'),
+          onPressed: () => Navigator.pop(context, _text.text),
+          child: Text(l.commonSave),
+        ),
       ],
     );
   }
@@ -726,13 +787,16 @@ class MemoPillButton extends StatelessWidget {
                   // 幅が足りない行（残額行など）では文言を省略して
                   // オーバーフローさせない。
                   Flexible(
-                    child: Text(l.splitMemoHint,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: scheme.primary)),
+                    child: Text(
+                      l.splitMemoHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -743,8 +807,7 @@ class MemoPillButton extends StatelessWidget {
                 memo,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
               ),
             ),
     );

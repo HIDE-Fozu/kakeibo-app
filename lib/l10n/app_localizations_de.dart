@@ -188,6 +188,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get entryStartSplitButton => 'Kategorie hinzufügen';
 
   @override
+  String get entrySplitEnterTotalFirst => 'Zuerst die Summe eingeben';
+
+  @override
+  String get entrySplitTapRowToStart =>
+      'Tippen Sie nun auf eine Zeile, um fortzufahren';
+
+  @override
   String get entryCategoryHeading => 'Kategorie';
 
   @override

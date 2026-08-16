@@ -190,6 +190,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get entryStartSplitButton => 'Añadir categoría';
 
   @override
+  String get entrySplitEnterTotalFirst => 'Primero ingresa el total';
+
+  @override
+  String get entrySplitTapRowToStart => 'Ahora toca una fila para continuar';
+
+  @override
   String get entryCategoryHeading => 'Categoría';
 
   @override

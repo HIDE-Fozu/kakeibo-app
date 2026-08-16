@@ -149,6 +149,8 @@
     }
   },
   "entryStartSplitButton": "Add category",
+  "entrySplitEnterTotalFirst": "Enter the total first",
+  "entrySplitTapRowToStart": "Now tap an item row to continue",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",

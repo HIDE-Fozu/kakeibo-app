@@ -50,6 +50,8 @@
   "entryTypeIncome": "Entrata",
   "entryDateLabel": "{day}/{month}/{year}",
   "entryStartSplitButton": "Aggiungi categoria",
+  "entrySplitEnterTotalFirst": "Inserisci prima il totale",
+  "entrySplitTapRowToStart": "Ora tocca una riga per continuare",
   "entryCategoryHeading": "Categoria",
   "entryDetailMemoLabel": "Note",
   "entryStoreNameLabel": "Nome del negozio",

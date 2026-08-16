@@ -50,6 +50,8 @@
   "entryTypeIncome": "Einnahme",
   "entryDateLabel": "{day}.{month}.{year}",
   "entryStartSplitButton": "Kategorie hinzufügen",
+  "entrySplitEnterTotalFirst": "Zuerst die Summe eingeben",
+  "entrySplitTapRowToStart": "Tippen Sie nun auf eine Zeile, um fortzufahren",
   "entryCategoryHeading": "Kategorie",
   "entryDetailMemoLabel": "Notizen",
   "entryStoreNameLabel": "Geschäftsname",

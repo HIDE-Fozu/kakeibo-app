@@ -181,6 +181,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryStartSplitButton => 'カテゴリを追加';
 
   @override
+  String get entrySplitEnterTotalFirst => 'まず合計を入力してください';
+
+  @override
+  String get entrySplitTapRowToStart => 'つづけて品目の行をタップしてください';
+
+  @override
   String get entryCategoryHeading => 'カテゴリ';
 
   @override

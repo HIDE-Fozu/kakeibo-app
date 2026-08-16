@@ -182,6 +182,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryStartSplitButton => '카테고리 추가';
 
   @override
+  String get entrySplitEnterTotalFirst => '먼저 합계를 입력해 주세요';
+
+  @override
+  String get entrySplitTapRowToStart => '이제 품목 행을 눌러 계속하세요';
+
+  @override
   String get entryCategoryHeading => '카테고리';
 
   @override

@@ -412,6 +412,18 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get entryStartSplitButton;
 
+  /// No description provided for @entrySplitEnterTotalFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the total first'**
+  String get entrySplitEnterTotalFirst;
+
+  /// No description provided for @entrySplitTapRowToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Now tap an item row to continue'**
+  String get entrySplitTapRowToStart;
+
   /// No description provided for @entryCategoryHeading.
   ///
   /// In en, this message translates to:

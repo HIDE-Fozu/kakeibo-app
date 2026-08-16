@@ -50,6 +50,8 @@
   "entryTypeIncome": "収入",
   "entryDateLabel": "{year}年{month}月{day}日",
   "entryStartSplitButton": "カテゴリを追加",
+  "entrySplitEnterTotalFirst": "まず合計を入力してください",
+  "entrySplitTapRowToStart": "つづけて品目の行をタップしてください",
   "entryCategoryHeading": "カテゴリ",
   "entryDetailMemoLabel": "詳細メモ",
   "entryStoreNameLabel": "店舗名",

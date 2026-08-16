@@ -515,67 +515,69 @@ void main() {
       expect(st().splits, isNull);
     });
 
-    test('ボトムアップ（案B）: 金額0で開始→合計は総和・保存で2取引', () async {
+    test('まず合計を入力（金額0で開始）: 電卓は合計へ・行操作はブロック→解除', () async {
       ctrl().startCreate(day);
-      expect(st().amountYen, 0);
-      ctrl().startSplit(); // 金額0でも入れる（旧: 門前払いだった）
+      ctrl().startSplit(); // 金額0 → 「まず合計を入力」フェーズ
       ctrl().setSplitBulkIncluded(true); // 税込＝入力額そのまま
       expect(st().splits, hasLength(2));
-      expect(st().splitBottomUp, isTrue);
-      expect(st().displayAmountYen, 0);
+      expect(st().splitTotalPending, isTrue);
 
-      // 行1: 300円＋食費。末尾は残額を担わない（合計行）
-      ctrl().splitTapDigit(3);
-      ctrl().splitTapDoubleZero();
-      expect(st().splitLineAmount(0), 300);
-      expect(st().splitLineAmount(1), isNull);
-      expect(st().displayAmountYen, 300);
-      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
-      expect(st().canSave, isTrue); // 総和>0＋全行カテゴリありで保存できる
-
-      // ＋品目: 200円＋日用品 → 合計500
+      // 合計0のうちは行操作を無視（合計しか入力できない）
+      ctrl().setActiveSplit(1);
+      expect(st().activeSplitIndex, 0);
       ctrl().addSplitLine();
-      ctrl().splitTapDigit(2);
+      expect(st().splits, hasLength(2));
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splits![0].categoryId, isNull);
+      expect(st().splitTotalPending, isTrue);
+
+      // 電卓（分割配線のままでも）は合計を編集する。行の式には入らない
+      ctrl().splitTapDigit(1);
       ctrl().splitTapDoubleZero();
+      ctrl().splitTapDigit(0); // 1000
+      expect(st().amountYen, 1000);
+      expect(st().splits![0].expr, isEmpty);
+      expect(st().splitTotalPending, isTrue); // 打鍵だけでは解除しない
+
+      // 合計が入った状態で行に触れるとフェーズ解除 → 以後は通常のトップダウン
+      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
+      expect(st().splitTotalPending, isFalse);
+      expect(st().splits![0].categoryId, foodId);
+
+      ctrl().splitTapDigit(3);
+      ctrl().splitTapDoubleZero(); // 行0=300
+      expect(st().splitLineAmount(0), 300);
+      expect(st().splitLineAmount(1), 700); // 残り
+      ctrl().setActiveSplit(1);
       ctrl().tapCategory(
           categoryId: dailyId, hasSubs: false, isSameGroup: false);
-      expect(st().displayAmountYen, 500);
       expect(st().canSave, isTrue);
 
       await ctrl().save();
       final txs =
           await c.read(transactionRepositoryProvider).forMonth(2026, 7);
       expect(txs, hasLength(2));
-      expect(txs.map((t) => t.amountYen).toSet(), {300, 200});
-      expect(txs.map((t) => t.categoryId).toSet(), {foodId, dailyId});
-      // 同じグループ（1枚のレシート扱い）
-      expect(txs.map((t) => t.splitGroupId).toSet(), hasLength(1));
-      expect(txs.first.splitGroupId, isNotNull);
+      expect(txs.map((t) => t.amountYen).toSet(), {300, 700});
     });
 
-    test('ボトムアップ: saveHint は内訳の文言・不正な式は保存不可', () {
-      final jaL = lookupAppLocalizations(const Locale('ja'));
+    test('まず合計を入力: 演算子は無効・backspaceは合計・やめるで解除', () {
       ctrl().startCreate(day);
       ctrl().startSplit();
-      ctrl().setSplitBulkIncluded(true);
-      // 開始直後: 「金額を入力してください」の門前払いにしない
-      expect(st().canSave, isFalse);
-      expect(st().saveHint(jaL), '金額とカテゴリを入力してください');
+      expect(st().splitTotalPending, isTrue);
+      ctrl().splitTapOperator('+'); // 合計入力中は式なし＝無効
+      ctrl().splitTapDigit(5);
+      expect(st().amountYen, 5);
+      ctrl().splitBackspace();
+      expect(st().amountYen, 0);
+      ctrl().cancelSplit();
+      expect(st().splits, isNull);
+      expect(st().splitTotalPending, isFalse);
 
-      // 金額ありカテゴリなし → 行番号で指す（トップダウンと同じ）
-      ctrl().splitTapDigit(3);
-      ctrl().splitTapDoubleZero(); // 300
-      expect(st().saveHint(jaL), '品目1のカテゴリを選んでください');
-      ctrl().tapCategory(categoryId: foodId, hasSubs: false, isSameGroup: false);
-      expect(st().canSave, isTrue);
-      expect(st().saveHint(jaL), isNull);
-
-      // 不正な式（300÷0=0除算→無効）はトップダウンなら合計不一致で
-      // 弾かれるが、ボトムアップは合計照合が無いので式の段階で弾く
-      ctrl().splitTapOperator('÷');
-      ctrl().splitTapDigit(0);
-      expect(st().splitLineAmount(0), isNull);
-      expect(st().canSave, isFalse);
+      // 金額を入れてから開始すればフェーズなし（従来どおり）
+      ctrl().tapDigit(5);
+      ctrl().startSplit();
+      expect(st().splits, isNotNull);
+      expect(st().splitTotalPending, isFalse);
     });
   });
 

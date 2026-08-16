@@ -181,6 +181,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryStartSplitButton => '添加类别';
 
   @override
+  String get entrySplitEnterTotalFirst => '请先输入合计';
+
+  @override
+  String get entrySplitTapRowToStart => '接着请点按一个项目行继续';
+
+  @override
   String get entryCategoryHeading => '分类';
 
   @override

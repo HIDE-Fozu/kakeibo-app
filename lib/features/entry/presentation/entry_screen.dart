@@ -72,16 +72,19 @@ class EntryScreen extends ConsumerWidget {
             : state.categoryId;
 
     // 分割中は帯（1行）に譲るぶん電卓を大きく。通常モードは従来の詰め高さ。
+    // 「まず合計を入力」フェーズ（金額0で内訳開始）は電卓を合計に配線する
+    // （行の式は打てない＝演算子列も出さない）。
+    final splitTyping = splitMode && !state.splitTotalPending;
     final numpad = Numpad(
       cellHeight: splitMode ? 60 : 46,
-      onDigit: splitMode ? ctrl.splitTapDigit : ctrl.tapDigit,
+      onDigit: splitTyping ? ctrl.splitTapDigit : ctrl.tapDigit,
       onDoubleZero:
-          splitMode ? ctrl.splitTapDoubleZero : ctrl.tapDoubleZero,
-      onBackspace: splitMode ? ctrl.splitBackspace : ctrl.backspace,
-      onOperator: splitMode ? ctrl.splitTapOperator : null,
+          splitTyping ? ctrl.splitTapDoubleZero : ctrl.tapDoubleZero,
+      onBackspace: splitTyping ? ctrl.splitBackspace : ctrl.backspace,
+      onOperator: splitTyping ? ctrl.splitTapOperator : null,
       // 小数桁のある通貨だけ「.」キーを出す。
       onDecimal: currency.decimals > 0
-          ? (splitMode ? ctrl.splitTapDecimal : ctrl.tapDecimal)
+          ? (splitTyping ? ctrl.splitTapDecimal : ctrl.tapDecimal)
           : null,
     );
 
@@ -191,10 +194,25 @@ class EntryScreen extends ConsumerWidget {
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 4, horizontal: 12),
+                                // 「まず合計を入力」フェーズはここが入力先。
+                                // アクティブ行と同じ主色の枠＋薄い地で示す。
                                 decoration: BoxDecoration(
-                                  color: state.mode == EntryMode.receiptConfirm
-                                      ? confidenceTint(state
-                                          .matchedTotalCandidate?.confidence)
+                                  color: state.splitTotalPending
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withValues(alpha: 0.35)
+                                      : state.mode == EntryMode.receiptConfirm
+                                          ? confidenceTint(state
+                                              .matchedTotalCandidate
+                                              ?.confidence)
+                                          : null,
+                                  border: state.splitTotalPending
+                                      ? Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 1.4)
                                       : null,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -202,9 +220,7 @@ class EntryScreen extends ConsumerWidget {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerRight,
                                   child: Text(
-                                    // ボトムアップ内訳では品目の総和を表示
-                                    // （¥0のままだと入力が効いていないように見える）。
-                                    mf.format(state.displayAmountYen),
+                                    mf.format(state.amountYen),
                                     style: Theme.of(context)
                                         .textTheme
                                         .headlineLarge
@@ -253,11 +269,23 @@ class EntryScreen extends ConsumerWidget {
                                 if (!batchMode) numpad,
                               ],
                             ),
-                            const Positioned(
+                            Positioned(
                               left: 0,
                               right: 0,
                               top: 0,
-                              child: SplitCategoryStrip(),
+                              // 合計入力フェーズは合計0の間だけ帯も触れない
+                              // （合計が入ったらタップでフェーズ解除できる）。
+                              child: IgnorePointer(
+                                ignoring: state.splitTotalPending &&
+                                    state.amountYen <= 0,
+                                child: Opacity(
+                                  opacity: state.splitTotalPending &&
+                                          state.amountYen <= 0
+                                      ? 0.45
+                                      : 1,
+                                  child: const SplitCategoryStrip(),
+                                ),
+                              ),
                             ),
                           ],
                         ),
