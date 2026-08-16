@@ -1929,6 +1929,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Installment {index}/{count}'**
   String installmentTxnMemo(int index, int count);
+
+  /// No description provided for @installmentEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit installment plan'**
+  String get installmentEditTitle;
+
+  /// No description provided for @installmentDeleteConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This installment plan and all of its payments will be deleted.'**
+  String get installmentDeleteConfirmContent;
+
+  /// No description provided for @hubInstallmentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No installment plans yet'**
+  String get hubInstallmentEmpty;
 }
 
 class _AppLocalizationsDelegate

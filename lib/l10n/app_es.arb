@@ -302,5 +302,8 @@
   "installmentFirstLabel": "Primer pago",
   "installmentFeeLabel": "Intereses totales",
   "installmentTotalLabel": "Total a pagar",
-  "installmentTxnMemo": "Cuota {index}/{count}"
+  "installmentTxnMemo": "Cuota {index}/{count}",
+  "installmentEditTitle": "Editar pago a plazos",
+  "installmentDeleteConfirmContent": "Se eliminará este pago a plazos y todos sus pagos registrados.",
+  "hubInstallmentEmpty": "Aún no hay pagos a plazos"
 }

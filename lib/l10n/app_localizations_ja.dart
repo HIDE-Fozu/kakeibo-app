@@ -1010,4 +1010,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return '分割払い $index/$count回';
   }
+
+  @override
+  String get installmentEditTitle => '分割払いを編集';
+
+  @override
+  String get installmentDeleteConfirmContent => 'この分割払いと、登録済みの支払い取引をすべて削除します。';
+
+  @override
+  String get hubInstallmentEmpty => '分割払いはまだありません';
 }

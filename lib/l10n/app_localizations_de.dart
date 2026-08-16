@@ -1043,4 +1043,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Rate $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Ratenzahlung bearbeiten';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'Diese Ratenzahlung und alle zugehörigen Buchungen werden gelöscht.';
+
+  @override
+  String get hubInstallmentEmpty => 'Noch keine Ratenzahlungen';
 }

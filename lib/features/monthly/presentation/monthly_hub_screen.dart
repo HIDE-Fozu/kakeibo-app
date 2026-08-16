@@ -14,6 +14,7 @@ import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_history_page.dart';
 import '../../chores/presentation/chore_task_form.dart';
 import '../../chores/presentation/chore_ui_common.dart';
+import '../../../domain/services/installment_calc.dart';
 import '../../recurring/presentation/installment_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 
@@ -33,6 +34,8 @@ class MonthlyHubScreen extends ConsumerWidget {
     final forecast = ref.watch(monthForecastProvider(monthKey));
     final rules =
         ref.watch(recurringRulesProvider).valueOrNull ?? const <RecurringRuleEntity>[];
+    final plans = ref.watch(installmentPlansProvider).valueOrNull ??
+        const <InstallmentPlanEntity>[];
     final cats =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final catById = {for (final c in cats) c.id: c};
@@ -207,23 +210,52 @@ class MonthlyHubScreen extends ConsumerWidget {
                         builder: (_) => RecurringRuleEditPage(rule: r)),
                   ),
                 ),
-            // 分割払いの登録（固定費に付随・FB 2026-08-16「まずは機能だけ」）。
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: TextButton.icon(
-                  key: const Key('hub-installment-add'),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const InstallmentPage()),
-                  ),
-                  icon: const Icon(Icons.credit_card, size: 18),
-                  label: Text(l.installmentAddButton),
-                ),
+            const Divider(height: 24),
+            // 分割払い（FB 2026-08-16: セクション化して一覧・タップで編集）。
+            _SectionHeader(
+              title: l.installmentAddButton,
+              addKey: const Key('hub-installment-add'),
+              onAdd: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const InstallmentPage()),
               ),
             ),
+            if (plans.isEmpty)
+              _EmptyNote(text: l.hubInstallmentEmpty)
+            else
+              for (final p in plans)
+                Builder(builder: (context) {
+                  final calc = computeInstallment(
+                    principalMinor: p.principalMinor,
+                    count: p.count,
+                    annualRatePercent: p.annualRatePercent,
+                  );
+                  return ListTile(
+                    key: Key('hub-installment-${p.id}'),
+                    leading: CategoryIcon(
+                      icon: catById[p.categoryId]?.icon,
+                      slug: catById[p.categoryId]?.slug,
+                    ),
+                    title: Text(p.cardName ??
+                        catById[p.categoryId]?.name ??
+                        l.calendarCategoryUnknown),
+                    subtitle: Text(
+                        '${mf.format(calc.monthlyMinor)} × ${l.installmentCountItem(p.count)}'
+                        ' ・ ${l.summaryMonthHeader(p.startYm ~/ 100, p.startYm % 100)}〜'),
+                    trailing: Text(
+                      mf.format(calc.totalMinor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: context.kakeiboColors.expense,
+                      ),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => InstallmentPage(plan: p)),
+                    ),
+                  );
+                }),
             const Divider(height: 24),
             _SectionHeader(
               title: l.hubChoresSection,

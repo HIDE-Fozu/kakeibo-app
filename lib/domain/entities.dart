@@ -13,6 +13,7 @@ class TransactionEntity {
   final TxnSource source;
   final String? imagePath; // §14-C: 保持設定ON時のみ非null
   final String? splitGroupId; // 同じレシート（詳細入力）由来の取引を束ねる。null=単独
+  final int? installmentPlanId; // 分割払いの計画id。null=分割払い由来ではない（v10）
 
   const TransactionEntity({
     this.id,
@@ -26,6 +27,32 @@ class TransactionEntity {
     required this.source,
     this.imagePath,
     this.splitGroupId,
+    this.installmentPlanId,
+  });
+}
+
+/// 分割払いの計画（FB 2026-08-16）。保存時に count ヶ月分の支出取引が
+/// installmentPlanId で紐づいて起票される（計算は installment_calc.dart・
+/// 端数は初回）。編集=取引の作り直し・削除=取引ごと削除。
+class InstallmentPlanEntity {
+  final int? id;
+  final int principalMinor; // 購入金額（元金）
+  final int count; // 支払い回数 >=1
+  final double annualRatePercent; // 実質年率（%）
+  final int categoryId;
+  final int dayOfMonth; // 支払日 1..31（短い月は末日に丸め）
+  final int startYm; // 初回の月（YYYY*100+MM）
+  final String? cardName;
+
+  const InstallmentPlanEntity({
+    this.id,
+    required this.principalMinor,
+    required this.count,
+    required this.annualRatePercent,
+    required this.categoryId,
+    required this.dayOfMonth,
+    required this.startYm,
+    this.cardName,
   });
 }
 

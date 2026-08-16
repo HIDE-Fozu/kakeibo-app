@@ -1013,4 +1013,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return '할부 $index/$count회';
   }
+
+  @override
+  String get installmentEditTitle => '할부 편집';
+
+  @override
+  String get installmentDeleteConfirmContent => '이 할부와 등록된 모든 결제 내역이 삭제됩니다.';
+
+  @override
+  String get hubInstallmentEmpty => '등록된 할부가 없습니다';
 }

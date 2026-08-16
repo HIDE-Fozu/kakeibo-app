@@ -14,27 +14,39 @@ import '../../../domain/services/recurring_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/application/settings_controller.dart';
 
-/// 分割払いの登録（FB 2026-08-16「まずは機能だけ」）。
+/// 分割払いの登録・編集（FB 2026-08-16）。
 /// 例:「33,000円を10回払い・実質年率17%」＋支払い開始 → N ヶ月分の支出を
-/// 一括で取引登録する（計算は installment_calc.dart・端数は初回）。
+/// 計画（installment_plans）に紐づけて一括起票する（installment_calc.dart・
+/// 端数は初回）。編集は紐づく取引を全て作り直し、削除は取引ごと消す。
 /// カード名称を入れて保存すると名称＋年率が端末に記憶され、次回から
 /// 「登録済みカード」で選ぶだけで年率入力を省略できる。
 class InstallmentPage extends ConsumerStatefulWidget {
-  const InstallmentPage({super.key});
+  /// null=新規。非null=この計画の編集（支払い取引を作り直して保存）。
+  final InstallmentPlanEntity? plan;
+  const InstallmentPage({super.key, this.plan});
 
   @override
   ConsumerState<InstallmentPage> createState() => _InstallmentPageState();
 }
 
 class _InstallmentPageState extends ConsumerState<InstallmentPage> {
-  final _amount = TextEditingController();
-  final _rate = TextEditingController();
-  final _cardName = TextEditingController();
-  int _count = 10;
-  int? _categoryId;
-  late int _day = ref.read(clockProvider)().day;
+  late final _amount = TextEditingController(
+    text: widget.plan == null
+        ? ''
+        : amountMinorToText(
+            widget.plan!.principalMinor, ref.read(currencyProvider)),
+  );
+  late final _rate = TextEditingController(
+      text: widget.plan == null ? '' : _fmtRate(widget.plan!.annualRatePercent));
+  late final _cardName =
+      TextEditingController(text: widget.plan?.cardName ?? '');
+  late int _count = widget.plan?.count ?? 10;
+  late int? _categoryId = widget.plan?.categoryId;
+  late int _day = widget.plan?.dayOfMonth ?? ref.read(clockProvider)().day;
   // カードの支払いは翌月からが普通なので既定は「来月から」。
   bool _startNextMonth = true;
+  // 編集時は初回の月をそのまま持ち、月のドロップダウンで変更できる。
+  late int? _startYm = widget.plan?.startYm;
 
   @override
   void dispose() {
@@ -74,9 +86,20 @@ class _InstallmentPageState extends ConsumerState<InstallmentPage> {
             annualRatePercent: rate)
         : null;
     final canSave = plan != null && _categoryId != null;
+    final isNew = widget.plan == null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.installmentTitle)),
+      appBar: AppBar(
+        title: Text(isNew ? l.installmentTitle : l.installmentEditTitle),
+        actions: [
+          if (!isNew)
+            IconButton(
+              key: const Key('installment-delete'),
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _confirmDelete,
+            ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -191,19 +214,48 @@ class _InstallmentPageState extends ConsumerState<InstallmentPage> {
                     onChanged: (v) => setState(() => _day = v),
                   ),
                   const SizedBox(height: 16),
-                  CellDropdownField<bool>(
-                    key: const Key('installment-start'),
-                    value: _startNextMonth,
-                    decoration: InputDecoration(
-                      labelText: l.recurringStartMonthLabel,
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: [
-                      CellDropdownItem(false, l.recurringStartThisMonth),
-                      CellDropdownItem(true, l.recurringStartNextMonth),
-                    ],
-                    onChanged: (v) => setState(() => _startNextMonth = v),
-                  ),
+                  if (isNew)
+                    CellDropdownField<bool>(
+                      key: const Key('installment-start'),
+                      value: _startNextMonth,
+                      decoration: InputDecoration(
+                        labelText: l.recurringStartMonthLabel,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        CellDropdownItem(false, l.recurringStartThisMonth),
+                        CellDropdownItem(true, l.recurringStartNextMonth),
+                      ],
+                      onChanged: (v) => setState(() => _startNextMonth = v),
+                    )
+                  else
+                    // 編集: 初回の月を前後にずらせる（±18ヶ月＋現在値）。
+                    Builder(builder: (context) {
+                      final base = widget.plan!.startYm;
+                      final choices = <int>[];
+                      var ym = base;
+                      for (var i = 0; i < 18; i++) {
+                        ym = prevYm(ym);
+                      }
+                      for (var i = 0; i < 37; i++) {
+                        choices.add(ym);
+                        ym = nextYm(ym);
+                      }
+                      return CellDropdownField<int>(
+                        key: const Key('installment-start-ym'),
+                        value: _startYm,
+                        decoration: InputDecoration(
+                          labelText: l.recurringStartMonthLabel,
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          for (final c in choices)
+                            CellDropdownItem(
+                                c, l.summaryMonthHeader(c ~/ 100, c % 100)),
+                        ],
+                        onChanged: (v) => setState(() => _startYm = v),
+                      );
+                    }),
                   // 支払い計画のプレビュー（月々・初回・手数料・総額）。
                   if (plan != null) ...[
                     const SizedBox(height: 16),
@@ -274,12 +326,16 @@ class _InstallmentPageState extends ConsumerState<InstallmentPage> {
 
   Future<void> _save(InstallmentPlan plan) async {
     final l = AppLocalizations.of(context);
-    final repo = ref.read(transactionRepositoryProvider);
+    final repo = ref.read(installmentPlanRepositoryProvider);
     final today = ref.read(clockProvider)();
     final cardName = _cardName.text.trim();
-    var ym = _startNextMonth ? nextYm(ymOf(today)) : ymOf(today);
+    final startYm = widget.plan == null
+        ? (_startNextMonth ? nextYm(ymOf(today)) : ymOf(today))
+        : (_startYm ?? widget.plan!.startYm);
+    final payments = <TransactionEntity>[];
+    var ym = startYm;
     for (var i = 0; i < plan.count; i++) {
-      await repo.add(TransactionEntity(
+      payments.add(TransactionEntity(
         type: TxnType.expense,
         amountYen: plan.payments[i],
         date: dueDateIn(ym, _day),
@@ -290,11 +346,53 @@ class _InstallmentPageState extends ConsumerState<InstallmentPage> {
       ));
       ym = nextYm(ym);
     }
+    final entity = InstallmentPlanEntity(
+      id: widget.plan?.id,
+      principalMinor: plan.principalMinor,
+      count: plan.count,
+      annualRatePercent: plan.annualRatePercent,
+      categoryId: _categoryId!,
+      dayOfMonth: _day,
+      startYm: startYm,
+      cardName: cardName.isEmpty ? null : cardName,
+    );
+    if (widget.plan == null) {
+      await repo.add(entity, payments);
+    } else {
+      await repo.replace(entity, payments);
+    }
     if (cardName.isNotEmpty) {
       await ref
           .read(appSettingsProvider.notifier)
           .saveInstallmentCard(cardName, plan.annualRatePercent);
     }
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _confirmDelete() async {
+    final l = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.recurringDeleteConfirmTitle),
+        content: Text(l.installmentDeleteConfirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.commonCancel),
+          ),
+          FilledButton(
+            key: const Key('installment-delete-confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref
+        .read(installmentPlanRepositoryProvider)
+        .delete(widget.plan!.id!);
     if (mounted) Navigator.pop(context);
   }
 }

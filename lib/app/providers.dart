@@ -13,6 +13,7 @@ import '../data/ocr/cloud_fixture_uploader.dart';
 import '../data/ocr/ocr_fixture_recorder.dart';
 import '../data/repositories/drift_category_repository.dart';
 import '../data/repositories/drift_chore_repository.dart';
+import '../data/repositories/drift_installment_plan_repository.dart';
 import '../data/repositories/drift_recurring_rule_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
 import '../domain/entities.dart';
@@ -115,6 +116,15 @@ final cloudFixtureUploaderProvider = Provider<CloudFixtureUploader>(
 
 final recurringRuleRepositoryProvider = Provider<RecurringRuleRepository>(
   (ref) => DriftRecurringRuleRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// 分割払いの計画。
+final installmentPlanRepositoryProvider = Provider<InstallmentPlanRepository>(
+  (ref) => DriftInstallmentPlanRepository(ref.watch(appDatabaseProvider)),
+);
+
+final installmentPlansProvider = StreamProvider<List<InstallmentPlanEntity>>(
+  (ref) => ref.watch(installmentPlanRepositoryProvider).watchAll(),
 );
 
 final choreRepositoryProvider = Provider<ChoreRepository>(

@@ -302,5 +302,8 @@
   "installmentFirstLabel": "첫 회",
   "installmentFeeLabel": "수수료 합계",
   "installmentTotalLabel": "총 지불액",
-  "installmentTxnMemo": "할부 {index}/{count}회"
+  "installmentTxnMemo": "할부 {index}/{count}회",
+  "installmentEditTitle": "할부 편집",
+  "installmentDeleteConfirmContent": "이 할부와 등록된 모든 결제 내역이 삭제됩니다.",
+  "hubInstallmentEmpty": "등록된 할부가 없습니다"
 }

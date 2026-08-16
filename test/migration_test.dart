@@ -69,7 +69,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9); // v1からでも現行(v9)まで一気に上がる
+    expect(v, 10); // v1からでも現行(v10)まで一気に上がる
     await db.close();
   });
 
@@ -128,7 +128,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -189,7 +189,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -262,7 +262,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -332,7 +332,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -421,7 +421,7 @@ CREATE TABLE "recurring_rules" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -437,7 +437,24 @@ CREATE TABLE "recurring_rules" (
     final file = File('${dir.path}${Platform.pathSeparator}v7.db');
 
     // v7当時の chore_tasks（interval_days）を素のsqlite3で構築
+    // （transactions は v10 マイグレーションが列追加で触るので最小定義を用意）
     final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
     raw.execute('''
 CREATE TABLE "chore_tasks" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -487,7 +504,7 @@ CREATE TABLE "chore_records" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
     await db.close();
   });
 
@@ -504,6 +521,23 @@ CREATE TABLE "chore_records" (
 
     // v8当時の chore_tasks（day_of_month のみ・interval_days なし）
     final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+
     raw.execute('''
 CREATE TABLE "chore_tasks" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -542,7 +576,80 @@ CREATE TABLE "chore_records" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 9);
+    expect(v, 10);
+    await db.close();
+  });
+
+  test('schema v9 → v10: installment_plans が作られ取引に紐付け列が付く', () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v10');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v9.db');
+
+    // v9スキーマの必要最小限（categories / transactions は v10 で触られる側）
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "categories" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "icon" TEXT NULL,
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  "is_archived" INTEGER NOT NULL DEFAULT 0,
+  "is_system" INTEGER NOT NULL DEFAULT 0,
+  "slug" TEXT NULL,
+  "parent_id" INTEGER NULL REFERENCES "categories" ("id")
+);''');
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order, slug) VALUES (1,'食費','expense',0,'food')");
+    raw.execute(
+        "INSERT INTO transactions (type, amount, date, category_id, source, created_at, updated_at) "
+        "VALUES ('expense', 1200, '2026-08-01', 1, 'manual', "
+        "'2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 9');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    // 既存データ無傷・新列は null
+    final txs = await db.transactionDao.transactionsInMonth(2026, 8);
+    expect(txs.single.amount, 1200);
+    expect(txs.single.installmentPlanId, isNull);
+    // 計画テーブルが使え、取引を紐づけられる
+    await db.customStatement(
+        "INSERT INTO installment_plans (principal, count, annual_rate_percent, category_id, day_of_month, start_ym, created_at, updated_at) "
+        "VALUES (33000, 10, 17.0, 1, 15, 202609, '2026-08-16T00:00:00.000Z', '2026-08-16T00:00:00.000Z')");
+    await db.customStatement(
+        "INSERT INTO transactions (type, amount, date, category_id, source, installment_plan_id, created_at, updated_at) "
+        "VALUES ('expense', 3567, '2026-09-15', 1, 'manual', 1, "
+        "'2026-08-16T00:00:00.000Z', '2026-08-16T00:00:00.000Z')");
+    final sep = await db.transactionDao.transactionsInMonth(2026, 9);
+    expect(sep.single.installmentPlanId, 1);
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 10);
     await db.close();
   });
 

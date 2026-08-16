@@ -302,5 +302,8 @@
   "installmentFirstLabel": "Primeira parcela",
   "installmentFeeLabel": "Juros totais",
   "installmentTotalLabel": "Total a pagar",
-  "installmentTxnMemo": "Parcela {index}/{count}"
+  "installmentTxnMemo": "Parcela {index}/{count}",
+  "installmentEditTitle": "Editar parcelamento",
+  "installmentDeleteConfirmContent": "Este parcelamento e todas as parcelas registradas serão excluídos.",
+  "hubInstallmentEmpty": "Nenhum parcelamento ainda"
 }

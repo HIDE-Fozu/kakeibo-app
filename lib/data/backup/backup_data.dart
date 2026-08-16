@@ -88,6 +88,7 @@ class BackupTxn {
   final TxnSource source;
   final String? imagePath;
   final String? splitGroupId; // v3列。旧バックアップには無い（null復元）
+  final int? installmentPlanId; // v8列。旧バックアップには無い（null復元）
   final DateTime createdAt;
   final DateTime updatedAt;
   const BackupTxn({
@@ -102,6 +103,33 @@ class BackupTxn {
     required this.source,
     required this.imagePath,
     this.splitGroupId,
+    this.installmentPlanId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
+/// 行と1:1のバックアップ用分割払い計画（formatVersion 8で追加）。
+class BackupInstallmentPlan {
+  final int id;
+  final int principal;
+  final int count;
+  final double annualRatePercent;
+  final int categoryId;
+  final int dayOfMonth;
+  final int startYm;
+  final String? cardName;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const BackupInstallmentPlan({
+    required this.id,
+    required this.principal,
+    required this.count,
+    required this.annualRatePercent,
+    required this.categoryId,
+    required this.dayOfMonth,
+    required this.startYm,
+    required this.cardName,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -192,6 +220,9 @@ class BackupPayload {
   /// つきいちタスクと実施記録（formatVersion 5で追加。旧バックアップは空で復元）。
   final List<BackupChoreTask> choreTasks;
   final List<BackupChoreRecord> choreRecords;
+
+  /// 分割払いの計画（formatVersion 8で追加。旧バックアップは空で復元）。
+  final List<BackupInstallmentPlan> installmentPlans;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
@@ -200,5 +231,6 @@ class BackupPayload {
     this.recurringRules = const [],
     this.choreTasks = const [],
     this.choreRecords = const [],
+    this.installmentPlans = const [],
   });
 }

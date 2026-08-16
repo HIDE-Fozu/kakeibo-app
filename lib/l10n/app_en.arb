@@ -890,5 +890,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "installmentEditTitle": "Edit installment plan",
+  "installmentDeleteConfirmContent": "This installment plan and all of its payments will be deleted.",
+  "hubInstallmentEmpty": "No installment plans yet"
 }

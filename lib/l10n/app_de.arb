@@ -302,5 +302,8 @@
   "installmentFirstLabel": "Erste Rate",
   "installmentFeeLabel": "Zinsen gesamt",
   "installmentTotalLabel": "Gesamtbetrag",
-  "installmentTxnMemo": "Rate {index}/{count}"
+  "installmentTxnMemo": "Rate {index}/{count}",
+  "installmentEditTitle": "Ratenzahlung bearbeiten",
+  "installmentDeleteConfirmContent": "Diese Ratenzahlung und alle zugehörigen Buchungen werden gelöscht.",
+  "hubInstallmentEmpty": "Noch keine Ratenzahlungen"
 }

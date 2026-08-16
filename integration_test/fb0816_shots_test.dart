@@ -63,5 +63,12 @@ void main() {
     await t.drag(find.byType(ListView).last, const Offset(0, -500));
     await settle(t);
     await shot(t, 'fb_4_installment_form'); // 33,000×10回17%のプレビュー
+
+    // 保存 → 毎月タブの「分割払い」セクションに一覧表示（タップで編集）
+    await t.tap(find.byKey(const Key('installment-save')), warnIfMissed: false);
+    await settle(t);
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -300));
+    await settle(t);
+    await shot(t, 'fb_5_hub_installment_section');
   });
 }

@@ -302,5 +302,8 @@
   "installmentFirstLabel": "初回",
   "installmentFeeLabel": "手数料合計",
   "installmentTotalLabel": "支払い総額",
-  "installmentTxnMemo": "分割払い {index}/{count}回"
+  "installmentTxnMemo": "分割払い {index}/{count}回",
+  "installmentEditTitle": "分割払いを編集",
+  "installmentDeleteConfirmContent": "この分割払いと、登録済みの支払い取引をすべて削除します。",
+  "hubInstallmentEmpty": "分割払いはまだありません"
 }

@@ -1046,4 +1046,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Cuota $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Editar pago a plazos';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'Se eliminará este pago a plazos y todos sus pagos registrados.';
+
+  @override
+  String get hubInstallmentEmpty => 'Aún no hay pagos a plazos';
 }

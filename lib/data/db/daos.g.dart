@@ -5,6 +5,8 @@ part of 'daos.dart';
 // ignore_for_file: type=lint
 mixin _$TransactionDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
+  $InstallmentPlansTable get installmentPlans =>
+      attachedDatabase.installmentPlans;
   $TransactionsTable get transactions => attachedDatabase.transactions;
   TransactionDaoManager get managers => TransactionDaoManager(this);
 }
@@ -14,6 +16,11 @@ class TransactionDaoManager {
   TransactionDaoManager(this._db);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$InstallmentPlansTableTableManager get installmentPlans =>
+      $$InstallmentPlansTableTableManager(
+        _db.attachedDatabase,
+        _db.installmentPlans,
+      );
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
 }
@@ -21,6 +28,8 @@ class TransactionDaoManager {
 mixin _$RecurringRuleDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
   $RecurringRulesTable get recurringRules => attachedDatabase.recurringRules;
+  $InstallmentPlansTable get installmentPlans =>
+      attachedDatabase.installmentPlans;
   $TransactionsTable get transactions => attachedDatabase.transactions;
   RecurringRuleDaoManager get managers => RecurringRuleDaoManager(this);
 }
@@ -34,6 +43,11 @@ class RecurringRuleDaoManager {
       $$RecurringRulesTableTableManager(
         _db.attachedDatabase,
         _db.recurringRules,
+      );
+  $$InstallmentPlansTableTableManager get installmentPlans =>
+      $$InstallmentPlansTableTableManager(
+        _db.attachedDatabase,
+        _db.installmentPlans,
       );
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
@@ -56,6 +70,8 @@ class ChoreDaoManager {
 
 mixin _$CategoryDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
+  $InstallmentPlansTable get installmentPlans =>
+      attachedDatabase.installmentPlans;
   $TransactionsTable get transactions => attachedDatabase.transactions;
   CategoryDaoManager get managers => CategoryDaoManager(this);
 }
@@ -65,6 +81,11 @@ class CategoryDaoManager {
   CategoryDaoManager(this._db);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$InstallmentPlansTableTableManager get installmentPlans =>
+      $$InstallmentPlansTableTableManager(
+        _db.attachedDatabase,
+        _db.installmentPlans,
+      );
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
 }

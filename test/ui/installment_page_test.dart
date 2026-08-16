@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/app/providers.dart';
+import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/features/recurring/presentation/installment_page.dart';
@@ -77,6 +78,96 @@ void main() {
     expect(cards, hasLength(1));
     expect(cards.single.name, '楽天カード');
     expect(cards.single.annualRatePercent, 17.0);
+
+    // 計画が保存され、取引が紐づいている（streamはfake asyncで固まるのでrunAsync）
+    final plans = (await tester.runAsync(
+        () => c.read(installmentPlanRepositoryProvider).watchAll().first))!;
+    expect(plans, hasLength(1));
+    expect(plans.single.principalMinor, 33000);
+    expect(plans.single.count, 10);
+    expect(plans.single.startYm, 202608);
+    expect(aug.single.installmentPlanId, plans.single.id);
+  });
+
+  testWidgets('編集: 回数を変えて保存すると取引が作り直される・削除で消える',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    // 事前に計画を登録（リポジトリ直で3回払い・DBはハーネス側で永続）
+    await pumpApp(tester, h, home: const SizedBox());
+    await tester.pumpAndSettle();
+    var c = containerOf(tester);
+    final cats = await waitForData(c, allCategoriesProvider);
+    final foodId = cats.firstWhere((x) => x.name == '食費').id;
+    final planId = await c.read(installmentPlanRepositoryProvider).add(
+      InstallmentPlanEntity(
+        principalMinor: 30000,
+        count: 3,
+        annualRatePercent: 0,
+        categoryId: foodId,
+        dayOfMonth: 15,
+        startYm: 202609,
+      ),
+      [
+        for (var i = 0; i < 3; i++)
+          TransactionEntity(
+            type: TxnType.expense,
+            amountYen: 10000,
+            date: CivilDate(2026, 9 + i, 15),
+            categoryId: foodId,
+            memo: '分割払い ${i + 1}/3回',
+            source: TxnSource.manual,
+          ),
+      ],
+    );
+    final plan = (await tester.runAsync(() =>
+            c.read(installmentPlanRepositoryProvider).watchAll().first))!
+        .singleWhere((p) => p.id == planId);
+
+    // 編集ページを開く（pushで開く: 保存/削除の pop で履歴が空にならない）
+    final nav = tester.state<NavigatorState>(find.byType(Navigator));
+    nav.push(MaterialPageRoute(builder: (_) => InstallmentPage(plan: plan)));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('installment-amount')))
+            .controller!
+            .text,
+        '30000');
+
+    // 回数を2回へ → 保存 → 取引が作り直される
+    await tester.tap(find.byKey(const Key('installment-count')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2回').last, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('installment-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('installment-save')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    var txRepo = c.read(transactionRepositoryProvider);
+    expect((await txRepo.forMonth(2026, 9)).single.amountYen, 15000);
+    expect(await txRepo.forMonth(2026, 11), isEmpty); // 旧3回目は消えた
+
+    // もう一度開いて削除 → 取引ごと消える
+    final plan2 = (await tester.runAsync(() =>
+            c.read(installmentPlanRepositoryProvider).watchAll().first))!
+        .singleWhere((p) => p.id == planId);
+    expect(plan2.count, 2);
+    nav.push(MaterialPageRoute(builder: (_) => InstallmentPage(plan: plan2)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('installment-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('installment-delete-confirm')));
+    await tester.pumpAndSettle();
+    expect(await txRepo.forMonth(2026, 9), isEmpty);
+    expect(
+        await tester.runAsync(() =>
+            c.read(installmentPlanRepositoryProvider).watchAll().first),
+        isEmpty);
   });
 
   testWidgets('登録済みカードを選ぶと年率が入る', (tester) async {

@@ -302,5 +302,8 @@
   "installmentFirstLabel": "Première échéance",
   "installmentFeeLabel": "Intérêts totaux",
   "installmentTotalLabel": "Total à payer",
-  "installmentTxnMemo": "Échéance {index}/{count}"
+  "installmentTxnMemo": "Échéance {index}/{count}",
+  "installmentEditTitle": "Modifier le paiement échelonné",
+  "installmentDeleteConfirmContent": "Ce paiement échelonné et toutes ses échéances seront supprimés.",
+  "hubInstallmentEmpty": "Aucun paiement échelonné"
 }

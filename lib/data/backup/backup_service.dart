@@ -31,6 +31,9 @@ class BackupService {
     final choreRecords = await (_db.select(_db.choreRecords)
           ..orderBy([(r) => OrderingTerm.asc(r.id)]))
         .get();
+    final plans = await (_db.select(_db.installmentPlans)
+          ..orderBy([(r) => OrderingTerm.asc(r.id)]))
+        .get();
     return BackupPayload(
       formatVersion: BackupCodec.formatVersion,
       exportedAt: DateTime.now().toUtc(),
@@ -62,8 +65,24 @@ class BackupService {
             source: t.source,
             imagePath: t.imagePath,
             splitGroupId: t.splitGroupId,
+            installmentPlanId: t.installmentPlanId,
             createdAt: t.createdAt.toUtc(),
             updatedAt: t.updatedAt.toUtc(),
+          ),
+      ],
+      installmentPlans: [
+        for (final pl in plans)
+          BackupInstallmentPlan(
+            id: pl.id,
+            principal: pl.principal,
+            count: pl.count,
+            annualRatePercent: pl.annualRatePercent,
+            categoryId: pl.categoryId,
+            dayOfMonth: pl.dayOfMonth,
+            startYm: pl.startYm,
+            cardName: pl.cardName,
+            createdAt: pl.createdAt.toUtc(),
+            updatedAt: pl.updatedAt.toUtc(),
           ),
       ],
       recurringRules: [
@@ -148,6 +167,7 @@ class BackupService {
       // FK RESTRICT を回避する順序: 取引・定期ルール → カテゴリ の順に削除。
       // つきいちは記録 → タスク の順（カスケードに頼らず明示削除）。
       await _db.delete(_db.transactions).go();
+      await _db.delete(_db.installmentPlans).go();
       await _db.delete(_db.recurringRules).go();
       await _db.delete(_db.choreRecords).go();
       await _db.delete(_db.choreTasks).go();
@@ -171,6 +191,23 @@ class BackupService {
             ),
           );
         }
+        for (final pl in payload.installmentPlans) {
+          b.insert(
+            _db.installmentPlans,
+            InstallmentPlansCompanion(
+              id: Value(pl.id),
+              principal: Value(pl.principal),
+              count: Value(pl.count),
+              annualRatePercent: Value(pl.annualRatePercent),
+              categoryId: Value(pl.categoryId),
+              dayOfMonth: Value(pl.dayOfMonth),
+              startYm: Value(pl.startYm),
+              cardName: Value(pl.cardName),
+              createdAt: Value(pl.createdAt),
+              updatedAt: Value(pl.updatedAt),
+            ),
+          );
+        }
         for (final t in payload.transactions) {
           b.insert(
             _db.transactions,
@@ -186,6 +223,7 @@ class BackupService {
               source: Value(t.source),
               imagePath: Value(t.imagePath),
               splitGroupId: Value(t.splitGroupId),
+              installmentPlanId: Value(t.installmentPlanId),
               createdAt: Value(t.createdAt),
               updatedAt: Value(t.updatedAt),
             ),
@@ -247,7 +285,9 @@ class BackupService {
       final ruleCount = await _count(_db.recurringRules);
       final choreTaskCount = await _count(_db.choreTasks);
       final choreRecordCount = await _count(_db.choreRecords);
+      final planCount = await _count(_db.installmentPlans);
       if (catCount != payload.categories.length ||
+          planCount != payload.installmentPlans.length ||
           txCount != payload.transactions.length ||
           ruleCount != payload.recurringRules.length ||
           choreTaskCount != payload.choreTasks.length ||
@@ -257,7 +297,8 @@ class BackupService {
             'txs=$txCount/${payload.transactions.length}, '
             'rules=$ruleCount/${payload.recurringRules.length}, '
             'choreTasks=$choreTaskCount/${payload.choreTasks.length}, '
-            'choreRecords=$choreRecordCount/${payload.choreRecords.length}');
+            'choreRecords=$choreRecordCount/${payload.choreRecords.length}, '
+            'installmentPlans=$planCount/${payload.installmentPlans.length}');
       }
     });
   }

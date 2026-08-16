@@ -302,5 +302,8 @@
   "installmentFirstLabel": "Prima rata",
   "installmentFeeLabel": "Interessi totali",
   "installmentTotalLabel": "Totale da pagare",
-  "installmentTxnMemo": "Rata {index}/{count}"
+  "installmentTxnMemo": "Rata {index}/{count}",
+  "installmentEditTitle": "Modifica pagamento rateale",
+  "installmentDeleteConfirmContent": "Questo pagamento rateale e tutte le sue rate registrate verranno eliminati.",
+  "hubInstallmentEmpty": "Nessun pagamento rateale"
 }

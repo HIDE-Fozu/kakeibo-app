@@ -1036,4 +1036,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Installment $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Edit installment plan';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'This installment plan and all of its payments will be deleted.';
+
+  @override
+  String get hubInstallmentEmpty => 'No installment plans yet';
 }

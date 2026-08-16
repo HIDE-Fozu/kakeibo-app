@@ -1044,4 +1044,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Parcela $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Editar parcelamento';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'Este parcelamento e todas as parcelas registradas serão excluídos.';
+
+  @override
+  String get hubInstallmentEmpty => 'Nenhum parcelamento ainda';
 }

@@ -17,7 +17,9 @@ class BackupCodec {
   /// v6: つきいちタスクに dayOfMonth（毎月N日）を追加。
   /// v7: つきいちタスクに repeatUnit（毎月N日 / N日ごと）と intervalDays を追加。
   ///     v5以前は「N日ごと」だったので everyDays として復元する。
-  static const int formatVersion = 7;
+  /// v8: installmentPlans（分割払いの計画）と transactions[].installmentPlanId
+  ///     を追加。旧バックアップは空/nullで復元。
+  static const int formatVersion = 8;
 
   const BackupCodec();
 
@@ -53,8 +55,24 @@ class BackupCodec {
             'source': t.source.name,
             'imagePath': t.imagePath,
             'splitGroupId': t.splitGroupId,
+            'installmentPlanId': t.installmentPlanId,
             'createdAt': t.createdAt.toUtc().toIso8601String(),
             'updatedAt': t.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'installmentPlans': [
+        for (final pl in p.installmentPlans)
+          {
+            'id': pl.id,
+            'principal': pl.principal,
+            'count': pl.count,
+            'annualRatePercent': pl.annualRatePercent,
+            'categoryId': pl.categoryId,
+            'dayOfMonth': pl.dayOfMonth,
+            'startYm': pl.startYm,
+            'cardName': pl.cardName,
+            'createdAt': pl.createdAt.toUtc().toIso8601String(),
+            'updatedAt': pl.updatedAt.toUtc().toIso8601String(),
           },
       ],
       'recurringRules': [
@@ -271,6 +289,7 @@ class BackupCodec {
             '$ctx.source'),
         imagePath: opt<String>(raw, 'imagePath', ctx),
         splitGroupId: opt<String>(raw, 'splitGroupId', ctx),
+        installmentPlanId: opt<int>(raw, 'installmentPlanId', ctx),
         createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
         updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
       );
@@ -342,6 +361,65 @@ class BackupCodec {
             '$ctx.categoryId ${r.categoryId} が同梱カテゴリに解決できません');
       }
       recurringRules.add(r);
+    }
+
+    // --- installmentPlans（v8） ---
+    final plansRaw = req<List<dynamic>>(root, 'installmentPlans', 'root');
+    final installmentPlans = <BackupInstallmentPlan>[];
+    final planIds = <int>{};
+    for (final (i, raw) in plansRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('installmentPlans[$i] がオブジェクトではありません');
+      }
+      final ctx = 'installmentPlans[$i]';
+      final principal = req<int>(raw, 'principal', ctx);
+      if (principal <= 0) {
+        throw BackupValidationError('$ctx.principal が不正です: $principal');
+      }
+      final count = req<int>(raw, 'count', ctx);
+      if (count < 1) {
+        throw BackupValidationError('$ctx.count が不正です: $count');
+      }
+      final rate = req<num>(raw, 'annualRatePercent', ctx).toDouble();
+      if (rate < 0) {
+        throw BackupValidationError('$ctx.annualRatePercent が負です: $rate');
+      }
+      final dayOfMonth = req<int>(raw, 'dayOfMonth', ctx);
+      if (dayOfMonth < 1 || dayOfMonth > 31) {
+        throw BackupValidationError('$ctx.dayOfMonth が範囲外です: $dayOfMonth');
+      }
+      final startYm = req<int>(raw, 'startYm', ctx);
+      if (!validYm(startYm)) {
+        throw BackupValidationError('$ctx.startYm が YYYYMM ではありません: $startYm');
+      }
+      final pl = BackupInstallmentPlan(
+        id: req<int>(raw, 'id', ctx),
+        principal: principal,
+        count: count,
+        annualRatePercent: rate,
+        categoryId: req<int>(raw, 'categoryId', ctx),
+        dayOfMonth: dayOfMonth,
+        startYm: startYm,
+        cardName: opt<String>(raw, 'cardName', ctx),
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+        updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
+      );
+      if (!planIds.add(pl.id)) {
+        throw BackupValidationError('分割払い計画ID ${pl.id} が重複しています');
+      }
+      if (!catIds.contains(pl.categoryId)) {
+        throw BackupValidationError(
+            '$ctx.categoryId ${pl.categoryId} が同梱カテゴリに解決できません');
+      }
+      installmentPlans.add(pl);
+    }
+    // 取引の installmentPlanId は同梱計画に解決できる必要がある。
+    for (final t in transactions) {
+      final pid = t.installmentPlanId;
+      if (pid != null && !planIds.contains(pid)) {
+        throw BackupValidationError(
+            '取引ID ${t.id} の installmentPlanId $pid が同梱計画に解決できません');
+      }
     }
 
     // --- choreTasks / choreRecords（v5） ---
@@ -438,6 +516,7 @@ class BackupCodec {
       recurringRules: recurringRules,
       choreTasks: choreTasks,
       choreRecords: choreRecords,
+      installmentPlans: installmentPlans,
     );
   }
 
@@ -459,6 +538,8 @@ class BackupCodec {
           m = _migrateV5toV6(m);
         case 6:
           m = _migrateV6toV7(m);
+        case 7:
+          m = _migrateV7toV8(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
@@ -468,6 +549,13 @@ class BackupCodec {
   }
 
   /// v1→v2: categories に parentId を補完（v1は全て親＝null）。
+  /// v7→v8: installmentPlans を空で補完（旧バックアップに分割払いは無い。
+  /// transactions[].installmentPlanId は欠落時 null 扱いなので補完不要）。
+  Map<String, dynamic> _migrateV7toV8(Map<String, dynamic> root) {
+    root.putIfAbsent('installmentPlans', () => <dynamic>[]);
+    return root;
+  }
+
   Map<String, dynamic> _migrateV1toV2(Map<String, dynamic> root) {
     final cats = root['categories'];
     if (cats is List) {

@@ -31,6 +31,23 @@ BackupPayload samplePayload() => BackupPayload(
           createdAt: DateTime.utc(2026, 7, 3, 1, 2, 3),
           updatedAt: DateTime.utc(2026, 7, 3, 1, 2, 3),
         ),
+        BackupTxn(
+          id: 11, type: TxnType.expense, amount: 3567,
+          date: const CivilDate(2026, 9, 15), categoryId: 1,
+          paymentMethod: null, memo: '分割払い 1/10回',
+          source: TxnSource.manual, imagePath: null,
+          installmentPlanId: 1,
+          createdAt: DateTime.utc(2026, 8, 16, 0, 0, 0),
+          updatedAt: DateTime.utc(2026, 8, 16, 0, 0, 0),
+        ),
+      ],
+      installmentPlans: [
+        BackupInstallmentPlan(
+          id: 1, principal: 33000, count: 10, annualRatePercent: 17.0,
+          categoryId: 1, dayOfMonth: 15, startYm: 202609, cardName: '楽天カード',
+          createdAt: DateTime.utc(2026, 8, 16, 0, 0, 0),
+          updatedAt: DateTime.utc(2026, 8, 16, 0, 0, 0),
+        ),
       ],
       recurringRules: [
         BackupRecurringRule(
@@ -71,7 +88,7 @@ void main() {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 7);
+    expect(root['formatVersion'], 8);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -81,7 +98,12 @@ void main() {
     expect((cats[1] as Map)['isSystem'], true);
 
     final txs = root['transactions'] as List;
-    final tx = txs.single as Map;
+    expect(txs.length, 2);
+    final tx = txs.first as Map;
+    expect((txs[1] as Map)['installmentPlanId'], 1);
+    final plans = root['installmentPlans'] as List;
+    expect((plans.single as Map)['annualRatePercent'], 17.0);
+    expect((plans.single as Map)['cardName'], '楽天カード');
     expect(tx['amount'], 1200);
     expect(tx['date'], '2026-07-03'); // civil date文字列
     expect(tx['paymentMethod'], 'cash');
@@ -92,7 +114,7 @@ void main() {
   test('null optionals serialize as JSON null', () {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
-    final tx = (root['transactions'] as List).single as Map;
+    final tx = (root['transactions'] as List).first as Map;
     expect(tx.containsKey('imagePath'), isTrue);
     expect(tx['imagePath'], isNull);
   });
@@ -103,6 +125,25 @@ void main() {
       final decoded = codec.decode(codec.encode(original));
       // 忠実度はエンコード結果の同値で比較（フィールド網羅かつ簡潔）
       expect(codec.encode(decoded), codec.encode(original));
+    });
+
+    test('v7バックアップ（installmentPlans無し）は空で復元される', () {
+      final json = mutate((r) {
+        r['formatVersion'] = 7;
+        r.remove('installmentPlans');
+        for (final t in r['transactions'] as List) {
+          (t as Map).remove('installmentPlanId');
+        }
+      });
+      final decoded = codec.decode(json);
+      expect(decoded.installmentPlans, isEmpty);
+      expect(decoded.transactions.every((t) => t.installmentPlanId == null),
+          isTrue);
+    });
+
+    test('取引の installmentPlanId が同梱計画に無い -> BackupValidationError', () {
+      final json = mutate((r) => r['installmentPlans'] = <dynamic>[]);
+      expect(() => codec.decode(json), throwsA(isA<BackupValidationError>()));
     });
 
     test('malformed JSON -> BackupFormatError', () {
@@ -219,7 +260,7 @@ void main() {
 
     test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
       final payload = codec.decode(validV1Json());
-      expect(payload.formatVersion, 7); // decodeはマイグレーション後に現行版を返す
+      expect(payload.formatVersion, 8); // decodeはマイグレーション後に現行版を返す
       expect(payload.categories.every((c) => c.parentId == null), isTrue);
     });
 
@@ -268,7 +309,7 @@ void main() {
         r.remove('recurringRules');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 7);
+      expect(payload.formatVersion, 8);
       expect(payload.recurringRules, isEmpty);
     });
 
@@ -336,7 +377,7 @@ void main() {
         t['intervalDays'] = 14; // anchor 7/1 + 14日 = 7/15 → 毎月の予定日は15
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 7);
+      expect(payload.formatVersion, 8);
       final t = payload.choreTasks.single;
       expect(t.repeatUnit, ChoreRepeatUnit.everyDays); // 間隔の意味を失わない
       expect(t.intervalDays, 14);
@@ -377,7 +418,7 @@ void main() {
         r.remove('choreRecords');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 7);
+      expect(payload.formatVersion, 8);
       expect(payload.choreTasks, isEmpty);
       expect(payload.choreRecords, isEmpty);
     });

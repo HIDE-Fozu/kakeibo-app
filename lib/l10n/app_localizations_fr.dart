@@ -1051,4 +1051,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Échéance $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Modifier le paiement échelonné';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'Ce paiement échelonné et toutes ses échéances seront supprimés.';
+
+  @override
+  String get hubInstallmentEmpty => 'Aucun paiement échelonné';
 }

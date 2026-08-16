@@ -1047,4 +1047,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return 'Rata $index/$count';
   }
+
+  @override
+  String get installmentEditTitle => 'Modifica pagamento rateale';
+
+  @override
+  String get installmentDeleteConfirmContent =>
+      'Questo pagamento rateale e tutte le sue rate registrate verranno eliminati.';
+
+  @override
+  String get hubInstallmentEmpty => 'Nessun pagamento rateale';
 }

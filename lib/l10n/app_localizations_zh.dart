@@ -1007,4 +1007,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String installmentTxnMemo(int index, int count) {
     return '分期 $index/$count期';
   }
+
+  @override
+  String get installmentEditTitle => '编辑分期付款';
+
+  @override
+  String get installmentDeleteConfirmContent => '将删除此分期付款及其所有已登记的付款。';
+
+  @override
+  String get hubInstallmentEmpty => '还没有分期付款';
 }

@@ -9,7 +9,14 @@ import '../../domain/money/civil_date.dart';
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Categories, Transactions, RecurringRules, ChoreTasks, ChoreRecords],
+  tables: [
+    Categories,
+    Transactions,
+    RecurringRules,
+    ChoreTasks,
+    ChoreRecords,
+    InstallmentPlans,
+  ],
   daos: [CategoryDao, TransactionDao, RecurringRuleDao, ChoreDao],
 )
 class AppDatabase extends _$AppDatabase {
@@ -19,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -77,6 +84,11 @@ class AppDatabase extends _$AppDatabase {
               choreTasks,
               newColumns: [choreTasks.repeatUnit, choreTasks.intervalDays],
             ));
+          }
+          if (from < 10) {
+            // v10: 分割払いの計画＋取引への紐付け。既存行は null=分割払い以外。
+            await m.createTable(installmentPlans);
+            await m.addColumn(transactions, transactions.installmentPlanId);
           }
         },
         beforeOpen: (details) async {

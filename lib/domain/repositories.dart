@@ -43,6 +43,21 @@ abstract interface class RecurringRuleRepository {
   Future<int> applyDue(CivilDate today);
 }
 
+/// 分割払いの計画。add/replace は計画と支払い取引群を1トランザクションで書く。
+abstract interface class InstallmentPlanRepository {
+  Stream<List<InstallmentPlanEntity>> watchAll();
+
+  /// 計画と支払い取引を保存（installmentPlanId はリポジトリが振る）。計画idを返す。
+  Future<int> add(InstallmentPlanEntity plan, List<TransactionEntity> payments);
+
+  /// 編集: 計画を書き換え、紐づく既存取引を全て削除して payments で作り直す。
+  Future<void> replace(
+      InstallmentPlanEntity plan, List<TransactionEntity> payments);
+
+  /// 計画と紐づく取引を削除（FK cascade）。
+  Future<void> delete(int planId);
+}
+
 abstract interface class ChoreRepository {
   Stream<List<ChoreTask>> watchTasks();
   Stream<List<ChoreRecord>> watchRecords();

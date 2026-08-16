@@ -302,5 +302,8 @@
   "installmentFirstLabel": "首期",
   "installmentFeeLabel": "手续费合计",
   "installmentTotalLabel": "支付总额",
-  "installmentTxnMemo": "分期 {index}/{count}期"
+  "installmentTxnMemo": "分期 {index}/{count}期",
+  "installmentEditTitle": "编辑分期付款",
+  "installmentDeleteConfirmContent": "将删除此分期付款及其所有已登记的付款。",
+  "hubInstallmentEmpty": "还没有分期付款"
 }

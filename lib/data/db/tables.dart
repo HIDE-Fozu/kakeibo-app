@@ -105,6 +105,31 @@ class Transactions extends Table {
   /// 同じレシート（詳細入力の1回）から生まれた取引を束ねるID。null=単独取引。
   /// v3で追加。日別一覧のグループカード表示と「詳細入力で開き直す」に使う。
   TextColumn get splitGroupId => text().nullable()();
+
+  /// 分割払いの計画（installment_plans.id）。null=分割払い由来ではない。
+  /// v10で追加。計画の編集/削除でこの取引群は作り直し/削除される（cascade）。
+  IntColumn get installmentPlanId => integer()
+      .nullable()
+      .references(InstallmentPlans, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 分割払いの計画（FB 2026-08-16）。保存時に count ヶ月分の支出取引を一括起票し、
+/// 取引側は installmentPlanId で紐づく。編集=取引を作り直し・削除=取引ごと削除
+/// （FK cascade）。金額の計算は installment_calc.dart（実質年率の元利均等）。
+/// v10で追加。
+@DataClassName('InstallmentPlanRow')
+class InstallmentPlans extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get principal => integer()(); // 購入金額（minor unit・非負）
+  IntColumn get count => integer()(); // 支払い回数（>=1）
+  RealColumn get annualRatePercent => real()(); // 実質年率（%）
+  IntColumn get categoryId =>
+      integer().references(Categories, #id, onDelete: KeyAction.restrict)();
+  IntColumn get dayOfMonth => integer()(); // 支払日 1..31（短い月は末日に丸め）
+  IntColumn get startYm => integer()(); // 初回の月（YYYY*100+MM）
+  TextColumn get cardName => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
