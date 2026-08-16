@@ -104,7 +104,7 @@ void main() {
         isNull);
   });
 
-  testWidgets('店舗名・詳細メモ欄が初期表示され別々に入力できる', (tester) async {
+  testWidgets('店舗名欄＋品目行のメモボタンが初期表示され別々に入力できる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -115,11 +115,16 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // 店舗名・詳細メモとも最初から表示（順に店舗名→詳細メモ）
+    // 店舗名欄は常設。メモは品目行のセル内ボタン→ダイアログ（2026-08-16 FB）
     final fields = find.byType(TextFormField);
-    expect(fields, findsNWidgets(2));
+    expect(fields, findsOneWidget);
     await tester.enterText(fields.at(0), 'スーパーA'); // 店舗名
-    await tester.enterText(fields.at(1), 'ポイント2倍'); // 詳細メモ
+    await tester.tap(find.byKey(const Key('entry-memo-btn')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const Key('split-memo-field')), 'ポイント2倍');
+    await tester.tap(find.byKey(const Key('split-memo-save')));
+    await tester.pumpAndSettle();
 
     final s = containerOf(tester).read(entryFormControllerProvider)!;
     expect(s.storeName, 'スーパーA');
@@ -182,7 +187,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('編集'), findsOneWidget);
     expect(find.text('¥1,200'), findsOneWidget);
-    expect(find.byType(TextFormField), findsNWidgets(2)); // 店舗名・詳細メモの2欄
+    expect(find.byType(TextFormField), findsOneWidget); // 店舗名のみ（メモは行内ボタン）
+    expect(find.text('弁当'), findsOneWidget); // 既存メモが品目行のボタンに出る
     expect(find.byType(SegmentedButton<TxnType>), findsNothing); // 編集では型不変
 
     await tester.tap(find.byKey(const Key('delete-entry')));

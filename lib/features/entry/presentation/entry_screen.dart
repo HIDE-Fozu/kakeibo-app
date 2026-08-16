@@ -496,6 +496,30 @@ class EntryScreen extends ConsumerWidget {
                                   child: _singleCatChip(context,
                                       categoryNames[state.categoryId], l),
                                 ),
+                                const SizedBox(width: 7),
+                                // メモも内訳の行と同じくセル内に（2026-08-16 FB。
+                                // 独立した「詳細メモ」欄は廃止し、1品目の情報が
+                                // この行に揃う。ボタン→ダイアログも内訳と共通）。
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: MemoPillButton(
+                                      key: const Key('entry-memo-btn'),
+                                      memo: state.memo,
+                                      onTap: () async {
+                                        final result =
+                                            await showDialog<String>(
+                                          context: context,
+                                          builder: (_) => SplitMemoDialog(
+                                              title: l.splitMemoDialogTitle,
+                                              initial: state.memo),
+                                        );
+                                        if (result == null) return;
+                                        ctrl.setMemo(result.trim());
+                                      },
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -566,23 +590,8 @@ class EntryScreen extends ConsumerWidget {
                                 // （分割中は上の Stack の中で電卓を出すのでここでは出さない）。
                                 if (!batchMode && !splitMode) numpad,
                                 const SizedBox(height: 8),
-                                // 詳細入力（分割/一括内訳）ボタンはカテゴリの上に置く。
-                                // 分割/一括/編集中と金額0では出さない。
-                                // 左隣に「毎月の費用/収入」トグル（単体登録専用。グループ
-                                // 再保存=replacesTxIds中とレシート確認では出さない）。
-                                // Wrap: 幅が足りない言語では2行に折り返す（Spacer+Flexibleの
-                                // Rowはflex均等割りで右ボタンが「複数のカ…」に切れる罠がある）。
-                                // レシート確認では店舗名は上のレビューパネルで扱うため
-                                // 詳細メモのみ。
-                                TextFormField(
-                                  key: ValueKey('memo-field-${state.formSeq}'),
-                                  initialValue: state.memo,
-                                  decoration: InputDecoration(
-                                    labelText: l.entryDetailMemoLabel,
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  onChanged: ctrl.setMemo,
-                                ),
+                                // 旧・独立した「詳細メモ」欄はここにあったが、
+                                // 品目行のセル内メモボタンへ移動（2026-08-16 FB）。
                               ],
                             ),
                             if (state.expandedParentId != null)

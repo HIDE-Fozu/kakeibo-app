@@ -12,7 +12,7 @@ import '../support/test_app.dart';
 const day = CivilDate(2026, 7, 15);
 
 void main() {
-  testWidgets('入力画面(HomeShell内): メモ欄フォーカスで「完了」バーが出て、タップで閉じる',
+  testWidgets('入力画面(HomeShell内): 店舗名欄フォーカスで「完了」バーが出て、タップで閉じる',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -30,12 +30,13 @@ void main() {
     // フォーカスなし: バーなし
     expect(find.byKey(const Key('kb-done')), findsNothing);
 
-    // メモ欄にフォーカス → バー表示
-    final memoField = find.byKey(ValueKey(
-        'memo-field-${c.read(entryFormControllerProvider)!.formSeq}'));
-    await tester.ensureVisible(memoField);
+    // 店舗名欄にフォーカス → バー表示（旧・詳細メモ欄は品目行の
+    // メモボタン→ダイアログ方式に変わったため、常設のテキスト欄で検証）
+    final storeField = find.byKey(ValueKey(
+        'store-field-${c.read(entryFormControllerProvider)!.formSeq}'));
+    await tester.ensureVisible(storeField);
     await tester.pumpAndSettle();
-    await tester.tap(memoField);
+    await tester.tap(storeField);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kb-done')), findsOneWidget);
 

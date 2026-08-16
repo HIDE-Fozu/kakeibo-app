@@ -34,7 +34,15 @@ void main() {
     // 金額0のまま「カテゴリを追加」
     await t.tap(find.byKey(const Key('fab-entry')));
     await settle(t);
-    await shot(t, 'bu_1_entry_zero');
+    await shot(t, 'bu_1_entry_zero'); // 品目行にメモボタン（旧・詳細メモ欄なし）
+    // メモをセル内ボタン→ダイアログで入力（2026-08-16 FB）
+    await t.tap(find.byKey(const Key('entry-memo-btn')), warnIfMissed: false);
+    await settle(t);
+    await t.enterText(
+        find.byKey(const Key('split-memo-field')), 'ポイント2倍デー');
+    await t.tap(find.byKey(const Key('split-memo-save')), warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'bu_1b_memo_in_row'); // 行内にメモ本文が出る
     await t.tap(find.byKey(const Key('start-split')), warnIfMissed: false);
     await settle(t);
     await shot(t, 'bu_2_bottomup_empty'); // 末尾=「残り ¥0」・ヘッダ¥0

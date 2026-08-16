@@ -407,55 +407,18 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
               ),
               const SizedBox(width: 7),
               // メモはインライン入力ではなくボタン→ダイアログ入力に。
-              // カテゴリ未選択でも常に出す。未入力は「個別」と同じ白ピルの
-              // ボタン見た目（薄いグレー文字だとボタンと気づけないため）。
-              // 入力済みは本文を1行表示（タップで編集）。
+              // カテゴリ未選択でも常に出す（見た目は MemoPillButton に共通化。
+              // 通常入力の品目行と同じ部品）。
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: InkWell(
+                  child: MemoPillButton(
                     key: Key('split-memo-btn-$i'),
-                    borderRadius: BorderRadius.circular(8),
+                    memo: line.memo,
                     onTap: () {
                       ctrl.setActiveSplit(i);
                       _editSplitMemo(context, i, line.memo);
                     },
-                    child: line.memo.isEmpty
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: scheme.surface,
-                              border:
-                                  Border.all(color: scheme.outlineVariant),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.edit_note,
-                                    size: 15, color: scheme.primary),
-                                const SizedBox(width: 2),
-                                Text(l.splitMemoHint,
-                                    style: TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: scheme.primary)),
-                              ],
-                            ),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 4),
-                            child: Text(
-                              line.memo,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: scheme.onSurfaceVariant),
-                            ),
-                          ),
                   ),
                 ),
               ),
@@ -512,7 +475,7 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         '${l.splitItemNumberLabel(i + 1)} — ${l.splitMemoDialogTitle}';
     final result = await showDialog<String>(
       context: context,
-      builder: (_) => _SplitMemoDialog(title: title, initial: current),
+      builder: (_) => SplitMemoDialog(title: title, initial: current),
     );
     if (result == null) return; // キャンセル
     ctrl.setSplitMemo(i, result.trim());
@@ -660,18 +623,19 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
   }
 }
 
-/// 行メモの入力ダイアログ。controllerの寿命をダイアログ自身に閉じ込める
+/// メモの入力ダイアログ。controllerの寿命をダイアログ自身に閉じ込める
 /// （popアニメーション中のdispose事故防止・_CategoryEditDialogと同じ流儀）。
-class _SplitMemoDialog extends StatefulWidget {
+/// 内訳の行メモと通常入力（品目行のメモ）で共用。
+class SplitMemoDialog extends StatefulWidget {
   final String title;
   final String initial;
-  const _SplitMemoDialog({required this.title, required this.initial});
+  const SplitMemoDialog({super.key, required this.title, required this.initial});
 
   @override
-  State<_SplitMemoDialog> createState() => _SplitMemoDialogState();
+  State<SplitMemoDialog> createState() => _SplitMemoDialogState();
 }
 
-class _SplitMemoDialogState extends State<_SplitMemoDialog> {
+class _SplitMemoDialogState extends State<SplitMemoDialog> {
   late final _text = TextEditingController(text: widget.initial);
 
   @override
@@ -715,4 +679,54 @@ class _SegItem {
   final VoidCallback onTap;
   final Key? key;
   const _SegItem(this.label, this.selected, this.onTap, {this.key});
+}
+
+/// メモボタン（白ピル）。未入力はアイコン＋「メモ」、入力済みは本文1行。
+/// 薄いグレー文字だとボタンと気づけないため「個別」と同じピルの見た目。
+/// 内訳の行と通常入力の品目行で共用（2026-08-16 FB: メモもセル内へ）。
+class MemoPillButton extends StatelessWidget {
+  final String memo;
+  final VoidCallback onTap;
+  const MemoPillButton({super.key, required this.memo, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: memo.isEmpty
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                border: Border.all(color: scheme.outlineVariant),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit_note, size: 15, color: scheme.primary),
+                  const SizedBox(width: 2),
+                  Text(l.splitMemoHint,
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.primary)),
+                ],
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+              child: Text(
+                memo,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+              ),
+            ),
+    );
+  }
 }
