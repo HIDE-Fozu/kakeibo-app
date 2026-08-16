@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "含税 {amount}",
   "splitOverLabel": "超出",
   "splitRemainingLabel": "剩余",
-  "splitTotalLabel": "合计",
   "summaryMonthHeader": "{year}年{month}月",
   "summaryEmptyTitle": "本月还没有数据",
   "summaryEmptyHint": "可从日历的 ＋ 添加记录",

@@ -422,9 +422,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get splitRemainingLabel => '剩余';
 
   @override
-  String get splitTotalLabel => '合计';
-
-  @override
   String summaryMonthHeader(int year, int month) {
     return '$year年$month月';
   }

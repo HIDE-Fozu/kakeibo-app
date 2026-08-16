@@ -862,12 +862,6 @@ abstract class AppLocalizations {
   /// **'Remaining'**
   String get splitRemainingLabel;
 
-  /// No description provided for @splitTotalLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total'**
-  String get splitTotalLabel;
-
   /// No description provided for @summaryMonthHeader.
   ///
   /// In en, this message translates to:

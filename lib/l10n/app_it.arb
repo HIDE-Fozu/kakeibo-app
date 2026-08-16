@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "IVA incl. {amount}",
   "splitOverLabel": "In eccesso",
   "splitRemainingLabel": "Rimanente",
-  "splitTotalLabel": "Totale",
   "summaryMonthHeader": "{month}/{year}",
   "summaryEmptyTitle": "Ancora nessun dato per questo mese",
   "summaryEmptyHint": "Tocca ＋ nel calendario per aggiungere una voce",

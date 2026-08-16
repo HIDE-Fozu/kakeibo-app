@@ -6,8 +6,8 @@ import 'package:kakeibo_app/features/entry/presentation/numpad.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 案B（ボトムアップ内訳）の目視確認用スクショ（使い捨て）:
-/// 金額0で「カテゴリを追加」→ 末尾が「合計」行になり品目の総和で育つ流れと、
-/// 従来のトップダウン（残り行）の比較。
+/// 金額0で「カテゴリを追加」→ ヘッダの金額が品目の総和で育つ流れ（末尾は
+/// 従来どおり「残り」・常に¥0）と、トップダウン（残り行）の比較。
 
 late IntegrationTestWidgetsFlutterBinding binding;
 
@@ -37,7 +37,7 @@ void main() {
     await shot(t, 'bu_1_entry_zero');
     await t.tap(find.byKey(const Key('start-split')), warnIfMissed: false);
     await settle(t);
-    await shot(t, 'bu_2_bottomup_empty'); // 末尾=「合計 ¥0」
+    await shot(t, 'bu_2_bottomup_empty'); // 末尾=「残り ¥0」・ヘッダ¥0
 
     // 品目1: 480円＋食費
     for (final d in ['4', '8', '0']) {
@@ -46,7 +46,7 @@ void main() {
     await settle(t);
     await t.tap(find.textContaining('食費').first, warnIfMissed: false);
     await settle(t);
-    await shot(t, 'bu_3_one_item'); // 合計 ¥480・ヘッダも480
+    await shot(t, 'bu_3_one_item'); // ヘッダ¥480・残り¥0のまま
 
     // ＋品目 → 120円＋日用品
     await t.tap(find.byKey(const Key('split-add')), warnIfMissed: false);
@@ -57,7 +57,7 @@ void main() {
     await settle(t);
     await t.tap(find.textContaining('日用品').first, warnIfMissed: false);
     await settle(t);
-    await shot(t, 'bu_4_two_items'); // 合計 ¥600
+    await shot(t, 'bu_4_two_items'); // ヘッダ¥600
 
     // 比較: 金額を先に入れる従来のトップダウン（残り行）
     await t.tap(find.text('やめる'), warnIfMissed: false);

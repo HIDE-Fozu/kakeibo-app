@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "inkl. MwSt. {amount}",
   "splitOverLabel": "Zu viel",
   "splitRemainingLabel": "Rest",
-  "splitTotalLabel": "Summe",
   "summaryMonthHeader": "{month}/{year}",
   "summaryEmptyTitle": "Noch keine Daten für diesen Monat",
   "summaryEmptyHint": "Über das ＋ im Kalender einen Eintrag hinzufügen",

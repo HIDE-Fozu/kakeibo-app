@@ -423,9 +423,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get splitRemainingLabel => '残り';
 
   @override
-  String get splitTotalLabel => '合計';
-
-  @override
   String summaryMonthHeader(int year, int month) {
     return '$year年$month月';
   }

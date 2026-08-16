@@ -440,9 +440,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get splitRemainingLabel => 'Rimanente';
 
   @override
-  String get splitTotalLabel => 'Totale';
-
-  @override
   String summaryMonthHeader(int year, int month) {
     return '$month/$year';
   }

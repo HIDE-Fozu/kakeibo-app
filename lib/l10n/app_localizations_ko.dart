@@ -425,9 +425,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get splitRemainingLabel => '남음';
 
   @override
-  String get splitTotalLabel => '합계';
-
-  @override
   String summaryMonthHeader(int year, int month) {
     return '$year년 $month월';
   }

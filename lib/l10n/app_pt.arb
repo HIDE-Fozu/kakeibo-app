@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "C/ imposto {amount}",
   "splitOverLabel": "Excedente",
   "splitRemainingLabel": "Restante",
-  "splitTotalLabel": "Total",
   "summaryMonthHeader": "{month}/{year}",
   "summaryEmptyTitle": "Ainda não há dados deste mês",
   "summaryEmptyHint": "Toque no ＋ do calendário para adicionar",

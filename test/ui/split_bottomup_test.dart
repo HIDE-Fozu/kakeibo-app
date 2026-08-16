@@ -34,17 +34,23 @@ void main() {
     expect(st.splitBottomUp, isTrue);
     expect(find.byKey(const Key('split-tax-mode')), findsOneWidget);
 
-    // 末尾の行は「残り」ではなく「合計」。カテゴリ枠（残額の割当先）は持たない
+    // 末尾の行は従来どおり「残り」（総和＝合計なので常に¥0・超過にならない）。
+    // 合計はヘッダの金額表示に一本化（FB 2026-08-16: 合計の重複は却下）
     final label =
         tester.widget<Text>(find.byKey(const Key('split-tail-label')));
-    expect(label.data, '合計');
-    expect(find.byKey(const Key('split-remainder')), findsNothing);
+    expect(label.data, '残り');
+    expect(find.byKey(const Key('split-remainder')), findsOneWidget);
 
-    // 品目を打つと合計（＝ヘッダの金額表示）が総和で追従する
+    // 品目を打つとヘッダの金額表示が総和で追従する。末尾は「残り」のまま超過にならない
     ctrl.splitTapDigit(5);
     ctrl.splitTapDoubleZero(); // 500
     await tester.pumpAndSettle();
     expect(c.read(entryFormControllerProvider)!.displayAmountYen, 500);
+    expect(
+        tester
+            .widget<Text>(find.byKey(const Key('split-tail-label')))
+            .data,
+        '残り');
   });
 
   testWidgets('金額を入れてから入ると従来どおり「残り」行（トップダウン）', (tester) async {

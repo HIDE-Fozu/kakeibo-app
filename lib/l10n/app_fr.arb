@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "TTC {amount}",
   "splitOverLabel": "Dépassement",
   "splitRemainingLabel": "Reste",
-  "splitTotalLabel": "Total",
   "summaryMonthHeader": "{month}/{year}",
   "summaryEmptyTitle": "Aucune donnée pour ce mois",
   "summaryEmptyHint": "Touchez ＋ sur le calendrier pour ajouter une entrée",

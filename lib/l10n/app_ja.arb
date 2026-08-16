@@ -125,7 +125,6 @@
   "splitTaxIncludedAmount": "税込 {amount}",
   "splitOverLabel": "超過",
   "splitRemainingLabel": "残り",
-  "splitTotalLabel": "合計",
   "summaryMonthHeader": "{year}年{month}月",
   "summaryEmptyTitle": "この月のデータはまだありません",
   "summaryEmptyHint": "カレンダーの＋から入力できます",

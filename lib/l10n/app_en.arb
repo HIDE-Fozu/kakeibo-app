@@ -289,7 +289,6 @@
   },
   "splitOverLabel": "Over",
   "splitRemainingLabel": "Remaining",
-  "splitTotalLabel": "Total",
   "summaryMonthHeader": "{month}/{year}",
   "@summaryMonthHeader": {
     "placeholders": {
