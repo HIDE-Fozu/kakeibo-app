@@ -288,5 +288,19 @@
   "settingsColorMustard": "Mostarda",
   "settingsColorGray": "Cinza",
   "settingsColorTerracotta": "Terracota",
-  "settingsColorNavy": "Azul-marinho"
+  "settingsColorNavy": "Azul-marinho",
+  "installmentTitle": "Adicionar parcelamento",
+  "installmentAddButton": "Parcelamento",
+  "installmentPrincipalLabel": "Valor da compra",
+  "installmentCountLabel": "Número de parcelas",
+  "installmentCountItem": "{n} parcelas",
+  "installmentRateLabel": "Taxa anual (%)",
+  "installmentCardPickLabel": "Cartões salvos",
+  "installmentCardNameLabel": "Nome do cartão (opcional)",
+  "installmentDayLabel": "Dia de pagamento",
+  "installmentMonthlyLabel": "Parcela mensal",
+  "installmentFirstLabel": "Primeira parcela",
+  "installmentFeeLabel": "Juros totais",
+  "installmentTotalLabel": "Total a pagar",
+  "installmentTxnMemo": "Parcela {index}/{count}"
 }

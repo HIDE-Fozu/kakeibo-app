@@ -288,5 +288,19 @@
   "settingsColorMustard": "Senape",
   "settingsColorGray": "Grigio",
   "settingsColorTerracotta": "Terracotta",
-  "settingsColorNavy": "Blu navy"
+  "settingsColorNavy": "Blu navy",
+  "installmentTitle": "Aggiungi pagamento rateale",
+  "installmentAddButton": "Pagamento rateale",
+  "installmentPrincipalLabel": "Importo di acquisto",
+  "installmentCountLabel": "Numero di rate",
+  "installmentCountItem": "{n} rate",
+  "installmentRateLabel": "Tasso annuo (%)",
+  "installmentCardPickLabel": "Carte salvate",
+  "installmentCardNameLabel": "Nome della carta (facoltativo)",
+  "installmentDayLabel": "Giorno di pagamento",
+  "installmentMonthlyLabel": "Rata mensile",
+  "installmentFirstLabel": "Prima rata",
+  "installmentFeeLabel": "Interessi totali",
+  "installmentTotalLabel": "Totale da pagare",
+  "installmentTxnMemo": "Rata {index}/{count}"
 }

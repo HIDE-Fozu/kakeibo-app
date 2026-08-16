@@ -14,6 +14,7 @@ import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_history_page.dart';
 import '../../chores/presentation/chore_task_form.dart';
 import '../../chores/presentation/chore_ui_common.dart';
+import '../../recurring/presentation/installment_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 
 /// 「毎月」タブ = 管理ハブ。
@@ -206,6 +207,23 @@ class MonthlyHubScreen extends ConsumerWidget {
                         builder: (_) => RecurringRuleEditPage(rule: r)),
                   ),
                 ),
+            // 分割払いの登録（固定費に付随・FB 2026-08-16「まずは機能だけ」）。
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: TextButton.icon(
+                  key: const Key('hub-installment-add'),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const InstallmentPage()),
+                  ),
+                  icon: const Icon(Icons.credit_card, size: 18),
+                  label: Text(l.installmentAddButton),
+                ),
+              ),
+            ),
             const Divider(height: 24),
             _SectionHeader(
               title: l.hubChoresSection,

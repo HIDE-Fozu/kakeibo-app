@@ -998,4 +998,50 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Azul-marinho';
+
+  @override
+  String get installmentTitle => 'Adicionar parcelamento';
+
+  @override
+  String get installmentAddButton => 'Parcelamento';
+
+  @override
+  String get installmentPrincipalLabel => 'Valor da compra';
+
+  @override
+  String get installmentCountLabel => 'Número de parcelas';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n parcelas';
+  }
+
+  @override
+  String get installmentRateLabel => 'Taxa anual (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Cartões salvos';
+
+  @override
+  String get installmentCardNameLabel => 'Nome do cartão (opcional)';
+
+  @override
+  String get installmentDayLabel => 'Dia de pagamento';
+
+  @override
+  String get installmentMonthlyLabel => 'Parcela mensal';
+
+  @override
+  String get installmentFirstLabel => 'Primeira parcela';
+
+  @override
+  String get installmentFeeLabel => 'Juros totais';
+
+  @override
+  String get installmentTotalLabel => 'Total a pagar';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Parcela $index/$count';
+  }
 }

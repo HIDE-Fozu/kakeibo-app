@@ -288,5 +288,19 @@
   "settingsColorMustard": "Mostaza",
   "settingsColorGray": "Gris",
   "settingsColorTerracotta": "Terracota",
-  "settingsColorNavy": "Azul marino"
+  "settingsColorNavy": "Azul marino",
+  "installmentTitle": "Registrar pago a plazos",
+  "installmentAddButton": "Pago a plazos",
+  "installmentPrincipalLabel": "Importe de compra",
+  "installmentCountLabel": "Número de pagos",
+  "installmentCountItem": "{n} pagos",
+  "installmentRateLabel": "Tasa anual (%)",
+  "installmentCardPickLabel": "Tarjetas guardadas",
+  "installmentCardNameLabel": "Nombre de la tarjeta (opcional)",
+  "installmentDayLabel": "Día de pago",
+  "installmentMonthlyLabel": "Pago mensual",
+  "installmentFirstLabel": "Primer pago",
+  "installmentFeeLabel": "Intereses totales",
+  "installmentTotalLabel": "Total a pagar",
+  "installmentTxnMemo": "Cuota {index}/{count}"
 }

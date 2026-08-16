@@ -964,4 +964,50 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'ネイビー';
+
+  @override
+  String get installmentTitle => '分割払いを登録';
+
+  @override
+  String get installmentAddButton => '分割払い';
+
+  @override
+  String get installmentPrincipalLabel => '購入金額';
+
+  @override
+  String get installmentCountLabel => '支払い回数';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n回';
+  }
+
+  @override
+  String get installmentRateLabel => '実質年率（%）';
+
+  @override
+  String get installmentCardPickLabel => '登録済みカード';
+
+  @override
+  String get installmentCardNameLabel => 'カード名称（任意）';
+
+  @override
+  String get installmentDayLabel => '支払日';
+
+  @override
+  String get installmentMonthlyLabel => '月々の支払い';
+
+  @override
+  String get installmentFirstLabel => '初回';
+
+  @override
+  String get installmentFeeLabel => '手数料合計';
+
+  @override
+  String get installmentTotalLabel => '支払い総額';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return '分割払い $index/$count回';
+  }
 }

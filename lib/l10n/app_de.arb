@@ -288,5 +288,19 @@
   "settingsColorMustard": "Senf",
   "settingsColorGray": "Grau",
   "settingsColorTerracotta": "Terrakotta",
-  "settingsColorNavy": "Marineblau"
+  "settingsColorNavy": "Marineblau",
+  "installmentTitle": "Ratenzahlung hinzufügen",
+  "installmentAddButton": "Ratenzahlung",
+  "installmentPrincipalLabel": "Kaufbetrag",
+  "installmentCountLabel": "Anzahl der Raten",
+  "installmentCountItem": "{n} Raten",
+  "installmentRateLabel": "Effektiver Jahreszins (%)",
+  "installmentCardPickLabel": "Gespeicherte Karten",
+  "installmentCardNameLabel": "Kartenname (optional)",
+  "installmentDayLabel": "Zahltag",
+  "installmentMonthlyLabel": "Monatliche Rate",
+  "installmentFirstLabel": "Erste Rate",
+  "installmentFeeLabel": "Zinsen gesamt",
+  "installmentTotalLabel": "Gesamtbetrag",
+  "installmentTxnMemo": "Rate {index}/{count}"
 }

@@ -288,5 +288,19 @@
   "settingsColorMustard": "Moutarde",
   "settingsColorGray": "Gris",
   "settingsColorTerracotta": "Terracotta",
-  "settingsColorNavy": "Bleu marine"
+  "settingsColorNavy": "Bleu marine",
+  "installmentTitle": "Ajouter un paiement échelonné",
+  "installmentAddButton": "Paiement échelonné",
+  "installmentPrincipalLabel": "Montant de l’achat",
+  "installmentCountLabel": "Nombre de paiements",
+  "installmentCountItem": "{n} paiements",
+  "installmentRateLabel": "Taux annuel (%)",
+  "installmentCardPickLabel": "Cartes enregistrées",
+  "installmentCardNameLabel": "Nom de la carte (facultatif)",
+  "installmentDayLabel": "Jour de paiement",
+  "installmentMonthlyLabel": "Mensualité",
+  "installmentFirstLabel": "Première échéance",
+  "installmentFeeLabel": "Intérêts totaux",
+  "installmentTotalLabel": "Total à payer",
+  "installmentTxnMemo": "Échéance {index}/{count}"
 }

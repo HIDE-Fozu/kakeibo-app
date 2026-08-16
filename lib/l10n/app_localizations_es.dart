@@ -1000,4 +1000,50 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Azul marino';
+
+  @override
+  String get installmentTitle => 'Registrar pago a plazos';
+
+  @override
+  String get installmentAddButton => 'Pago a plazos';
+
+  @override
+  String get installmentPrincipalLabel => 'Importe de compra';
+
+  @override
+  String get installmentCountLabel => 'Número de pagos';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n pagos';
+  }
+
+  @override
+  String get installmentRateLabel => 'Tasa anual (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Tarjetas guardadas';
+
+  @override
+  String get installmentCardNameLabel => 'Nombre de la tarjeta (opcional)';
+
+  @override
+  String get installmentDayLabel => 'Día de pago';
+
+  @override
+  String get installmentMonthlyLabel => 'Pago mensual';
+
+  @override
+  String get installmentFirstLabel => 'Primer pago';
+
+  @override
+  String get installmentFeeLabel => 'Intereses totales';
+
+  @override
+  String get installmentTotalLabel => 'Total a pagar';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Cuota $index/$count';
+  }
 }

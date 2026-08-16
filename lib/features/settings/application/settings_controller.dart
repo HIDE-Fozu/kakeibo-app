@@ -7,6 +7,14 @@ import '../../../app/providers.dart';
 /// recentlyUsed=最近使った順（既定）/ manual=自分で決めた固定順（sortOrder）。
 enum CategoryOrderMode { recentlyUsed, manual }
 
+/// 分割払いで使うカード（名称＋実質年率）。端末ローカル（SharedPreferences）。
+/// 「カード名称を登録すれば次から選択で金利入力を省略できる」FB 2026-08-16。
+class InstallmentCard {
+  final String name;
+  final double annualRatePercent;
+  const InstallmentCard({required this.name, required this.annualRatePercent});
+}
+
 class SettingsState {
   final bool onboardingDone;
   final bool retainReceiptImages;
@@ -27,6 +35,9 @@ class SettingsState {
   /// 見込み収支の基準日。0=月末（既定）、1..31=毎月N日
   /// （短い月は起票日と同じ末日丸め）。カレンダーの見込み行タップで変更。
   final int forecastAnchorDay;
+
+  /// 分割払いの登録済みカード（名称順不同・名前で一意）。
+  final List<InstallmentCard> installmentCards;
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
@@ -36,6 +47,7 @@ class SettingsState {
     this.locale,
     this.currencyCode = 'JPY',
     this.forecastAnchorDay = 0,
+    this.installmentCards = const [],
   });
 }
 
@@ -52,6 +64,8 @@ class AppSettings extends Notifier<SettingsState> {
   static const kLocale = 'locale';
   static const kCurrency = 'currency';
   static const kForecastAnchorDay = 'forecastAnchorDay';
+  // 分割払いカード。1件 = "名称\t実質年率"（タブ区切り）の StringList。
+  static const kInstallmentCards = 'installmentCards';
 
   @override
   SettingsState build() {
@@ -72,7 +86,30 @@ class AppSettings extends Notifier<SettingsState> {
       locale: parseLocale(p.getString(kLocale)),
       currencyCode: p.getString(kCurrency) ?? 'JPY',
       forecastAnchorDay: p.getInt(kForecastAnchorDay) ?? 0,
+      installmentCards: [
+        for (final e in p.getStringList(kInstallmentCards) ?? const [])
+          if (e.contains('\t') &&
+              double.tryParse(e.substring(e.indexOf('\t') + 1)) != null)
+            InstallmentCard(
+              name: e.substring(0, e.indexOf('\t')),
+              annualRatePercent:
+                  double.parse(e.substring(e.indexOf('\t') + 1)),
+            ),
+      ],
     );
+  }
+
+  /// 分割払いカードを保存（同名は上書き）。
+  Future<void> saveInstallmentCard(String name, double ratePercent) async {
+    final p = ref.read(sharedPreferencesProvider);
+    final cards = [
+      for (final c in state.installmentCards)
+        if (c.name != name) c,
+      InstallmentCard(name: name, annualRatePercent: ratePercent),
+    ];
+    await p.setStringList(kInstallmentCards,
+        [for (final c in cards) '${c.name}\t${c.annualRatePercent}']);
+    ref.invalidateSelf();
   }
 
   /// BCP-47 タグ（例: "ja" / "zh" / "pt-BR"）→ Locale。null/空 = システム追従。

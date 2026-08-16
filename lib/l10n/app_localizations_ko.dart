@@ -967,4 +967,50 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsColorNavy => '네이비';
+
+  @override
+  String get installmentTitle => '할부 등록';
+
+  @override
+  String get installmentAddButton => '할부';
+
+  @override
+  String get installmentPrincipalLabel => '구매 금액';
+
+  @override
+  String get installmentCountLabel => '결제 횟수';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n회';
+  }
+
+  @override
+  String get installmentRateLabel => '실질 연이율(%)';
+
+  @override
+  String get installmentCardPickLabel => '저장된 카드';
+
+  @override
+  String get installmentCardNameLabel => '카드 이름(선택)';
+
+  @override
+  String get installmentDayLabel => '결제일';
+
+  @override
+  String get installmentMonthlyLabel => '월 납부액';
+
+  @override
+  String get installmentFirstLabel => '첫 회';
+
+  @override
+  String get installmentFeeLabel => '수수료 합계';
+
+  @override
+  String get installmentTotalLabel => '총 지불액';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return '할부 $index/$count회';
+  }
 }

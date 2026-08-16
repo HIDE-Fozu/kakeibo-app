@@ -288,5 +288,19 @@
   "settingsColorMustard": "머스터드",
   "settingsColorGray": "그레이",
   "settingsColorTerracotta": "테라코타",
-  "settingsColorNavy": "네이비"
+  "settingsColorNavy": "네이비",
+  "installmentTitle": "할부 등록",
+  "installmentAddButton": "할부",
+  "installmentPrincipalLabel": "구매 금액",
+  "installmentCountLabel": "결제 횟수",
+  "installmentCountItem": "{n}회",
+  "installmentRateLabel": "실질 연이율(%)",
+  "installmentCardPickLabel": "저장된 카드",
+  "installmentCardNameLabel": "카드 이름(선택)",
+  "installmentDayLabel": "결제일",
+  "installmentMonthlyLabel": "월 납부액",
+  "installmentFirstLabel": "첫 회",
+  "installmentFeeLabel": "수수료 합계",
+  "installmentTotalLabel": "총 지불액",
+  "installmentTxnMemo": "할부 {index}/{count}회"
 }

@@ -1001,4 +1001,50 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Blu navy';
+
+  @override
+  String get installmentTitle => 'Aggiungi pagamento rateale';
+
+  @override
+  String get installmentAddButton => 'Pagamento rateale';
+
+  @override
+  String get installmentPrincipalLabel => 'Importo di acquisto';
+
+  @override
+  String get installmentCountLabel => 'Numero di rate';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n rate';
+  }
+
+  @override
+  String get installmentRateLabel => 'Tasso annuo (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Carte salvate';
+
+  @override
+  String get installmentCardNameLabel => 'Nome della carta (facoltativo)';
+
+  @override
+  String get installmentDayLabel => 'Giorno di pagamento';
+
+  @override
+  String get installmentMonthlyLabel => 'Rata mensile';
+
+  @override
+  String get installmentFirstLabel => 'Prima rata';
+
+  @override
+  String get installmentFeeLabel => 'Interessi totali';
+
+  @override
+  String get installmentTotalLabel => 'Totale da pagare';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Rata $index/$count';
+  }
 }

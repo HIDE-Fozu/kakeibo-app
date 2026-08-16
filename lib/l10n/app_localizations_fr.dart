@@ -1005,4 +1005,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Bleu marine';
+
+  @override
+  String get installmentTitle => 'Ajouter un paiement échelonné';
+
+  @override
+  String get installmentAddButton => 'Paiement échelonné';
+
+  @override
+  String get installmentPrincipalLabel => 'Montant de l’achat';
+
+  @override
+  String get installmentCountLabel => 'Nombre de paiements';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n paiements';
+  }
+
+  @override
+  String get installmentRateLabel => 'Taux annuel (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Cartes enregistrées';
+
+  @override
+  String get installmentCardNameLabel => 'Nom de la carte (facultatif)';
+
+  @override
+  String get installmentDayLabel => 'Jour de paiement';
+
+  @override
+  String get installmentMonthlyLabel => 'Mensualité';
+
+  @override
+  String get installmentFirstLabel => 'Première échéance';
+
+  @override
+  String get installmentFeeLabel => 'Intérêts totaux';
+
+  @override
+  String get installmentTotalLabel => 'Total à payer';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Échéance $index/$count';
+  }
 }

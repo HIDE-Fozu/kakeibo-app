@@ -990,4 +990,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Navy';
+
+  @override
+  String get installmentTitle => 'Add installment plan';
+
+  @override
+  String get installmentAddButton => 'Installment plan';
+
+  @override
+  String get installmentPrincipalLabel => 'Purchase amount';
+
+  @override
+  String get installmentCountLabel => 'Number of payments';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n payments';
+  }
+
+  @override
+  String get installmentRateLabel => 'Annual rate (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Saved cards';
+
+  @override
+  String get installmentCardNameLabel => 'Card name (optional)';
+
+  @override
+  String get installmentDayLabel => 'Payment day';
+
+  @override
+  String get installmentMonthlyLabel => 'Monthly payment';
+
+  @override
+  String get installmentFirstLabel => 'First payment';
+
+  @override
+  String get installmentFeeLabel => 'Total interest';
+
+  @override
+  String get installmentTotalLabel => 'Total payment';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Installment $index/$count';
+  }
 }

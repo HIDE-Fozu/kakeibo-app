@@ -1845,6 +1845,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Navy'**
   String get settingsColorNavy;
+
+  /// No description provided for @installmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add installment plan'**
+  String get installmentTitle;
+
+  /// No description provided for @installmentAddButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment plan'**
+  String get installmentAddButton;
+
+  /// No description provided for @installmentPrincipalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase amount'**
+  String get installmentPrincipalLabel;
+
+  /// No description provided for @installmentCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of payments'**
+  String get installmentCountLabel;
+
+  /// No description provided for @installmentCountItem.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} payments'**
+  String installmentCountItem(int n);
+
+  /// No description provided for @installmentRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual rate (%)'**
+  String get installmentRateLabel;
+
+  /// No description provided for @installmentCardPickLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved cards'**
+  String get installmentCardPickLabel;
+
+  /// No description provided for @installmentCardNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card name (optional)'**
+  String get installmentCardNameLabel;
+
+  /// No description provided for @installmentDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment day'**
+  String get installmentDayLabel;
+
+  /// No description provided for @installmentMonthlyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly payment'**
+  String get installmentMonthlyLabel;
+
+  /// No description provided for @installmentFirstLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First payment'**
+  String get installmentFirstLabel;
+
+  /// No description provided for @installmentFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total interest'**
+  String get installmentFeeLabel;
+
+  /// No description provided for @installmentTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total payment'**
+  String get installmentTotalLabel;
+
+  /// No description provided for @installmentTxnMemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Installment {index}/{count}'**
+  String installmentTxnMemo(int index, int count);
 }
 
 class _AppLocalizationsDelegate

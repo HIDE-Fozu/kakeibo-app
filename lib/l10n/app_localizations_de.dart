@@ -997,4 +997,50 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsColorNavy => 'Marineblau';
+
+  @override
+  String get installmentTitle => 'Ratenzahlung hinzufügen';
+
+  @override
+  String get installmentAddButton => 'Ratenzahlung';
+
+  @override
+  String get installmentPrincipalLabel => 'Kaufbetrag';
+
+  @override
+  String get installmentCountLabel => 'Anzahl der Raten';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n Raten';
+  }
+
+  @override
+  String get installmentRateLabel => 'Effektiver Jahreszins (%)';
+
+  @override
+  String get installmentCardPickLabel => 'Gespeicherte Karten';
+
+  @override
+  String get installmentCardNameLabel => 'Kartenname (optional)';
+
+  @override
+  String get installmentDayLabel => 'Zahltag';
+
+  @override
+  String get installmentMonthlyLabel => 'Monatliche Rate';
+
+  @override
+  String get installmentFirstLabel => 'Erste Rate';
+
+  @override
+  String get installmentFeeLabel => 'Zinsen gesamt';
+
+  @override
+  String get installmentTotalLabel => 'Gesamtbetrag';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return 'Rate $index/$count';
+  }
 }

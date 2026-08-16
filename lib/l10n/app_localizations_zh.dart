@@ -961,4 +961,50 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsColorNavy => '藏青色';
+
+  @override
+  String get installmentTitle => '登记分期付款';
+
+  @override
+  String get installmentAddButton => '分期付款';
+
+  @override
+  String get installmentPrincipalLabel => '购买金额';
+
+  @override
+  String get installmentCountLabel => '期数';
+
+  @override
+  String installmentCountItem(int n) {
+    return '$n期';
+  }
+
+  @override
+  String get installmentRateLabel => '实际年利率（%）';
+
+  @override
+  String get installmentCardPickLabel => '已保存的卡';
+
+  @override
+  String get installmentCardNameLabel => '卡片名称（可选）';
+
+  @override
+  String get installmentDayLabel => '还款日';
+
+  @override
+  String get installmentMonthlyLabel => '每月还款';
+
+  @override
+  String get installmentFirstLabel => '首期';
+
+  @override
+  String get installmentFeeLabel => '手续费合计';
+
+  @override
+  String get installmentTotalLabel => '支付总额';
+
+  @override
+  String installmentTxnMemo(int index, int count) {
+    return '分期 $index/$count期';
+  }
 }

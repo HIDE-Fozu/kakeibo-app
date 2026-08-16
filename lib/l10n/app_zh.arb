@@ -288,5 +288,19 @@
   "settingsColorMustard": "芥末黄",
   "settingsColorGray": "灰色",
   "settingsColorTerracotta": "陶土色",
-  "settingsColorNavy": "藏青色"
+  "settingsColorNavy": "藏青色",
+  "installmentTitle": "登记分期付款",
+  "installmentAddButton": "分期付款",
+  "installmentPrincipalLabel": "购买金额",
+  "installmentCountLabel": "期数",
+  "installmentCountItem": "{n}期",
+  "installmentRateLabel": "实际年利率（%）",
+  "installmentCardPickLabel": "已保存的卡",
+  "installmentCardNameLabel": "卡片名称（可选）",
+  "installmentDayLabel": "还款日",
+  "installmentMonthlyLabel": "每月还款",
+  "installmentFirstLabel": "首期",
+  "installmentFeeLabel": "手续费合计",
+  "installmentTotalLabel": "支付总额",
+  "installmentTxnMemo": "分期 {index}/{count}期"
 }

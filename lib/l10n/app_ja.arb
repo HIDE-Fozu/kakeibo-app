@@ -288,5 +288,19 @@
   "settingsColorMustard": "マスタード",
   "settingsColorGray": "グレー",
   "settingsColorTerracotta": "テラコッタ",
-  "settingsColorNavy": "ネイビー"
+  "settingsColorNavy": "ネイビー",
+  "installmentTitle": "分割払いを登録",
+  "installmentAddButton": "分割払い",
+  "installmentPrincipalLabel": "購入金額",
+  "installmentCountLabel": "支払い回数",
+  "installmentCountItem": "{n}回",
+  "installmentRateLabel": "実質年率（%）",
+  "installmentCardPickLabel": "登録済みカード",
+  "installmentCardNameLabel": "カード名称（任意）",
+  "installmentDayLabel": "支払日",
+  "installmentMonthlyLabel": "月々の支払い",
+  "installmentFirstLabel": "初回",
+  "installmentFeeLabel": "手数料合計",
+  "installmentTotalLabel": "支払い総額",
+  "installmentTxnMemo": "分割払い {index}/{count}回"
 }

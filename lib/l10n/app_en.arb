@@ -859,5 +859,36 @@
   "settingsColorMustard": "Mustard",
   "settingsColorGray": "Gray",
   "settingsColorTerracotta": "Terracotta",
-  "settingsColorNavy": "Navy"
+  "settingsColorNavy": "Navy",
+  "installmentTitle": "Add installment plan",
+  "installmentAddButton": "Installment plan",
+  "installmentPrincipalLabel": "Purchase amount",
+  "installmentCountLabel": "Number of payments",
+  "installmentCountItem": "{n} payments",
+  "@installmentCountItem": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "installmentRateLabel": "Annual rate (%)",
+  "installmentCardPickLabel": "Saved cards",
+  "installmentCardNameLabel": "Card name (optional)",
+  "installmentDayLabel": "Payment day",
+  "installmentMonthlyLabel": "Monthly payment",
+  "installmentFirstLabel": "First payment",
+  "installmentFeeLabel": "Total interest",
+  "installmentTotalLabel": "Total payment",
+  "installmentTxnMemo": "Installment {index}/{count}",
+  "@installmentTxnMemo": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
