@@ -181,12 +181,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryStartSplitButton => '添加类别';
 
   @override
-  String get entrySplitEnterTotalFirst => '请先输入合计';
-
-  @override
-  String get entrySplitTapRowToStart => '接着请点按一个项目行继续';
-
-  @override
   String get entryCategoryHeading => '分类';
 
   @override
@@ -669,6 +663,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recurringStartNextMonth => '下月开始';
 
   @override
+  String get recurringEndMonthLabel => '结束';
+
+  @override
+  String get recurringEndNone => '无结束（持续）';
+
+  @override
+  String get recurringEndMonthNote => '记录到该月为止，之后停止';
+
+  @override
   String get recurringActiveTitle => '启用';
 
   @override
@@ -889,9 +892,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get calendarLegendChoreOverdue => '已超期';
-
-  @override
-  String get calendarLegendGhost => '固定支出预定';
 
   @override
   String get entryRecurringExpense => '每月支出';

@@ -182,12 +182,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryStartSplitButton => '카테고리 추가';
 
   @override
-  String get entrySplitEnterTotalFirst => '먼저 합계를 입력해 주세요';
-
-  @override
-  String get entrySplitTapRowToStart => '이제 품목 행을 눌러 계속하세요';
-
-  @override
   String get entryCategoryHeading => '카테고리';
 
   @override
@@ -674,6 +668,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recurringStartNextMonth => '다음 달부터';
 
   @override
+  String get recurringEndMonthLabel => '종료';
+
+  @override
+  String get recurringEndNone => '종료 없음(계속)';
+
+  @override
+  String get recurringEndMonthNote => '이 달까지 기록하고 이후 중단됩니다';
+
+  @override
   String get recurringActiveTitle => '사용';
 
   @override
@@ -895,9 +898,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get calendarLegendChoreOverdue => '기한 지남';
-
-  @override
-  String get calendarLegendGhost => '고정비 예정';
 
   @override
   String get entryRecurringExpense => '매월 지출';

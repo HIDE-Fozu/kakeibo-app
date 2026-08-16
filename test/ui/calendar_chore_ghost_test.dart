@@ -42,7 +42,8 @@ void main() {
     // セル27にグレーの予定額
     expect(find.byKey(const Key('ghost-amount-2026-07-27')), findsOneWidget);
     // 凡例
-    expect(find.text('固定費の予定'), findsOneWidget);
+    // 凡例「固定費の予定」は撤去済み（常時表示になっていたFB 2026-08-16）
+    expect(find.text('固定費の予定'), findsNothing);
     // ヘッダーの見込み収支（月末）: 実績0 - 85,000
     expect(find.byKey(const Key('forecast-line')), findsOneWidget);
     expect(find.textContaining('見込み収支（月末）'), findsOneWidget);

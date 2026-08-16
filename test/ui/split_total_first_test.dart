@@ -30,10 +30,11 @@ void main() {
     await tester.tap(find.byKey(const Key('start-split')));
     await tester.pumpAndSettle();
 
-    // 内訳に入るが「まず合計を入力」フェーズ: ヒントが出て演算子列は無い
+    // 内訳に入るが「まず合計を入力」フェーズ: 演算子列は無い。
+    // 案内文は置かず、ハイライトは上部の合計のみ（行のアクティブ枠なし）
     expect(st().splits, isNotNull);
     expect(st().splitTotalPending, isTrue);
-    expect(find.byKey(const Key('split-total-hint')), findsOneWidget);
+    expect(find.byKey(const Key('split-total-hint')), findsNothing);
     expect(find.byKey(const Key('np-op-+')), findsNothing);
 
     // 合計0の間は行に触れない（IgnorePointerでタップ無効）
@@ -52,12 +53,6 @@ void main() {
     expect(st().amountYen, 1000);
     expect(st().splits![0].expr, isEmpty);
     expect(st().splitTotalPending, isTrue); // 打鍵だけでは解除しない
-    // 案内が「行をタップして続行」に変わる
-    expect(
-        tester
-            .widget<Text>(find.byKey(const Key('split-total-hint')))
-            .data,
-        'つづけて品目の行をタップしてください');
 
     // 合計が入った状態で行をタップするとフェーズ解除 → 通常のトップダウンへ
     // （行中央はメモボタンなので番号バッジを狙う）
@@ -65,7 +60,6 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(st().splitTotalPending, isFalse);
-    expect(find.byKey(const Key('split-total-hint')), findsNothing);
     expect(find.byKey(const Key('np-op-+')), findsOneWidget); // 演算子列が戻る
 
     // 以後は従来どおり: 行0に300 → 残り700
@@ -98,7 +92,6 @@ void main() {
     final st = c.read(entryFormControllerProvider)!;
     expect(st.splits, isNotNull);
     expect(st.splitTotalPending, isFalse);
-    expect(find.byKey(const Key('split-total-hint')), findsNothing);
     expect(find.byKey(const Key('np-op-+')), findsOneWidget);
   });
 }

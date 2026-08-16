@@ -192,13 +192,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get entryStartSplitButton => 'Ajouter une catégorie';
 
   @override
-  String get entrySplitEnterTotalFirst => 'Saisissez d’abord le total';
-
-  @override
-  String get entrySplitTapRowToStart =>
-      'Touchez ensuite une ligne pour continuer';
-
-  @override
   String get entryCategoryHeading => 'Catégorie';
 
   @override
@@ -703,6 +696,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recurringStartNextMonth => 'Le mois prochain';
 
   @override
+  String get recurringEndMonthLabel => 'Fin';
+
+  @override
+  String get recurringEndNone => 'Sans fin (en continu)';
+
+  @override
+  String get recurringEndMonthNote =>
+      'Enregistré jusqu’à ce mois, puis s’arrête';
+
+  @override
   String get recurringActiveTitle => 'Actif';
 
   @override
@@ -932,9 +935,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get calendarLegendChoreOverdue => 'en retard';
-
-  @override
-  String get calendarLegendGhost => 'charge fixe prévue';
 
   @override
   String get entryRecurringExpense => 'Dépense mensuelle';

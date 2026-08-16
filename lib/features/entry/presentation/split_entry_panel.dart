@@ -114,35 +114,8 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
         const SizedBox(height: 4),
         // 「まず合計を入力」フェーズ（金額0で開始・FB 2026-08-16）: 合計が0の
         // 間は内訳の中身を触れない（ディム＋タップ無効）。電卓は合計を編集する。
-        // 合計が入ったらディムを解いて「行をタップして続行」を促す（行に触れた
-        // 時点でフェーズ解除＝以後は通常のトップダウン。コントローラ側のガード）。
-        if (state.splitTotalPending)
-          Padding(
-            padding: const EdgeInsets.only(left: 2, bottom: 4),
-            child: Row(
-              children: [
-                Icon(
-                  state.amountYen <= 0
-                      ? Icons.arrow_upward
-                      : Icons.arrow_downward,
-                  size: 14,
-                  color: scheme.primary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  state.amountYen <= 0
-                      ? l.entrySplitEnterTotalFirst
-                      : l.entrySplitTapRowToStart,
-                  key: const Key('split-total-hint'),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: scheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        // 案内文は置かない（FB: 上部の合計だけがハイライトされていれば足りる。
+        // 「選択は1つのみ」＝フェーズ中は行のアクティブ枠も消す）。
         IgnorePointer(
           ignoring: state.splitTotalPending && state.amountYen <= 0,
           child: Opacity(
@@ -361,7 +334,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final lines = state.splits!;
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
-    final active = i == state.activeSplitIndex;
+    // 合計入力フェーズ中はアクティブ枠を出さない（「選択は1つのみ」FB:
+    // ハイライトは上部の合計だけにする）。
+    final active =
+        !state.splitTotalPending && i == state.activeSplitIndex;
     final catLabel = line.categoryId == null
         ? null
         : categoryNames[line.categoryId];
@@ -544,7 +520,10 @@ class _SplitEntryPanelState extends ConsumerState<SplitEntryPanel> {
     final i = lines.length - 1;
     final line = lines[i];
     final scheme = Theme.of(context).colorScheme;
-    final active = i == state.activeSplitIndex;
+    // 合計入力フェーズ中はアクティブ枠を出さない（「選択は1つのみ」FB:
+    // ハイライトは上部の合計だけにする）。
+    final active =
+        !state.splitTotalPending && i == state.activeSplitIndex;
     final rem = state.splitRemainder;
     final over = rem < 0;
     final catLabel = line.categoryId == null

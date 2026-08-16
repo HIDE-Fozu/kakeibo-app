@@ -149,8 +149,6 @@
     }
   },
   "entryStartSplitButton": "Add category",
-  "entrySplitEnterTotalFirst": "Enter the total first",
-  "entrySplitTapRowToStart": "Now tap an item row to continue",
   "entryCategoryHeading": "Category",
   "entryDetailMemoLabel": "Notes",
   "entryStoreNameLabel": "Store name",
@@ -497,6 +495,9 @@
     "description": "Start month option: current month"
   },
   "recurringStartNextMonth": "Next month",
+  "recurringEndMonthLabel": "Ends",
+  "recurringEndNone": "No end (ongoing)",
+  "recurringEndMonthNote": "Recorded through this month, then stops",
   "@recurringStartNextMonth": {
     "description": "Start month option: next month"
   },
@@ -817,10 +818,6 @@
   "calendarLegendChoreOverdue": "overdue",
   "@calendarLegendChoreOverdue": {
     "description": "Calendar legend: red dot = chore overdue"
-  },
-  "calendarLegendGhost": "planned fixed cost",
-  "@calendarLegendGhost": {
-    "description": "Calendar legend: grey amount = not-yet-posted recurring transaction"
   },
   "entryRecurringExpense": "Monthly expense",
   "@entryRecurringExpense": {

@@ -412,18 +412,6 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get entryStartSplitButton;
 
-  /// No description provided for @entrySplitEnterTotalFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the total first'**
-  String get entrySplitEnterTotalFirst;
-
-  /// No description provided for @entrySplitTapRowToStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Now tap an item row to continue'**
-  String get entrySplitTapRowToStart;
-
   /// No description provided for @entryCategoryHeading.
   ///
   /// In en, this message translates to:
@@ -1306,6 +1294,24 @@ abstract class AppLocalizations {
   /// **'Next month'**
   String get recurringStartNextMonth;
 
+  /// No description provided for @recurringEndMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get recurringEndMonthLabel;
+
+  /// No description provided for @recurringEndNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No end (ongoing)'**
+  String get recurringEndNone;
+
+  /// No description provided for @recurringEndMonthNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded through this month, then stops'**
+  String get recurringEndMonthNote;
+
   /// Active/paused switch title on the edit page
   ///
   /// In en, this message translates to:
@@ -1701,12 +1707,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'overdue'**
   String get calendarLegendChoreOverdue;
-
-  /// Calendar legend: grey amount = not-yet-posted recurring transaction
-  ///
-  /// In en, this message translates to:
-  /// **'planned fixed cost'**
-  String get calendarLegendGhost;
 
   /// Entry screen toggle that also creates a recurring rule (expense)
   ///

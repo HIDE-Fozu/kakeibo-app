@@ -134,6 +134,7 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
     text: widget.rule?.memo ?? '',
   );
   late bool _isActive = widget.rule?.isActive ?? true;
+  late int? _endYm = widget.rule?.endYm; // null=終了なし（ずっと）
 
   @override
   void dispose() {
@@ -273,6 +274,42 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
                     ),
                   ],
                   const SizedBox(height: 16),
+                  // 終了月（FB 2026-08-16: 「この月で支払いが終わる」を設定できる）。
+                  // 0 = 終了なし。選択肢は実効開始月から36ヶ月＋既存値（範囲外でも保持）。
+                  Builder(builder: (context) {
+                    final today = ref.read(clockProvider)();
+                    final effStart = widget.rule?.startYm ??
+                        (_startNextMonth ? nextYm(ymOf(today)) : ymOf(today));
+                    final choices = <int>[];
+                    var ym = effStart;
+                    for (var i = 0; i < 36; i++) {
+                      choices.add(ym);
+                      ym = nextYm(ym);
+                    }
+                    final end = _endYm;
+                    if (end != null && !choices.contains(end)) {
+                      choices.insert(0, end);
+                    }
+                    return CellDropdownField<int>(
+                      key: const Key('recurring-end'),
+                      value: end ?? 0,
+                      decoration: InputDecoration(
+                        labelText: l.recurringEndMonthLabel,
+                        helperText: l.recurringEndMonthNote,
+                        helperMaxLines: 3,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        CellDropdownItem(0, l.recurringEndNone),
+                        for (final c in choices)
+                          CellDropdownItem(
+                              c, l.summaryMonthHeader(c ~/ 100, c % 100)),
+                      ],
+                      onChanged: (v) =>
+                          setState(() => _endYm = v == 0 ? null : v),
+                    );
+                  }),
+                  const SizedBox(height: 16),
                   TextField(
                     key: const Key('recurring-store'),
                     controller: _store,
@@ -339,7 +376,7 @@ class _RecurringRuleEditPageState extends ConsumerState<RecurringRuleEditPage> {
       isActive: _isActive,
       startYm:
           old?.startYm ?? (_startNextMonth ? nextYm(ymOf(today)) : ymOf(today)),
-      endYm: old?.endYm,
+      endYm: _endYm,
       lastGeneratedYm: old?.lastGeneratedYm,
     );
     if (old == null) {

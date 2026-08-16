@@ -93,9 +93,11 @@ class CalendarScreen extends ConsumerWidget {
                   _DayStyle.selected, totals, ghosts, choreMarks, mf),
             ),
           ),
-          if (choreMarks.isNotEmpty || ghosts.isNotEmpty)
-            _CalendarLegend(
-                hasChores: choreMarks.isNotEmpty, hasGhosts: ghosts.isNotEmpty),
+          // 凡例は家事ドットの分だけ。固定費の予定（ゴースト）はルールがある限り
+          // 毎月出るため凡例が常時表示になっていた（「ずっと出てる」FB 2026-08-16）。
+          // 意味は日別リストの「予定」バッジで伝わるので凡例からは外した。
+          if (choreMarks.isNotEmpty)
+            _CalendarLegend(hasChores: choreMarks.isNotEmpty),
           const Divider(height: 1),
           Expanded(child: DayTransactionList(day: selected)),
                 ],
@@ -108,12 +110,11 @@ class CalendarScreen extends ConsumerWidget {
   }
 }
 
-/// 家事ドット・予定額の凡例（該当があるときだけ表示）。
+/// 家事ドットの凡例（該当があるときだけ表示）。
 class _CalendarLegend extends StatelessWidget {
-  const _CalendarLegend({required this.hasChores, required this.hasGhosts});
+  const _CalendarLegend({required this.hasChores});
 
   final bool hasChores;
-  final bool hasGhosts;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +146,6 @@ class _CalendarLegend extends StatelessWidget {
             item(_kDotOverdue, l.calendarLegendChoreOverdue),
             item(_kDotDone, l.calendarLegendChoreDone),
           ],
-          if (hasGhosts) item(kMuted, l.calendarLegendGhost, outlined: true),
         ],
       ),
     );

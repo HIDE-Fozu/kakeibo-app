@@ -61,6 +61,47 @@ void main() {
     expect(txs.single.source, TxnSource.recurring);
   });
 
+  testWidgets('終了月: 「この月で支払いが終わる」を選んで保存 → endYm が入る',
+      (tester) async {
+    Future<void> settle() => tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 5));
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    // 固定時計は 2026-07-15 → 終了月の選択肢は 2026年7月から
+    await pumpApp(tester, h, home: const RecurringRulesPage());
+    await tester.tap(find.byKey(const Key('recurring-add')));
+    await settle();
+    await tester.enterText(find.byKey(const Key('recurring-amount')), '5000');
+    await tester.tap(find.byKey(const Key('recurring-category-expense')));
+    await settle();
+    await tester.tap(find.textContaining('食費').last);
+    await settle();
+
+    // 既定は「終了なし（ずっと）」→ 2026年10月を選ぶ
+    await tester.ensureVisible(find.byKey(const Key('recurring-end')));
+    await settle();
+    await tester.tap(find.byKey(const Key('recurring-end')),
+        warnIfMissed: false);
+    await settle();
+    expect(find.text('終了なし（ずっと）'), findsWidgets); // 欄＋メニュー項目
+    await tester.tap(find.text('2026年10月').last, warnIfMissed: false);
+    await settle();
+
+    await tester.ensureVisible(find.byKey(const Key('recurring-save')));
+    await tester.tap(find.byKey(const Key('recurring-save')));
+    await settle();
+
+    // watchAll().first はテストのfake asyncゾーンでデッドロックするので、
+    // ページが購読済みの StreamProvider の現在値を同期読みする。
+    final c = containerOf(tester);
+    final rules =
+        c.read(recurringRulesProvider).valueOrNull ?? const <RecurringRuleEntity>[];
+    expect(rules.single.endYm, 202610);
+  });
+
   testWidgets('編集フロー: 停止スイッチ・削除ができる', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();

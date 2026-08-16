@@ -181,12 +181,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryStartSplitButton => 'カテゴリを追加';
 
   @override
-  String get entrySplitEnterTotalFirst => 'まず合計を入力してください';
-
-  @override
-  String get entrySplitTapRowToStart => 'つづけて品目の行をタップしてください';
-
-  @override
   String get entryCategoryHeading => 'カテゴリ';
 
   @override
@@ -671,6 +665,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recurringStartNextMonth => '来月から';
 
   @override
+  String get recurringEndMonthLabel => '終了';
+
+  @override
+  String get recurringEndNone => '終了なし（ずっと）';
+
+  @override
+  String get recurringEndMonthNote => 'この月まで記帳して、以降は止まります';
+
+  @override
   String get recurringActiveTitle => '有効';
 
   @override
@@ -892,9 +895,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get calendarLegendChoreOverdue => '期日超過';
-
-  @override
-  String get calendarLegendGhost => '固定費の予定';
 
   @override
   String get entryRecurringExpense => '毎月の費用';
