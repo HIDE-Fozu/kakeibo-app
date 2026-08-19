@@ -54,9 +54,9 @@ class CalendarScreen extends ConsumerWidget {
             lastDay: DateTime(2100, 12, 31),
             focusedDay: dateTimeOfCivil(CivilDate(year, month, 1)),
             headerVisible: false,
-            // 66 = 数字26 + 家事ドット6 + 実績額13 + 予定額13 + カード余白
-            //（白カードセル化で62→66）。
-            rowHeight: 66,
+            // セルは正方形に近い縦横比（FB 2026-08-20: 幅≈52に対し55）。
+            // 58 = 数字22 + 家事ドット5 + 実績額12 + 予定額12 + 余白＋カード margin3。
+            rowHeight: 58,
             // 前後月のはみ出しマスも空の白カードで埋める（モック2枚目）。
             calendarStyle: const CalendarStyle(outsideDaysVisible: true),
             // 曜日ヘッダは日本語（日月火水木金土）。日曜=薄赤 / 土曜=薄青。
@@ -306,20 +306,20 @@ Widget _dayCell(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 3),
+        const SizedBox(height: 2),
         Container(
-          width: 26,
-          height: 26,
+          width: 22,
+          height: 22,
           alignment: Alignment.center,
           decoration: deco,
           child: Text(
             '${day.day}',
-            style: TextStyle(fontSize: 13, color: numColor, fontWeight: weight),
+            style: TextStyle(fontSize: 12, color: numColor, fontWeight: weight),
           ),
         ),
         if (marks != null)
           SizedBox(
-            height: 6,
+            height: 5,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -341,7 +341,8 @@ Widget _dayCell(
             child: Text(
               mf.compact(total),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9,
+                height: 1.2,
                 fontFeatures: kTabularFigures,
                 color: context.kakeiboColors.expense,
               ),
@@ -355,7 +356,8 @@ Widget _dayCell(
               mf.compact(ghost.abs()),
               key: Key('ghost-amount-$iso'),
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 9,
+                height: 1.2,
                 fontFeatures: kTabularFigures,
                 color: kMuted,
               ),
