@@ -55,6 +55,15 @@
   （calendar_chore_ghost_test）。
 - 空状態はSingleChildScrollView必須（キーボード表示・小型端末の縦潰れでRenderFlex溢れ）。
 
+## 追記（同日FB・3525474）
+
+- **日付セルを正方形に近い縦横比に**: rowHeight 66→58（セル約52×55・比≈1.06）。
+  数字の丸26→22・家事ドットレーン6→5・金額フォント10→9(height1.2)で
+  縦予算55に収めた。副次効果で日別カードが約48px高くなり、6週の月の
+  空状態も窮屈さが緩和（LayoutBuilderの2段構えはそのまま）。
+- **QAスクショは日付フォルダ分け**: 撮影ドライバ（test_driver/integration_test.dart）の
+  保存先を `build/qa_screens/<YYYY-MM-DD>/` に変更。既存画像も更新日で整理済み。
+
 ## ★次にやること
 
 1. **ユーザーの見た目レビュー**（design_1〜3スクショ or 実機）→ 微調整FB。
