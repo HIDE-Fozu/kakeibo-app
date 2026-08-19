@@ -60,7 +60,7 @@ void main() {
     expect(find.text('1.2万'), findsOneWidget);
   });
 
-  testWidgets('日タップでその日のリスト、tap=編集・swipe=削除+Undo', (tester) async {
+  testWidgets('日タップでその日のリスト、tap=編集・swipe=ごみ箱へ', (tester) async {
     final c = await pumpShell(tester);
     await seed(c, 800, day: 16, memo: 'コンビニ');
     await tester.pumpAndSettle();
@@ -77,15 +77,21 @@ void main() {
     await tester.tap(find.byType(CloseButton)); // fullscreenDialogは閉じるボタン
     await tester.pumpAndSettle();
 
-    // swipe -> 削除 + Undo
+    // swipe -> ごみ箱へ（FB 2026-08-16: Undoは撤去・×ボタン付き・10秒で消える）
     await tester.drag(find.text('コンビニ'), const Offset(-500, 0));
     await tester.pumpAndSettle();
-    expect(find.text('削除しました'), findsOneWidget);
+    expect(find.text('ごみ箱に移動しました（設定から復元できます）'), findsOneWidget);
+    expect(find.text('元に戻す'), findsNothing);
+    expect(find.byIcon(Icons.close), findsOneWidget); // showCloseIcon
     expect(await c.read(transactionRepositoryProvider).forMonth(2026, 7), isEmpty);
-    await tester.tap(find.text('元に戻す'));
+    final trashed = await tester.runAsync(
+        () => c.read(trashRepositoryProvider).watchAll().first);
+    expect(trashed!.single.tx.amountYen, 800);
+    // 10秒で自動的に消える（accessibleNavigation罠の回帰ガード:
+    // アクション無しなので必ずタイマーで閉じる）
+    await tester.pump(const Duration(seconds: 10));
     await tester.pumpAndSettle();
-    final restored = await c.read(transactionRepositoryProvider).forMonth(2026, 7);
-    expect(restored.single.amountYen, 800);
+    expect(find.text('ごみ箱に移動しました（設定から復元できます）'), findsNothing);
   });
 
   testWidgets('空の日: 追加ボタンは無く、FABから選択日既定で入力が開く', (tester) async {

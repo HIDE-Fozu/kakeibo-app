@@ -3694,6 +3694,793 @@ class ChoreRecordsCompanion extends UpdateCompanion<ChoreRecordRow> {
   }
 }
 
+class $DeletedTransactionsTable extends DeletedTransactions
+    with TableInfo<$DeletedTransactionsTable, DeletedTransactionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeletedTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TxnType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TxnType>($DeletedTransactionsTable.$convertertype);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CivilDate, String> date =
+      GeneratedColumn<String>(
+        'date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<CivilDate>($DeletedTransactionsTable.$converterdate);
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PaymentMethod?, String>
+  paymentMethod =
+      GeneratedColumn<String>(
+        'payment_method',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<PaymentMethod?>(
+        $DeletedTransactionsTable.$converterpaymentMethodn,
+      );
+  static const VerificationMeta _storeNameMeta = const VerificationMeta(
+    'storeName',
+  );
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+    'store_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _memoMeta = const VerificationMeta('memo');
+  @override
+  late final GeneratedColumn<String> memo = GeneratedColumn<String>(
+    'memo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TxnSource, String> source =
+      GeneratedColumn<String>(
+        'source',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TxnSource>($DeletedTransactionsTable.$convertersource);
+  static const VerificationMeta _imagePathMeta = const VerificationMeta(
+    'imagePath',
+  );
+  @override
+  late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
+    'image_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _splitGroupIdMeta = const VerificationMeta(
+    'splitGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> splitGroupId = GeneratedColumn<String>(
+    'split_group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _installmentPlanIdMeta = const VerificationMeta(
+    'installmentPlanId',
+  );
+  @override
+  late final GeneratedColumn<int> installmentPlanId = GeneratedColumn<int>(
+    'installment_plan_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    amount,
+    date,
+    categoryId,
+    paymentMethod,
+    storeName,
+    memo,
+    source,
+    imagePath,
+    splitGroupId,
+    installmentPlanId,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'deleted_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeletedTransactionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(
+        _storeNameMeta,
+        storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta),
+      );
+    }
+    if (data.containsKey('memo')) {
+      context.handle(
+        _memoMeta,
+        memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
+      );
+    }
+    if (data.containsKey('image_path')) {
+      context.handle(
+        _imagePathMeta,
+        imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta),
+      );
+    }
+    if (data.containsKey('split_group_id')) {
+      context.handle(
+        _splitGroupIdMeta,
+        splitGroupId.isAcceptableOrUnknown(
+          data['split_group_id']!,
+          _splitGroupIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('installment_plan_id')) {
+      context.handle(
+        _installmentPlanIdMeta,
+        installmentPlanId.isAcceptableOrUnknown(
+          data['installment_plan_id']!,
+          _installmentPlanIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deletedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeletedTransactionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeletedTransactionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      type: $DeletedTransactionsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      date: $DeletedTransactionsTable.$converterdate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}date'],
+        )!,
+      ),
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      paymentMethod: $DeletedTransactionsTable.$converterpaymentMethodn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}payment_method'],
+        ),
+      ),
+      storeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}store_name'],
+      ),
+      memo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memo'],
+      ),
+      source: $DeletedTransactionsTable.$convertersource.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}source'],
+        )!,
+      ),
+      imagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_path'],
+      ),
+      splitGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}split_group_id'],
+      ),
+      installmentPlanId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}installment_plan_id'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DeletedTransactionsTable createAlias(String alias) {
+    return $DeletedTransactionsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<TxnType, String, String> $convertertype =
+      const EnumNameConverter<TxnType>(TxnType.values);
+  static TypeConverter<CivilDate, String> $converterdate =
+      const CivilDateConverter();
+  static JsonTypeConverter2<PaymentMethod, String, String>
+  $converterpaymentMethod = const EnumNameConverter<PaymentMethod>(
+    PaymentMethod.values,
+  );
+  static JsonTypeConverter2<PaymentMethod?, String?, String?>
+  $converterpaymentMethodn = JsonTypeConverter2.asNullable(
+    $converterpaymentMethod,
+  );
+  static JsonTypeConverter2<TxnSource, String, String> $convertersource =
+      const EnumNameConverter<TxnSource>(TxnSource.values);
+}
+
+class DeletedTransactionRow extends DataClass
+    implements Insertable<DeletedTransactionRow> {
+  final int id;
+  final TxnType type;
+  final int amount;
+  final CivilDate date;
+  final int categoryId;
+  final PaymentMethod? paymentMethod;
+  final String? storeName;
+  final String? memo;
+  final TxnSource source;
+  final String? imagePath;
+  final String? splitGroupId;
+  final int? installmentPlanId;
+  final DateTime deletedAt;
+  const DeletedTransactionRow({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.date,
+    required this.categoryId,
+    this.paymentMethod,
+    this.storeName,
+    this.memo,
+    required this.source,
+    this.imagePath,
+    this.splitGroupId,
+    this.installmentPlanId,
+    required this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['type'] = Variable<String>(
+        $DeletedTransactionsTable.$convertertype.toSql(type),
+      );
+    }
+    map['amount'] = Variable<int>(amount);
+    {
+      map['date'] = Variable<String>(
+        $DeletedTransactionsTable.$converterdate.toSql(date),
+      );
+    }
+    map['category_id'] = Variable<int>(categoryId);
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(
+        $DeletedTransactionsTable.$converterpaymentMethodn.toSql(paymentMethod),
+      );
+    }
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
+    }
+    if (!nullToAbsent || memo != null) {
+      map['memo'] = Variable<String>(memo);
+    }
+    {
+      map['source'] = Variable<String>(
+        $DeletedTransactionsTable.$convertersource.toSql(source),
+      );
+    }
+    if (!nullToAbsent || imagePath != null) {
+      map['image_path'] = Variable<String>(imagePath);
+    }
+    if (!nullToAbsent || splitGroupId != null) {
+      map['split_group_id'] = Variable<String>(splitGroupId);
+    }
+    if (!nullToAbsent || installmentPlanId != null) {
+      map['installment_plan_id'] = Variable<int>(installmentPlanId);
+    }
+    map['deleted_at'] = Variable<DateTime>(deletedAt);
+    return map;
+  }
+
+  DeletedTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return DeletedTransactionsCompanion(
+      id: Value(id),
+      type: Value(type),
+      amount: Value(amount),
+      date: Value(date),
+      categoryId: Value(categoryId),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
+      memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
+      source: Value(source),
+      imagePath: imagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imagePath),
+      splitGroupId: splitGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(splitGroupId),
+      installmentPlanId: installmentPlanId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(installmentPlanId),
+      deletedAt: Value(deletedAt),
+    );
+  }
+
+  factory DeletedTransactionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeletedTransactionRow(
+      id: serializer.fromJson<int>(json['id']),
+      type: $DeletedTransactionsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      amount: serializer.fromJson<int>(json['amount']),
+      date: serializer.fromJson<CivilDate>(json['date']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      paymentMethod: $DeletedTransactionsTable.$converterpaymentMethodn
+          .fromJson(serializer.fromJson<String?>(json['paymentMethod'])),
+      storeName: serializer.fromJson<String?>(json['storeName']),
+      memo: serializer.fromJson<String?>(json['memo']),
+      source: $DeletedTransactionsTable.$convertersource.fromJson(
+        serializer.fromJson<String>(json['source']),
+      ),
+      imagePath: serializer.fromJson<String?>(json['imagePath']),
+      splitGroupId: serializer.fromJson<String?>(json['splitGroupId']),
+      installmentPlanId: serializer.fromJson<int?>(json['installmentPlanId']),
+      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'type': serializer.toJson<String>(
+        $DeletedTransactionsTable.$convertertype.toJson(type),
+      ),
+      'amount': serializer.toJson<int>(amount),
+      'date': serializer.toJson<CivilDate>(date),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'paymentMethod': serializer.toJson<String?>(
+        $DeletedTransactionsTable.$converterpaymentMethodn.toJson(
+          paymentMethod,
+        ),
+      ),
+      'storeName': serializer.toJson<String?>(storeName),
+      'memo': serializer.toJson<String?>(memo),
+      'source': serializer.toJson<String>(
+        $DeletedTransactionsTable.$convertersource.toJson(source),
+      ),
+      'imagePath': serializer.toJson<String?>(imagePath),
+      'splitGroupId': serializer.toJson<String?>(splitGroupId),
+      'installmentPlanId': serializer.toJson<int?>(installmentPlanId),
+      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+    };
+  }
+
+  DeletedTransactionRow copyWith({
+    int? id,
+    TxnType? type,
+    int? amount,
+    CivilDate? date,
+    int? categoryId,
+    Value<PaymentMethod?> paymentMethod = const Value.absent(),
+    Value<String?> storeName = const Value.absent(),
+    Value<String?> memo = const Value.absent(),
+    TxnSource? source,
+    Value<String?> imagePath = const Value.absent(),
+    Value<String?> splitGroupId = const Value.absent(),
+    Value<int?> installmentPlanId = const Value.absent(),
+    DateTime? deletedAt,
+  }) => DeletedTransactionRow(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    amount: amount ?? this.amount,
+    date: date ?? this.date,
+    categoryId: categoryId ?? this.categoryId,
+    paymentMethod: paymentMethod.present
+        ? paymentMethod.value
+        : this.paymentMethod,
+    storeName: storeName.present ? storeName.value : this.storeName,
+    memo: memo.present ? memo.value : this.memo,
+    source: source ?? this.source,
+    imagePath: imagePath.present ? imagePath.value : this.imagePath,
+    splitGroupId: splitGroupId.present ? splitGroupId.value : this.splitGroupId,
+    installmentPlanId: installmentPlanId.present
+        ? installmentPlanId.value
+        : this.installmentPlanId,
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
+  DeletedTransactionRow copyWithCompanion(DeletedTransactionsCompanion data) {
+    return DeletedTransactionRow(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      date: data.date.present ? data.date.value : this.date,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      memo: data.memo.present ? data.memo.value : this.memo,
+      source: data.source.present ? data.source.value : this.source,
+      imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      splitGroupId: data.splitGroupId.present
+          ? data.splitGroupId.value
+          : this.splitGroupId,
+      installmentPlanId: data.installmentPlanId.present
+          ? data.installmentPlanId.value
+          : this.installmentPlanId,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeletedTransactionRow(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('date: $date, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('storeName: $storeName, ')
+          ..write('memo: $memo, ')
+          ..write('source: $source, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('splitGroupId: $splitGroupId, ')
+          ..write('installmentPlanId: $installmentPlanId, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    amount,
+    date,
+    categoryId,
+    paymentMethod,
+    storeName,
+    memo,
+    source,
+    imagePath,
+    splitGroupId,
+    installmentPlanId,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeletedTransactionRow &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.amount == this.amount &&
+          other.date == this.date &&
+          other.categoryId == this.categoryId &&
+          other.paymentMethod == this.paymentMethod &&
+          other.storeName == this.storeName &&
+          other.memo == this.memo &&
+          other.source == this.source &&
+          other.imagePath == this.imagePath &&
+          other.splitGroupId == this.splitGroupId &&
+          other.installmentPlanId == this.installmentPlanId &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DeletedTransactionsCompanion
+    extends UpdateCompanion<DeletedTransactionRow> {
+  final Value<int> id;
+  final Value<TxnType> type;
+  final Value<int> amount;
+  final Value<CivilDate> date;
+  final Value<int> categoryId;
+  final Value<PaymentMethod?> paymentMethod;
+  final Value<String?> storeName;
+  final Value<String?> memo;
+  final Value<TxnSource> source;
+  final Value<String?> imagePath;
+  final Value<String?> splitGroupId;
+  final Value<int?> installmentPlanId;
+  final Value<DateTime> deletedAt;
+  const DeletedTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.date = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.memo = const Value.absent(),
+    this.source = const Value.absent(),
+    this.imagePath = const Value.absent(),
+    this.splitGroupId = const Value.absent(),
+    this.installmentPlanId = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  DeletedTransactionsCompanion.insert({
+    this.id = const Value.absent(),
+    required TxnType type,
+    required int amount,
+    required CivilDate date,
+    required int categoryId,
+    this.paymentMethod = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.memo = const Value.absent(),
+    required TxnSource source,
+    this.imagePath = const Value.absent(),
+    this.splitGroupId = const Value.absent(),
+    this.installmentPlanId = const Value.absent(),
+    required DateTime deletedAt,
+  }) : type = Value(type),
+       amount = Value(amount),
+       date = Value(date),
+       categoryId = Value(categoryId),
+       source = Value(source),
+       deletedAt = Value(deletedAt);
+  static Insertable<DeletedTransactionRow> custom({
+    Expression<int>? id,
+    Expression<String>? type,
+    Expression<int>? amount,
+    Expression<String>? date,
+    Expression<int>? categoryId,
+    Expression<String>? paymentMethod,
+    Expression<String>? storeName,
+    Expression<String>? memo,
+    Expression<String>? source,
+    Expression<String>? imagePath,
+    Expression<String>? splitGroupId,
+    Expression<int>? installmentPlanId,
+    Expression<DateTime>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (amount != null) 'amount': amount,
+      if (date != null) 'date': date,
+      if (categoryId != null) 'category_id': categoryId,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (storeName != null) 'store_name': storeName,
+      if (memo != null) 'memo': memo,
+      if (source != null) 'source': source,
+      if (imagePath != null) 'image_path': imagePath,
+      if (splitGroupId != null) 'split_group_id': splitGroupId,
+      if (installmentPlanId != null) 'installment_plan_id': installmentPlanId,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  DeletedTransactionsCompanion copyWith({
+    Value<int>? id,
+    Value<TxnType>? type,
+    Value<int>? amount,
+    Value<CivilDate>? date,
+    Value<int>? categoryId,
+    Value<PaymentMethod?>? paymentMethod,
+    Value<String?>? storeName,
+    Value<String?>? memo,
+    Value<TxnSource>? source,
+    Value<String?>? imagePath,
+    Value<String?>? splitGroupId,
+    Value<int?>? installmentPlanId,
+    Value<DateTime>? deletedAt,
+  }) {
+    return DeletedTransactionsCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      categoryId: categoryId ?? this.categoryId,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      storeName: storeName ?? this.storeName,
+      memo: memo ?? this.memo,
+      source: source ?? this.source,
+      imagePath: imagePath ?? this.imagePath,
+      splitGroupId: splitGroupId ?? this.splitGroupId,
+      installmentPlanId: installmentPlanId ?? this.installmentPlanId,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $DeletedTransactionsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(
+        $DeletedTransactionsTable.$converterdate.toSql(date.value),
+      );
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(
+        $DeletedTransactionsTable.$converterpaymentMethodn.toSql(
+          paymentMethod.value,
+        ),
+      );
+    }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
+    if (memo.present) {
+      map['memo'] = Variable<String>(memo.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(
+        $DeletedTransactionsTable.$convertersource.toSql(source.value),
+      );
+    }
+    if (imagePath.present) {
+      map['image_path'] = Variable<String>(imagePath.value);
+    }
+    if (splitGroupId.present) {
+      map['split_group_id'] = Variable<String>(splitGroupId.value);
+    }
+    if (installmentPlanId.present) {
+      map['installment_plan_id'] = Variable<int>(installmentPlanId.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeletedTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('date: $date, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('storeName: $storeName, ')
+          ..write('memo: $memo, ')
+          ..write('source: $source, ')
+          ..write('imagePath: $imagePath, ')
+          ..write('splitGroupId: $splitGroupId, ')
+          ..write('installmentPlanId: $installmentPlanId, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3705,6 +4492,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecurringRulesTable recurringRules = $RecurringRulesTable(this);
   late final $ChoreTasksTable choreTasks = $ChoreTasksTable(this);
   late final $ChoreRecordsTable choreRecords = $ChoreRecordsTable(this);
+  late final $DeletedTransactionsTable deletedTransactions =
+      $DeletedTransactionsTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -3724,6 +4513,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     recurringRules,
     choreTasks,
     choreRecords,
+    deletedTransactions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -6698,6 +7488,381 @@ typedef $$ChoreRecordsTableProcessedTableManager =
       ChoreRecordRow,
       PrefetchHooks Function({bool taskId})
     >;
+typedef $$DeletedTransactionsTableCreateCompanionBuilder =
+    DeletedTransactionsCompanion Function({
+      Value<int> id,
+      required TxnType type,
+      required int amount,
+      required CivilDate date,
+      required int categoryId,
+      Value<PaymentMethod?> paymentMethod,
+      Value<String?> storeName,
+      Value<String?> memo,
+      required TxnSource source,
+      Value<String?> imagePath,
+      Value<String?> splitGroupId,
+      Value<int?> installmentPlanId,
+      required DateTime deletedAt,
+    });
+typedef $$DeletedTransactionsTableUpdateCompanionBuilder =
+    DeletedTransactionsCompanion Function({
+      Value<int> id,
+      Value<TxnType> type,
+      Value<int> amount,
+      Value<CivilDate> date,
+      Value<int> categoryId,
+      Value<PaymentMethod?> paymentMethod,
+      Value<String?> storeName,
+      Value<String?> memo,
+      Value<TxnSource> source,
+      Value<String?> imagePath,
+      Value<String?> splitGroupId,
+      Value<int?> installmentPlanId,
+      Value<DateTime> deletedAt,
+    });
+
+class $$DeletedTransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $DeletedTransactionsTable> {
+  $$DeletedTransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TxnType, TxnType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CivilDate, CivilDate, String> get date =>
+      $composableBuilder(
+        column: $table.date,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PaymentMethod?, PaymentMethod, String>
+  get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TxnSource, TxnSource, String> get source =>
+      $composableBuilder(
+        column: $table.source,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get imagePath => $composableBuilder(
+    column: $table.imagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get installmentPlanId => $composableBuilder(
+    column: $table.installmentPlanId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DeletedTransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DeletedTransactionsTable> {
+  $$DeletedTransactionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get storeName => $composableBuilder(
+    column: $table.storeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get imagePath => $composableBuilder(
+    column: $table.imagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get installmentPlanId => $composableBuilder(
+    column: $table.installmentPlanId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DeletedTransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DeletedTransactionsTable> {
+  $$DeletedTransactionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TxnType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<CivilDate, String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<PaymentMethod?, String> get paymentMethod =>
+      $composableBuilder(
+        column: $table.paymentMethod,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get storeName =>
+      $composableBuilder(column: $table.storeName, builder: (column) => column);
+
+  GeneratedColumn<String> get memo =>
+      $composableBuilder(column: $table.memo, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TxnSource, String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get imagePath =>
+      $composableBuilder(column: $table.imagePath, builder: (column) => column);
+
+  GeneratedColumn<String> get splitGroupId => $composableBuilder(
+    column: $table.splitGroupId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get installmentPlanId => $composableBuilder(
+    column: $table.installmentPlanId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$DeletedTransactionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DeletedTransactionsTable,
+          DeletedTransactionRow,
+          $$DeletedTransactionsTableFilterComposer,
+          $$DeletedTransactionsTableOrderingComposer,
+          $$DeletedTransactionsTableAnnotationComposer,
+          $$DeletedTransactionsTableCreateCompanionBuilder,
+          $$DeletedTransactionsTableUpdateCompanionBuilder,
+          (
+            DeletedTransactionRow,
+            BaseReferences<
+              _$AppDatabase,
+              $DeletedTransactionsTable,
+              DeletedTransactionRow
+            >,
+          ),
+          DeletedTransactionRow,
+          PrefetchHooks Function()
+        > {
+  $$DeletedTransactionsTableTableManager(
+    _$AppDatabase db,
+    $DeletedTransactionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeletedTransactionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeletedTransactionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DeletedTransactionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<TxnType> type = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<CivilDate> date = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<PaymentMethod?> paymentMethod = const Value.absent(),
+                Value<String?> storeName = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
+                Value<TxnSource> source = const Value.absent(),
+                Value<String?> imagePath = const Value.absent(),
+                Value<String?> splitGroupId = const Value.absent(),
+                Value<int?> installmentPlanId = const Value.absent(),
+                Value<DateTime> deletedAt = const Value.absent(),
+              }) => DeletedTransactionsCompanion(
+                id: id,
+                type: type,
+                amount: amount,
+                date: date,
+                categoryId: categoryId,
+                paymentMethod: paymentMethod,
+                storeName: storeName,
+                memo: memo,
+                source: source,
+                imagePath: imagePath,
+                splitGroupId: splitGroupId,
+                installmentPlanId: installmentPlanId,
+                deletedAt: deletedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required TxnType type,
+                required int amount,
+                required CivilDate date,
+                required int categoryId,
+                Value<PaymentMethod?> paymentMethod = const Value.absent(),
+                Value<String?> storeName = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
+                required TxnSource source,
+                Value<String?> imagePath = const Value.absent(),
+                Value<String?> splitGroupId = const Value.absent(),
+                Value<int?> installmentPlanId = const Value.absent(),
+                required DateTime deletedAt,
+              }) => DeletedTransactionsCompanion.insert(
+                id: id,
+                type: type,
+                amount: amount,
+                date: date,
+                categoryId: categoryId,
+                paymentMethod: paymentMethod,
+                storeName: storeName,
+                memo: memo,
+                source: source,
+                imagePath: imagePath,
+                splitGroupId: splitGroupId,
+                installmentPlanId: installmentPlanId,
+                deletedAt: deletedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DeletedTransactionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DeletedTransactionsTable,
+      DeletedTransactionRow,
+      $$DeletedTransactionsTableFilterComposer,
+      $$DeletedTransactionsTableOrderingComposer,
+      $$DeletedTransactionsTableAnnotationComposer,
+      $$DeletedTransactionsTableCreateCompanionBuilder,
+      $$DeletedTransactionsTableUpdateCompanionBuilder,
+      (
+        DeletedTransactionRow,
+        BaseReferences<
+          _$AppDatabase,
+          $DeletedTransactionsTable,
+          DeletedTransactionRow
+        >,
+      ),
+      DeletedTransactionRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6714,4 +7879,6 @@ class $AppDatabaseManager {
       $$ChoreTasksTableTableManager(_db, _db.choreTasks);
   $$ChoreRecordsTableTableManager get choreRecords =>
       $$ChoreRecordsTableTableManager(_db, _db.choreRecords);
+  $$DeletedTransactionsTableTableManager get deletedTransactions =>
+      $$DeletedTransactionsTableTableManager(_db, _db.deletedTransactions);
 }

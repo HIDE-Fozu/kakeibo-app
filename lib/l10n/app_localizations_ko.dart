@@ -530,10 +530,39 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => '삭제했습니다';
+  String get calendarUndoAction => '실행 취소';
 
   @override
-  String get calendarUndoAction => '실행 취소';
+  String get trashMovedSnack => '휴지통으로 이동했습니다 (설정에서 복원 가능)';
+
+  @override
+  String get trashTitle => '휴지통';
+
+  @override
+  String get settingsTrashSubtitle => '삭제한 내역을 30일간 보관합니다';
+
+  @override
+  String get trashEmpty => '휴지통이 비어 있습니다';
+
+  @override
+  String get trashRestore => '복원';
+
+  @override
+  String get trashRestoredSnack => '복원했습니다';
+
+  @override
+  String trashDeletedOn(String date) {
+    return '$date 삭제됨';
+  }
+
+  @override
+  String get trashEmptyAction => '휴지통 비우기';
+
+  @override
+  String get trashEmptyConfirmTitle => '휴지통을 비울까요?';
+
+  @override
+  String get trashEmptyConfirmContent => '모든 항목이 완전히 삭제됩니다. 되돌릴 수 없습니다.';
 
   @override
   String get splitTaxDialogTitle => '품목별 세율';

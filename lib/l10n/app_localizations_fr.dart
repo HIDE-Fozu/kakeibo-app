@@ -551,10 +551,42 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Supprimé';
+  String get calendarUndoAction => 'Annuler';
 
   @override
-  String get calendarUndoAction => 'Annuler';
+  String get trashMovedSnack =>
+      'Déplacé dans la corbeille (restauration depuis les réglages)';
+
+  @override
+  String get trashTitle => 'Corbeille';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Les transactions supprimées sont conservées 30 jours';
+
+  @override
+  String get trashEmpty => 'La corbeille est vide';
+
+  @override
+  String get trashRestore => 'Restaurer';
+
+  @override
+  String get trashRestoredSnack => 'Restauré';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Supprimé le $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Vider la corbeille';
+
+  @override
+  String get trashEmptyConfirmTitle => 'Vider la corbeille ?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'Tous les éléments seront définitivement supprimés. Cette action est irréversible.';
 
   @override
   String get splitTaxDialogTitle => 'Taux de TVA par article';

@@ -26,6 +26,27 @@ abstract interface class TransactionRepository {
   Future<void> delete(int id);
 }
 
+/// ごみ箱（最近削除した取引）。取引の削除はhard deleteの代わりにここへ移し、
+/// 設定画面から復元できる（FB 2026-08-16: SnackBarの「元に戻す」の受け皿）。
+abstract interface class TrashRepository {
+  /// deletedAt の新しい順。
+  Stream<List<TrashEntry>> watchAll();
+
+  /// 取引を削除してごみ箱へ移す（1トランザクション）。冪等。
+  Future<void> moveToTrash(int transactionId);
+
+  /// 同内容を再addしてごみ箱から除く（id/createdAtは新規: 旧Undoと同じ制約）。
+  /// 分割払いの計画が既に消えていれば紐付けを外して復元する。冪等。
+  Future<void> restore(int trashId);
+
+  /// 保持期間（kTrashRetention）を過ぎた行を消す。消した件数を返す。
+  /// ごみ箱ページを開いたときに呼ぶ。
+  Future<int> purgeExpired();
+
+  /// 全行を完全削除する（設定の「ごみ箱を空にする」）。
+  Future<void> emptyTrash();
+}
+
 abstract interface class RecurringRuleRepository {
   Stream<List<RecurringRuleEntity>> watchAll();
   Future<int> add(RecurringRuleEntity rule);

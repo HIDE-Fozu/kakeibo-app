@@ -528,10 +528,39 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => '削除しました';
+  String get calendarUndoAction => '元に戻す';
 
   @override
-  String get calendarUndoAction => '元に戻す';
+  String get trashMovedSnack => 'ごみ箱に移動しました（設定から復元できます）';
+
+  @override
+  String get trashTitle => 'ごみ箱';
+
+  @override
+  String get settingsTrashSubtitle => '削除した取引を30日間保管します';
+
+  @override
+  String get trashEmpty => 'ごみ箱は空です';
+
+  @override
+  String get trashRestore => '復元';
+
+  @override
+  String get trashRestoredSnack => '復元しました';
+
+  @override
+  String trashDeletedOn(String date) {
+    return '$date に削除';
+  }
+
+  @override
+  String get trashEmptyAction => 'ごみ箱を空にする';
+
+  @override
+  String get trashEmptyConfirmTitle => 'ごみ箱を空にしますか？';
+
+  @override
+  String get trashEmptyConfirmContent => 'すべての項目が完全に削除されます。この操作は取り消せません。';
 
   @override
   String get splitTaxDialogTitle => '品目ごとの税率';

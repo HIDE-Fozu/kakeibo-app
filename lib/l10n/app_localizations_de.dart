@@ -547,10 +547,42 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Gelöscht';
+  String get calendarUndoAction => 'Rückgängig';
 
   @override
-  String get calendarUndoAction => 'Rückgängig';
+  String get trashMovedSnack =>
+      'In den Papierkorb verschoben (Wiederherstellen in den Einstellungen)';
+
+  @override
+  String get trashTitle => 'Papierkorb';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Gelöschte Buchungen werden 30 Tage aufbewahrt';
+
+  @override
+  String get trashEmpty => 'Der Papierkorb ist leer';
+
+  @override
+  String get trashRestore => 'Wiederherstellen';
+
+  @override
+  String get trashRestoredSnack => 'Wiederhergestellt';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Gelöscht am $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Papierkorb leeren';
+
+  @override
+  String get trashEmptyConfirmTitle => 'Papierkorb leeren?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'Alle Einträge werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.';
 
   @override
   String get splitTaxDialogTitle => 'Steuersatz pro Posten';

@@ -20,6 +20,7 @@ import '../../recurring/presentation/recurring_rules_page.dart';
 import 'category_manage_page.dart';
 import 'theme_color_sheet.dart';
 import 'restore_picker_page.dart';
+import 'trash_page.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -72,6 +73,16 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const RestorePickerPage()),
+            ),
+          ),
+          ListTile(
+            key: const Key('trash-tile'),
+            leading: const Icon(Icons.delete_outline),
+            title: Text(l.trashTitle),
+            subtitle: Text(l.settingsTrashSubtitle),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TrashPage()),
             ),
           ),
           // テスト期間限定: 収集済みOCRデータ（JSON+写真）の送信まわり。

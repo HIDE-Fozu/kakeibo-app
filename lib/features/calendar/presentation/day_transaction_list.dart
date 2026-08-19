@@ -248,7 +248,7 @@ class DayTransactionList extends ConsumerWidget {
         padding: const EdgeInsets.only(right: 20),
         child: Icon(Icons.delete, color: scheme.onError),
       ),
-      onDismissed: (_) => _deleteWithUndo(context, ref, tx),
+      onDismissed: (_) => _deleteToTrash(context, ref, tx),
       child: ListTile(
         dense: dense,
         visualDensity: dense ? VisualDensity.compact : null,
@@ -283,16 +283,19 @@ class DayTransactionList extends ConsumerWidget {
     );
   }
 
-  /// Undo は同内容の再add（id/createdAtは新規になる: v1の既知の限界）
-  void _deleteWithUndo(
-      BuildContext context, WidgetRef ref, TransactionEntity tx) {
+  /// 削除はごみ箱へ移す（復元は設定の「ごみ箱」から）。SnackBarは×ボタン付きで
+  /// 10秒後に必ず消える。アクション付きSnackBarは accessibleNavigation
+  /// （VoiceOver等）だと自動で消えないFlutter仕様があるため「元に戻す」は
+  /// 置かない（FB 2026-08-16）。
+  void _deleteToTrash(BuildContext context, WidgetRef ref, TransactionEntity tx) {
     final l = AppLocalizations.of(context);
-    final repo = ref.read(transactionRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
-    repo.delete(tx.id!);
+    ref.read(trashRepositoryProvider).moveToTrash(tx.id!);
+    messenger.clearSnackBars(); // 連続削除で10秒×件数ぶん滞留させない
     messenger.showSnackBar(SnackBar(
-      content: Text(l.calendarDeleteSnackbar),
-      action: SnackBarAction(label: l.calendarUndoAction, onPressed: () => repo.add(tx)),
+      content: Text(l.trashMovedSnack),
+      showCloseIcon: true,
+      duration: const Duration(seconds: 10),
     ));
   }
 }

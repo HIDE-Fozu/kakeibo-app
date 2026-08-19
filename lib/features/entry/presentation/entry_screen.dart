@@ -869,8 +869,16 @@ class EntryScreen extends ConsumerWidget {
       ),
     );
     if (ok != true || !context.mounted) return;
+    // messengerはpop後も生きるroot ScaffoldMessenger（戻り先の画面に出す）。
+    final messenger = ScaffoldMessenger.of(context);
     await ref.read(entryFormControllerProvider.notifier).deleteEditing();
     if (context.mounted) Navigator.pop(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.trashMovedSnack),
+      showCloseIcon: true,
+      duration: const Duration(seconds: 10),
+    ));
   }
 }
 

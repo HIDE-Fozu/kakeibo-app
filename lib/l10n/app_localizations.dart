@@ -1048,17 +1048,71 @@ abstract class AppLocalizations {
   /// **'{name} (Archived)'**
   String calendarCategoryArchivedLabel(String name);
 
-  /// No description provided for @calendarDeleteSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted'**
-  String get calendarDeleteSnackbar;
-
   /// No description provided for @calendarUndoAction.
   ///
   /// In en, this message translates to:
   /// **'Undo'**
   String get calendarUndoAction;
+
+  /// Snackbar shown after deleting a transaction (it was moved to the trash, restorable from Settings)
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to Trash (restore from Settings)'**
+  String get trashMovedSnack;
+
+  /// Trash screen title / settings row label
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// Settings row subtitle and trash empty-state note: retention period
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted transactions are kept for 30 days'**
+  String get settingsTrashSubtitle;
+
+  /// Empty state of the trash screen
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashEmpty;
+
+  /// Tooltip of the restore button on a trash row
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get trashRestore;
+
+  /// Snackbar shown after restoring a transaction from the trash
+  ///
+  /// In en, this message translates to:
+  /// **'Restored'**
+  String get trashRestoredSnack;
+
+  /// Trash row subtitle: when the transaction was deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {date}'**
+  String trashDeletedOn(String date);
+
+  /// AppBar action on the trash screen: permanently delete everything
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash'**
+  String get trashEmptyAction;
+
+  /// Confirm dialog title for emptying the trash
+  ///
+  /// In en, this message translates to:
+  /// **'Empty the Trash?'**
+  String get trashEmptyConfirmTitle;
+
+  /// Confirm dialog body for emptying the trash
+  ///
+  /// In en, this message translates to:
+  /// **'All items will be permanently deleted. This cannot be undone.'**
+  String get trashEmptyConfirmContent;
 
   /// No description provided for @splitTaxDialogTitle.
   ///

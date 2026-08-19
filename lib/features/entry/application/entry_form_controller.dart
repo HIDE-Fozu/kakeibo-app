@@ -1199,10 +1199,12 @@ class EntryFormController extends Notifier<EntryFormState?> {
     );
   }
 
+  /// 編集中の取引を削除する。hard deleteではなくごみ箱へ移す
+  /// （復元は設定の「ごみ箱」から）。
   Future<void> deleteEditing() async {
     final id = _s.editingId;
     if (id == null) throw StateError('編集中の取引がありません');
-    await ref.read(transactionRepositoryProvider).delete(id);
+    await ref.read(trashRepositoryProvider).moveToTrash(id);
   }
 
   /// 保存確定＝人間の正解。OCRフィクスチャへラベルを書き戻す

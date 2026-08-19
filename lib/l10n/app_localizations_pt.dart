@@ -547,10 +547,41 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Excluído';
+  String get calendarUndoAction => 'Desfazer';
 
   @override
-  String get calendarUndoAction => 'Desfazer';
+  String get trashMovedSnack => 'Movido para a lixeira (restaure nos ajustes)';
+
+  @override
+  String get trashTitle => 'Lixeira';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Transações excluídas são mantidas por 30 dias';
+
+  @override
+  String get trashEmpty => 'A lixeira está vazia';
+
+  @override
+  String get trashRestore => 'Restaurar';
+
+  @override
+  String get trashRestoredSnack => 'Restaurado';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Excluído em $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Esvaziar lixeira';
+
+  @override
+  String get trashEmptyConfirmTitle => 'Esvaziar a lixeira?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'Todos os itens serão excluídos permanentemente. Isso não pode ser desfeito.';
 
   @override
   String get splitTaxDialogTitle => 'Imposto por item';

@@ -549,10 +549,42 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Eliminato';
+  String get calendarUndoAction => 'Annulla';
 
   @override
-  String get calendarUndoAction => 'Annulla';
+  String get trashMovedSnack =>
+      'Spostato nel cestino (ripristino dalle impostazioni)';
+
+  @override
+  String get trashTitle => 'Cestino';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Le transazioni eliminate vengono conservate per 30 giorni';
+
+  @override
+  String get trashEmpty => 'Il cestino è vuoto';
+
+  @override
+  String get trashRestore => 'Ripristina';
+
+  @override
+  String get trashRestoredSnack => 'Ripristinato';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Eliminato il $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Svuota cestino';
+
+  @override
+  String get trashEmptyConfirmTitle => 'Svuotare il cestino?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'Tutti gli elementi saranno eliminati definitivamente. L\'operazione non può essere annullata.';
 
   @override
   String get splitTaxDialogTitle => 'Aliquota IVA per voce';

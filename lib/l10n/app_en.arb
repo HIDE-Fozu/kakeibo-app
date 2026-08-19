@@ -377,8 +377,52 @@
       }
     }
   },
-  "calendarDeleteSnackbar": "Deleted",
   "calendarUndoAction": "Undo",
+  "trashMovedSnack": "Moved to Trash (restore from Settings)",
+  "@trashMovedSnack": {
+    "description": "Snackbar shown after deleting a transaction (it was moved to the trash, restorable from Settings)"
+  },
+  "trashTitle": "Trash",
+  "@trashTitle": {
+    "description": "Trash screen title / settings row label"
+  },
+  "settingsTrashSubtitle": "Deleted transactions are kept for 30 days",
+  "@settingsTrashSubtitle": {
+    "description": "Settings row subtitle and trash empty-state note: retention period"
+  },
+  "trashEmpty": "Trash is empty",
+  "@trashEmpty": {
+    "description": "Empty state of the trash screen"
+  },
+  "trashRestore": "Restore",
+  "@trashRestore": {
+    "description": "Tooltip of the restore button on a trash row"
+  },
+  "trashRestoredSnack": "Restored",
+  "@trashRestoredSnack": {
+    "description": "Snackbar shown after restoring a transaction from the trash"
+  },
+  "trashDeletedOn": "Deleted {date}",
+  "@trashDeletedOn": {
+    "description": "Trash row subtitle: when the transaction was deleted",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trashEmptyAction": "Empty Trash",
+  "@trashEmptyAction": {
+    "description": "AppBar action on the trash screen: permanently delete everything"
+  },
+  "trashEmptyConfirmTitle": "Empty the Trash?",
+  "@trashEmptyConfirmTitle": {
+    "description": "Confirm dialog title for emptying the trash"
+  },
+  "trashEmptyConfirmContent": "All items will be permanently deleted. This cannot be undone.",
+  "@trashEmptyConfirmContent": {
+    "description": "Confirm dialog body for emptying the trash"
+  },
   "splitTaxDialogTitle": "Tax rate per item",
   "commonDone": "Done",
   "splitRemainderLabel": "Remaining",

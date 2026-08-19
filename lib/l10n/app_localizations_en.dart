@@ -543,10 +543,41 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Deleted';
+  String get calendarUndoAction => 'Undo';
 
   @override
-  String get calendarUndoAction => 'Undo';
+  String get trashMovedSnack => 'Moved to Trash (restore from Settings)';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Deleted transactions are kept for 30 days';
+
+  @override
+  String get trashEmpty => 'Trash is empty';
+
+  @override
+  String get trashRestore => 'Restore';
+
+  @override
+  String get trashRestoredSnack => 'Restored';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Deleted $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Empty Trash';
+
+  @override
+  String get trashEmptyConfirmTitle => 'Empty the Trash?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'All items will be permanently deleted. This cannot be undone.';
 
   @override
   String get splitTaxDialogTitle => 'Tax rate per item';

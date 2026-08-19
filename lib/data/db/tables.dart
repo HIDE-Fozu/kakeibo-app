@@ -133,3 +133,26 @@ class InstallmentPlans extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
+
+/// ごみ箱（最近削除した取引）のスナップショット（FB 2026-08-16: SnackBarの
+/// 「元に戻す」を撤去し、設定画面から復元できる形に）。削除時に取引の内容を
+/// ここへ移し、復元は同内容の再add（id/createdAtは新規: Undoと同じ制約）。
+/// 30日で自動パージ。カテゴリ等へFKは張らない（参照先が消えても行を残す）。
+/// deletedAt はSQL既定を使わず必ずDart側（UTC）で入れる（テキスト保存の
+/// datetime は CURRENT_TIMESTAMP と書式が混ざると比較が壊れるため）。v11で追加。
+@DataClassName('DeletedTransactionRow')
+class DeletedTransactions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get type => textEnum<TxnType>()();
+  IntColumn get amount => integer()(); // 整数円・非負
+  TextColumn get date => text().map(const CivilDateConverter())();
+  IntColumn get categoryId => integer()();
+  TextColumn get paymentMethod => textEnum<PaymentMethod>().nullable()();
+  TextColumn get storeName => text().nullable()();
+  TextColumn get memo => text().nullable()();
+  TextColumn get source => textEnum<TxnSource>()();
+  TextColumn get imagePath => text().nullable()();
+  TextColumn get splitGroupId => text().nullable()();
+  IntColumn get installmentPlanId => integer().nullable()();
+  DateTimeColumn get deletedAt => dateTime()();
+}

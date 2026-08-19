@@ -527,10 +527,39 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => '已删除';
+  String get calendarUndoAction => '撤销';
 
   @override
-  String get calendarUndoAction => '撤销';
+  String get trashMovedSnack => '已移至回收站（可在设置中恢复）';
+
+  @override
+  String get trashTitle => '回收站';
+
+  @override
+  String get settingsTrashSubtitle => '已删除的交易保留30天';
+
+  @override
+  String get trashEmpty => '回收站是空的';
+
+  @override
+  String get trashRestore => '恢复';
+
+  @override
+  String get trashRestoredSnack => '已恢复';
+
+  @override
+  String trashDeletedOn(String date) {
+    return '删除于 $date';
+  }
+
+  @override
+  String get trashEmptyAction => '清空回收站';
+
+  @override
+  String get trashEmptyConfirmTitle => '要清空回收站吗？';
+
+  @override
+  String get trashEmptyConfirmContent => '所有项目将被永久删除。此操作无法撤销。';
 
   @override
   String get splitTaxDialogTitle => '各品目税率';

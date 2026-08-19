@@ -548,10 +548,42 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get calendarDeleteSnackbar => 'Eliminado';
+  String get calendarUndoAction => 'Deshacer';
 
   @override
-  String get calendarUndoAction => 'Deshacer';
+  String get trashMovedSnack =>
+      'Movido a la papelera (restaurar desde Ajustes)';
+
+  @override
+  String get trashTitle => 'Papelera';
+
+  @override
+  String get settingsTrashSubtitle =>
+      'Las transacciones eliminadas se conservan 30 días';
+
+  @override
+  String get trashEmpty => 'La papelera está vacía';
+
+  @override
+  String get trashRestore => 'Restaurar';
+
+  @override
+  String get trashRestoredSnack => 'Restaurado';
+
+  @override
+  String trashDeletedOn(String date) {
+    return 'Eliminado el $date';
+  }
+
+  @override
+  String get trashEmptyAction => 'Vaciar papelera';
+
+  @override
+  String get trashEmptyConfirmTitle => '¿Vaciar la papelera?';
+
+  @override
+  String get trashEmptyConfirmContent =>
+      'Todos los elementos se eliminarán definitivamente. Esta acción no se puede deshacer.';
 
   @override
   String get splitTaxDialogTitle => 'Tipo de IVA por artículo';

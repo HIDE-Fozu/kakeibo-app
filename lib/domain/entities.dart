@@ -189,3 +189,17 @@ class CategoryEntity {
     this.slug,
   });
 }
+
+/// ごみ箱の1件（最近削除した取引）。tx.id は null（復元時に新規採番される）。
+/// v11で追加（FB 2026-08-16: SnackBarのUndo撤去→設定から復元）。
+class TrashEntry {
+  final int id; // ごみ箱行のid（deleted_transactions.id）
+  final DateTime deletedAt; // UTC
+  final TransactionEntity tx;
+
+  const TrashEntry({
+    required this.id,
+    required this.deletedAt,
+    required this.tx,
+  });
+}

@@ -83,7 +83,9 @@ Future<void> handleChoreDone(
   // 値に再計算される。表示は分かりやすさ優先の近似）。
   final next = choreDueAfterDone(status.task, doneDate);
   final recordId = result.recordId!;
+  // Undoアクション付きは accessibleNavigation だと自動で消えないため×を付ける。
   messenger.showSnackBar(SnackBar(
+    showCloseIcon: true,
     duration: const Duration(seconds: 5),
     content: Text(l.choreDoneSnackbar(
         context.mounted ? choreShortDate(context, next) : next.toIso())),
