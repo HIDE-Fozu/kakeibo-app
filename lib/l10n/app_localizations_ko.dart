@@ -503,20 +503,16 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String calendarMonthSummary(String expense, String income, String net) {
-    return '지출 $expense   수입 $income   차액 $net';
-  }
+  String get calendarDayEmptyTitle => '이 날의 기록이 아직 없습니다';
 
   @override
-  String calendarDayEmptyTitle(int month, int day) {
-    return '$month월 $day일 기록이 없습니다';
-  }
+  String get calendarDayEmptyHint => '버튼으로 지출이나 수입을 등록하세요';
 
   @override
-  String get calendarDayEmptyHintFirst => '오른쪽 아래 \'금액 입력\'에서 첫 기록을 추가할 수 있습니다';
+  String get calendarAddExpense => '지출 추가';
 
   @override
-  String get calendarDayEmptyHint => '오른쪽 아래 \'금액 입력\'에서 추가할 수 있습니다';
+  String get calendarAddIncome => '수입 추가';
 
   @override
   String get calendarReceiptFallbackLabel => '영수증';

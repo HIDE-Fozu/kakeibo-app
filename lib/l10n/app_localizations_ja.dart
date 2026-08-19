@@ -501,20 +501,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String calendarMonthSummary(String expense, String income, String net) {
-    return '支出 $expense　収入 $income　差引 $net';
-  }
+  String get calendarDayEmptyTitle => 'この日の記録はまだありません';
 
   @override
-  String calendarDayEmptyTitle(int month, int day) {
-    return '$month月$day日の記録はありません';
-  }
+  String get calendarDayEmptyHint => 'ボタンから支出や収入を登録しましょう';
 
   @override
-  String get calendarDayEmptyHintFirst => '右下の「金額を入力する」から最初の記録を追加できます';
+  String get calendarAddExpense => '支出を追加';
 
   @override
-  String get calendarDayEmptyHint => '右下の「金額を入力する」から追加できます';
+  String get calendarAddIncome => '収入を追加';
 
   @override
   String get calendarReceiptFallbackLabel => 'レシート';

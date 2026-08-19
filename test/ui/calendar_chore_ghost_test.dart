@@ -85,9 +85,15 @@ void main() {
     await tester.tap(find.byKey(const Key('forecast-anchor-day')));
     await tester.pumpAndSettle();
 
-    // 25日時点: 家賃(27日)は含まれない → +¥0。ラベルは（7/25時点）
-    // （「差引 +¥0」と紛れないよう見込み行の文字列全体で確認）
-    expect(find.textContaining('見込み収支（7/25時点）　+¥0'), findsOneWidget);
+    // 25日時点: 家賃(27日)は含まれない → +¥0。ラベルは（7/25時点）。
+    // ラベルと金額は別テキストになった（サマリカード化）ので、
+    // 「差引 +¥0」と紛れないよう見込み行の配下で金額を確認する。
+    expect(find.textContaining('見込み収支（7/25時点）'), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byKey(const Key('forecast-line')),
+            matching: find.textContaining('+¥0')),
+        findsOneWidget);
 
     // 月末に戻す
     await tester.tap(find.byKey(const Key('forecast-line')));

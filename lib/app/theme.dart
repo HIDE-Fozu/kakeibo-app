@@ -47,12 +47,8 @@ const kChrome = Color(0xFFF4F2ED);
 /// NavigationBar の仕様上ラベルはタブ別に色を変えられないため共通。
 const kNavIdle = kMuted;
 
-/// 下部タブのアイコン色（タブごと）。
-/// カレンダー=主色（パレット追従のため home_shell 側で取得）/
-/// 毎月=アプリコット / サマリ=コーラル / 設定=グレー。
-const kNavMonthly = kApricot;
-const kNavSummary = kCoral;
-const kNavSettings = kMuted;
+// タブ別のアイコンアクセント色（kNavMonthly/kNavSummary/kNavSettings）は
+// 2026-08-20 モックで未選択グレー統一（kNavIdle）に置き換えたため撤去。
 
 const kExpense = Color(0xFFD97C6C); // 支出（状態）
 const kExpenseSoft = Color(0xFFF7E4DF);

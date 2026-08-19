@@ -522,22 +522,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String calendarMonthSummary(String expense, String income, String net) {
-    return 'Dépenses $expense   Revenus $income   Solde $net';
-  }
-
-  @override
-  String calendarDayEmptyTitle(int month, int day) {
-    return 'Aucune entrée le $day/$month';
-  }
-
-  @override
-  String get calendarDayEmptyHintFirst =>
-      'Ajoutez votre première entrée via « Saisir le montant » en bas à droite';
+  String get calendarDayEmptyTitle =>
+      'Aucune entrée pour ce jour pour l’instant';
 
   @override
   String get calendarDayEmptyHint =>
-      'Ajoutez une entrée via « Saisir le montant » en bas à droite';
+      'Ajoutez une dépense ou un revenu avec les boutons';
+
+  @override
+  String get calendarAddExpense => 'Ajouter une dépense';
+
+  @override
+  String get calendarAddIncome => 'Ajouter un revenu';
 
   @override
   String get calendarReceiptFallbackLabel => 'Reçu';

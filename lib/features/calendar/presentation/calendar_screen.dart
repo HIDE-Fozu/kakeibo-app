@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../app/cell_dropdown.dart';
@@ -10,8 +11,10 @@ import '../../../core/money.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../app/navigation.dart';
 import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_ui_common.dart';
+import '../../entry/application/entry_form_controller.dart';
 import '../../settings/application/settings_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
@@ -39,32 +42,23 @@ class CalendarScreen extends ConsumerWidget {
       child: Column(
         children: [
           const BackupBanner(),
-          _MonthHeader(year: year, month: month, summary: summary),
-          // ヘッダ（バックアップ帯＋月サマリ）はベース背景のまま、
-          // カレンダー本体と記録一覧だけ白のカードにする（2026-08-13のFB）。
-          // Container(color:) だと ListTile のインク波紋が隠れる（Flutterの警告）。
-          // Material にして「白い面」自体を Material ancestor にする。
-          Expanded(
-            child: Material(
-              color: kCard,
-              child: Column(
-                children: [
-          TableCalendar<int>(
+          _MonthHeader(year: year, month: month),
+          _SummaryCard(year: year, month: month, summary: summary),
+          // 紙デザイン（2026-08-20 モック）: ベース背景（紙）の上に、日セルは
+          // 白の角丸カードを敷き詰め（週罫線は廃止）、日別リストは日付タブ付き
+          // の白カードとして独立させる。旧「下半分を白いMaterial面」構成は撤去。
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: TableCalendar<int>(
             firstDay: DateTime(2000, 1, 1),
             lastDay: DateTime(2100, 12, 31),
             focusedDay: dateTimeOfCivil(CivilDate(year, month, 1)),
             headerVisible: false,
-            // 62 = 数字26 + 家事ドット6 + 実績額13 + 予定額13 + 余白
-            //（v2.2.0で家事ドットと予定額のレーンが増えたため58→62）。
-            rowHeight: 62,
-            calendarStyle: const CalendarStyle(
-              outsideDaysVisible: false,
-              // 週ごとの罫線（週の間に横線）＋ヘッダ下の区切り線。
-              tableBorder: TableBorder(
-                top: BorderSide(color: kLine, width: 0.6),
-                horizontalInside: BorderSide(color: kLine, width: 0.6),
-              ),
-            ),
+            // 66 = 数字26 + 家事ドット6 + 実績額13 + 予定額13 + カード余白
+            //（白カードセル化で62→66）。
+            rowHeight: 66,
+            // 前後月のはみ出しマスも空の白カードで埋める（モック2枚目）。
+            calendarStyle: const CalendarStyle(outsideDaysVisible: true),
             // 曜日ヘッダは日本語（日月火水木金土）。日曜=薄赤 / 土曜=薄青。
             daysOfWeekHeight: 20,
             selectedDayPredicate: (d) => civilOfDateTime(d) == selected,
@@ -91,6 +85,11 @@ class CalendarScreen extends ConsumerWidget {
                   context, day, _DayStyle.today, totals, ghosts, choreMarks, mf),
               selectedBuilder: (context, day, _) => _dayCell(context, day,
                   _DayStyle.selected, totals, ghosts, choreMarks, mf),
+              outsideBuilder: (context, day, _) => Container(
+                margin: _kCellMargin,
+                decoration: _kCellDeco,
+              ),
+            ),
             ),
           ),
           // 凡例は家事ドットの分だけ。固定費の予定（ゴースト）はルールがある限り
@@ -98,9 +97,91 @@ class CalendarScreen extends ConsumerWidget {
           // 意味は日別リストの「予定」バッジで伝わるので凡例からは外した。
           if (choreMarks.isNotEmpty)
             _CalendarLegend(hasChores: choreMarks.isNotEmpty),
-          const Divider(height: 1),
-          Expanded(child: DayTransactionList(day: selected)),
-                ],
+          Expanded(child: _DaySection(day: selected)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 日別リストのカード（画像1枚目参考・フラット近似）:
+/// 選択日のタブラベル（主色の塗り）＋白カードにリストを載せる。
+class _DaySection extends ConsumerWidget {
+  final CivilDate day;
+  const _DaySection({required this.day});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final tag = Localizations.localeOf(context).toLanguageTag();
+    final label = DateFormat.MMMEd(tag).format(dateTimeOfCivil(day));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                key: const Key('day-tab-label'),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: context.kakeiboPalette.fill,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(8)),
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              const Spacer(),
+              // 旧FABの後継:「＋」で選択日を既定に入力画面へ。キーと文言を
+              // 引き継ぎ、既存の導線・テストと互換（FABはカードを塞ぐため廃止）。
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: IconButton(
+                  key: const Key('fab-entry'),
+                  tooltip: l.homeFabEntryLabel,
+                  style: IconButton.styleFrom(
+                    backgroundColor: context.kakeiboPalette.fill,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(36, 36),
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.add, size: 22),
+                  onPressed: () {
+                    ref
+                        .read(entryFormControllerProvider.notifier)
+                        .startCreate(day);
+                    ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
+                  },
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            // Material にして白カード自体をインク波紋の面にする（旧構成と同じ理由）。
+            child: Material(
+              color: kCard,
+              clipBehavior: Clip.antiAlias,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                side: BorderSide(color: kLine, width: 0.8),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: DayTransactionList(day: day),
               ),
             ),
           ),
@@ -166,6 +247,16 @@ class _CalendarLegend extends StatelessWidget {
 
 enum _DayStyle { normal, selected, today }
 
+/// 日セルの白カード（画像2枚目参考: 罫線ではなく角丸カードを敷き詰める）。
+const _kCellMargin = EdgeInsets.all(1.5);
+const _kCellDeco = BoxDecoration(
+  color: kCard,
+  borderRadius: BorderRadius.all(Radius.circular(9)),
+  boxShadow: [
+    BoxShadow(color: Color(0x0D2F3A3D), blurRadius: 3, offset: Offset(0, 1)),
+  ],
+);
+
 // 家事ドットの色（やった=収入グリーン / 期日=注意アンバー / 超過=支出コーラル）。
 const _kDotDone = kIncome;
 const _kDotDue = kAttention;
@@ -207,12 +298,15 @@ Widget _dayCell(
       break;
   }
   final iso = civil.toIso();
-  return Align(
+  return Container(
+    margin: _kCellMargin,
+    decoration: _kCellDeco,
+    child: Align(
     alignment: Alignment.topCenter,
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Container(
           width: 26,
           height: 26,
@@ -269,6 +363,7 @@ Widget _dayCell(
           ),
       ],
     ),
+    ),
   );
 }
 
@@ -285,8 +380,47 @@ Widget _dot(Color color, Key key) => Padding(
 class _MonthHeader extends ConsumerWidget {
   final int year;
   final int month;
+  const _MonthHeader({required this.year, required this.month});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          IconButton(
+            key: const Key('prev-month'),
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () => ref.read(currentMonthProvider.notifier).prev(),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                l.calendarMonthYearHeader(year, month),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ),
+          IconButton(
+            key: const Key('next-month'),
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () => ref.read(currentMonthProvider.notifier).next(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 月サマリのカード（画像1枚目参考・フラット近似）:
+/// 支出/収入/差引の3カラム＋見込み収支の行。見込み収支のタップで
+/// 基準日（月末/毎月N日）を変更できるのは従来のまま。
+class _SummaryCard extends ConsumerWidget {
+  final int year;
+  final int month;
   final MonthlySummary summary;
-  const _MonthHeader({
+  const _SummaryCard({
     required this.year,
     required this.month,
     required this.summary,
@@ -299,66 +433,104 @@ class _MonthHeader extends ConsumerWidget {
     final net = summary.net;
     final netLabel = net >= 0 ? '+${mf.format(net)}' : mf.format(net);
     final forecast = ref.watch(monthForecastProvider((year, month)));
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          IconButton(
-            key: const Key('prev-month'),
-            icon: const Icon(Icons.chevron_left),
-            onPressed: () => ref.read(currentMonthProvider.notifier).prev(),
+    final colors = context.kakeiboColors;
+
+    Widget col(String label, String value, Color valueColor) => Expanded(
+          child: Column(
+            children: [
+              Text(label,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: kMuted)),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: valueColor,
+                  fontFeatures: kTabularFigures,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Column(
+        );
+
+    Widget vLine() => Container(width: 0.6, height: 30, color: kLine);
+
+    return Container(
+      key: const Key('month-summary-card'),
+      margin: const EdgeInsets.fromLTRB(12, 2, 12, 6),
+      decoration: BoxDecoration(
+        color: kCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kLine, width: 0.8),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
               children: [
-                Text(
-                  l.calendarMonthYearHeader(year, month),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  l.calendarMonthSummary(
-                    mf.format(summary.expense),
-                    mf.format(summary.income),
+                col(l.summaryExpenseLabel, mf.format(summary.expense),
+                    colors.expense),
+                vLine(),
+                col(l.summaryIncomeLabel, mf.format(summary.income),
+                    colors.income),
+                vLine(),
+                col(
+                    l.summaryNetLabel,
                     netLabel,
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFeatures: kTabularFigures,
-                  ),
-                ),
-                // 見込み収支（実績差引 + 基準日までの固定費予定）。過去月は出ない。
-                // タップで基準日（月末/毎月N日）を変更できる。
-                if (forecast != null)
-                  InkWell(
-                    key: const Key('forecast-line'),
-                    borderRadius: BorderRadius.circular(6),
-                    onTap: () => _showAnchorSheet(context, ref),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      child: Text(
-                        '${forecast.anchorIsMonthEnd ? l.forecastLabelMonthEnd : l.forecastLabelAtDate(choreShortDate(context, forecast.anchor))}'
-                        '　${forecast.forecast >= 0 ? '+${mf.format(forecast.forecast)}' : mf.format(forecast.forecast)} ▾',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                              fontFeatures: kTabularFigures,
-                              fontWeight: FontWeight.w600,
-                              color: forecast.forecast < 0
-                                  ? context.kakeiboColors.expense
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
-                      ),
-                    ),
-                  ),
+                    net < 0
+                        ? colors.expense
+                        : Theme.of(context).colorScheme.primary),
               ],
             ),
           ),
-          IconButton(
-            key: const Key('next-month'),
-            icon: const Icon(Icons.chevron_right),
-            onPressed: () => ref.read(currentMonthProvider.notifier).next(),
-          ),
+          // 見込み収支（実績差引 + 基準日までの固定費予定）。過去月は出ない。
+          if (forecast != null) ...[
+            const Divider(height: 1, color: kLine),
+            InkWell(
+              key: const Key('forecast-line'),
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(12)),
+              onTap: () => _showAnchorSheet(context, ref),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        forecast.anchorIsMonthEnd
+                            ? l.forecastLabelMonthEnd
+                            : l.forecastLabelAtDate(
+                                choreShortDate(context, forecast.anchor)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${forecast.forecast >= 0 ? '+${mf.format(forecast.forecast)}' : mf.format(forecast.forecast)} ▾',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: kTabularFigures,
+                        color: forecast.forecast < 0
+                            ? colors.expense
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

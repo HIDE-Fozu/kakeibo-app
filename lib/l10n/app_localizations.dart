@@ -1006,29 +1006,29 @@ abstract class AppLocalizations {
   /// **'{month}/{year}'**
   String calendarMonthYearHeader(int year, int month);
 
-  /// No description provided for @calendarMonthSummary.
+  /// Empty state title of the day list (the date is shown by the day tab label)
   ///
   /// In en, this message translates to:
-  /// **'Expense {expense}   Income {income}   Net {net}'**
-  String calendarMonthSummary(String expense, String income, String net);
-
-  /// No description provided for @calendarDayEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No entries on {month}/{day}'**
-  String calendarDayEmptyTitle(int month, int day);
-
-  /// No description provided for @calendarDayEmptyHintFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Add your first entry using \"Enter Amount\" in the bottom right'**
-  String get calendarDayEmptyHintFirst;
+  /// **'No entries for this day yet'**
+  String get calendarDayEmptyTitle;
 
   /// No description provided for @calendarDayEmptyHint.
   ///
   /// In en, this message translates to:
-  /// **'Add an entry using \"Enter Amount\" in the bottom right'**
+  /// **'Add an expense or income with the buttons'**
   String get calendarDayEmptyHint;
+
+  /// Empty state button: open the entry screen with type=expense
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get calendarAddExpense;
+
+  /// Empty state button: open the entry screen with type=income
+  ///
+  /// In en, this message translates to:
+  /// **'Add income'**
+  String get calendarAddIncome;
 
   /// No description provided for @calendarReceiptFallbackLabel.
   ///

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/category_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../app/l10n_providers.dart';
+import '../../../app/navigation.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../data/db/enums.dart';
@@ -42,32 +43,71 @@ class DayTransactionList extends ConsumerWidget {
         .where((g) => g.date == day)
         .toList();
     final choreRows = buildChoreDayRows(context, ref, day);
-    // 月全体が空＝初回/空カレンダー状態。FABへの誘導CTAを足す（spec §5.5）
-    final monthEmpty = (ref
-                .watch(monthTransactionsProvider((day.year, day.month)))
-                .valueOrNull ??
-            const [])
-        .isEmpty;
-
     // 空判定は取引・予定・家事の3レーンすべて空のとき（家事行が空状態の裏に
-    // 隠れる回帰を防ぐ）。
+    // 隠れる回帰を防ぐ）。2026-08-20 モック: 日付は日付タブが示すので文言から
+    // 外し、支出/収入の追加ボタンをカード内に置く（開くのはFABと同じ入力画面）。
     if (txs.isEmpty && dayGhosts.isEmpty && choreRows.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l.calendarDayEmptyTitle(day.month, day.day)),
-            const SizedBox(height: 4),
-            Text(
-              monthEmpty
-                  ? l.calendarDayEmptyHintFirst
-                  : l.calendarDayEmptyHint,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      // 2026-08-20 モック: 日付は日付タブが示すので文言から外し、支出/収入の
+      // 追加ボタンを置く。6週ある月はカードが〜90pxしかないため、高さに応じて
+      // 2段構え（広い月=アイコン付き中央寄せ / 狭い月=文言＋ボタンのみ）。
+      // どちらもスクロール可能にして低い画面高でも溢れない。
+      final buttons = Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 10,
+        runSpacing: 8,
+        children: [
+          _addButton(context, ref,
+              key: const Key('day-add-expense'),
+              label: l.calendarAddExpense,
+              color: context.kakeiboColors.expense,
+              type: TxnType.expense),
+          _addButton(context, ref,
+              key: const Key('day-add-income'),
+              label: l.calendarAddIncome,
+              color: context.kakeiboColors.income,
+              type: TxnType.income),
+        ],
       );
+      return LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxHeight < 120) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l.calendarDayEmptyTitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                buttons,
+              ],
+            ),
+          );
+        }
+        return Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.assignment_outlined,
+                    size: 28, color: kMuted.withValues(alpha: 0.55)),
+                const SizedBox(height: 6),
+                Text(l.calendarDayEmptyTitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(l.calendarDayEmptyHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center),
+                const SizedBox(height: 10),
+                buttons,
+              ],
+            ),
+          ),
+        );
+      });
     }
 
     // 「1枚のレシート」（詳細入力）を1単位に束ねる（C1: グループカード）。
@@ -297,5 +337,34 @@ class DayTransactionList extends ConsumerWidget {
       showCloseIcon: true,
       duration: const Duration(seconds: 10),
     ));
+  }
+
+  /// 空状態の「支出を追加 / 収入を追加」。FABと同じ経路で入力画面を開き、
+  /// 種別だけ先に切り替える（入口の追加であり新機能ではない）。
+  Widget _addButton(BuildContext context, WidgetRef ref,
+      {required Key key,
+      required String label,
+      required Color color,
+      required TxnType type}) {
+    return OutlinedButton.icon(
+      key: key,
+      onPressed: () {
+        final entry = ref.read(entryFormControllerProvider.notifier);
+        entry.startCreate(day);
+        entry.setType(type);
+        ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
+      },
+      icon: const Icon(Icons.add, size: 15),
+      label: Text(label, style: const TextStyle(fontSize: 13)),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        side: BorderSide(color: color.withValues(alpha: 0.65)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        minimumSize: const Size(0, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
   }
 }

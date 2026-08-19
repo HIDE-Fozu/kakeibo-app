@@ -514,22 +514,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String calendarMonthSummary(String expense, String income, String net) {
-    return 'Expense $expense   Income $income   Net $net';
-  }
-
-  @override
-  String calendarDayEmptyTitle(int month, int day) {
-    return 'No entries on $month/$day';
-  }
-
-  @override
-  String get calendarDayEmptyHintFirst =>
-      'Add your first entry using \"Enter Amount\" in the bottom right';
+  String get calendarDayEmptyTitle => 'No entries for this day yet';
 
   @override
   String get calendarDayEmptyHint =>
-      'Add an entry using \"Enter Amount\" in the bottom right';
+      'Add an expense or income with the buttons';
+
+  @override
+  String get calendarAddExpense => 'Add expense';
+
+  @override
+  String get calendarAddIncome => 'Add income';
 
   @override
   String get calendarReceiptFallbackLabel => 'Receipt';

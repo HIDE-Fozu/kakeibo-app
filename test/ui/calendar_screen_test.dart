@@ -6,6 +6,7 @@ import 'package:kakeibo_app/app/providers.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
+import 'package:kakeibo_app/features/entry/application/entry_form_controller.dart';
 
 import '../support/test_app.dart';
 
@@ -41,9 +42,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('2026年7月'), findsOneWidget);
-    expect(find.textContaining('支出 ¥500'), findsOneWidget);
-    expect(find.textContaining('収入 ¥2,000'), findsOneWidget);
-    expect(find.textContaining('差引 +¥1,500'), findsOneWidget);
+    // サマリカード（2026-08-20 モック）: ラベルと金額は別テキストの3カラム
+    expect(find.byKey(const Key('month-summary-card')), findsOneWidget);
+    expect(find.text('支出'), findsOneWidget);
+    expect(find.text('¥500'), findsOneWidget);
+    expect(find.text('収入'), findsOneWidget);
+    expect(find.text('¥2,000'), findsOneWidget);
+    expect(find.text('差引'), findsOneWidget);
+    expect(find.text('+¥1,500'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('next-month')));
     await tester.pumpAndSettle();
@@ -68,7 +74,8 @@ void main() {
     await tester.tap(find.text('16'));
     await tester.pumpAndSettle();
     expect(find.text('コンビニ'), findsOneWidget);
-    expect(find.text('-¥800'), findsOneWidget);
+    // -¥800 はサマリカードの差引にも出るため、リスト行（ListTile）内で確認
+    expect(find.widgetWithText(ListTile, '-¥800'), findsOneWidget);
 
     // tap -> 編集画面
     await tester.tap(find.text('コンビニ'));
@@ -98,14 +105,28 @@ void main() {
     await pumpShell(tester);
     await tester.tap(find.text('20'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('記録はありません'), findsOneWidget);
-    expect(find.byKey(const Key('add-on-day')), findsNothing); // 旧「この日に追加」は削除
-    expect(find.textContaining('金額を入力する'), findsWidgets); // FAB＋空状態の案内
+    expect(find.text('この日の記録はまだありません'), findsOneWidget);
+    expect(find.byKey(const Key('day-add-expense')), findsOneWidget);
+    expect(find.byKey(const Key('day-add-income')), findsOneWidget);
+    expect(find.byKey(const Key('fab-entry')), findsOneWidget); // 小型FAB
     // FABから選択日既定で入力が開く（テンキーが出る）
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('np-00')), findsOneWidget);
     expect(find.text('2026年7月20日'), findsOneWidget);
+  });
+
+  testWidgets('空の日: 「収入を追加」で選択日・収入の入力が開く', (tester) async {
+    final c = await pumpShell(tester);
+    await tester.tap(find.text('20'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('day-add-income')));
+    await tester.pumpAndSettle();
+    // 入力タブへ切り替わり（FABが消える）、種別=収入・日付=選択日
+    expect(find.byKey(const Key('fab-entry')), findsNothing);
+    final s = c.read(entryFormControllerProvider)!;
+    expect(s.type, TxnType.income);
+    expect(s.date, const CivilDate(2026, 7, 20));
   });
 
   testWidgets('FAB: 選択日を既定に入力画面へ', (tester) async {

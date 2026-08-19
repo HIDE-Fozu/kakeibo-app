@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/ocr/ocr_fixture_recorder.dart';
-import '../features/calendar/application/calendar_providers.dart';
 import '../features/calendar/presentation/calendar_screen.dart';
 import '../features/chores/application/chore_providers.dart';
-import '../features/entry/application/entry_form_controller.dart';
 import '../features/entry/presentation/entry_screen.dart';
 import '../features/monthly/presentation/monthly_hub_screen.dart';
 import '../features/settings/application/backup_controller.dart';
@@ -121,20 +119,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
           MonthlyHubScreen(),
         ],
       ),
-      floatingActionButton: index == 0
-          ? FloatingActionButton.extended(
-              key: const Key('fab-entry'),
-              onPressed: () {
-                // 選択日を既定に入力画面へ
-                ref
-                    .read(entryFormControllerProvider.notifier)
-                    .startCreate(ref.read(selectedDayProvider));
-                ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
-              },
-              icon: const Icon(Icons.add),
-              label: Text(l.homeFabEntryLabel),
-            )
-          : null,
+      // 2026-08-20 モック: FABは廃止。入力への入口は日付タブ行の「＋」
+      //（calendar_screen._DaySection・キー fab-entry を継承）と、空の日の
+      // 「支出を追加/収入を追加」ボタン。FABが日別カードを塞ぐ問題も解消。
       // 入力画面表示中は内訳入力中も含め下部タブを隠して縦スペースを空ける
       // （戻るは入力画面の「←」。常設カテゴリ帯の分、内訳中も縦が要る）。
       bottomNavigationBar: index == kInputTabIndex
@@ -143,25 +130,24 @@ class _HomeShellState extends ConsumerState<HomeShell>
               selectedIndex: navSelected < 0 ? 0 : navSelected,
               onDestinationSelected: _onSelect,
               destinations: [
-                // 未選択はタブごとのアクセント色。選択中は Primary Dark に切り替える
-                // ——選択中は下地が Primary Light の丸になるので、明るいアクセントの
-                // ままだとアイコンが下地に埋もれて消える（ミント×Primary Lightで1.3:1）。
+                // 2026-08-20 モック: 未選択はグレーで統一（旧タブ別アクセントを
+                // 廃止）・選択中は Primary Dark。毎月=ノート / サマリ=円グラフ。
                 NavigationDestination(
-                    icon: Icon(Icons.calendar_month, color: context.kakeiboPalette.fill),
+                    icon: const Icon(Icons.calendar_month, color: kNavIdle),
                     selectedIcon:
                         const Icon(Icons.calendar_month, color: kPrimary),
                     label: l.homeNavCalendar),
                 NavigationDestination(
-                    icon: const Icon(Icons.event_repeat, color: kNavMonthly),
+                    icon: const Icon(Icons.menu_book_outlined, color: kNavIdle),
                     selectedIcon:
-                        const Icon(Icons.event_repeat, color: kPrimary),
+                        const Icon(Icons.menu_book, color: kPrimary),
                     label: l.homeNavMonthly),
                 NavigationDestination(
-                    icon: const Icon(Icons.bar_chart, color: kNavSummary),
-                    selectedIcon: const Icon(Icons.bar_chart, color: kPrimary),
+                    icon: const Icon(Icons.pie_chart_outline, color: kNavIdle),
+                    selectedIcon: const Icon(Icons.pie_chart, color: kPrimary),
                     label: l.homeNavSummary),
                 NavigationDestination(
-                    icon: const Icon(Icons.settings, color: kNavSettings),
+                    icon: const Icon(Icons.settings_outlined, color: kNavIdle),
                     selectedIcon: const Icon(Icons.settings, color: kPrimary),
                     label: l.homeNavSettings),
               ],

@@ -340,33 +340,19 @@
       }
     }
   },
-  "calendarMonthSummary": "Expense {expense}   Income {income}   Net {net}",
-  "@calendarMonthSummary": {
-    "placeholders": {
-      "expense": {
-        "type": "String"
-      },
-      "income": {
-        "type": "String"
-      },
-      "net": {
-        "type": "String"
-      }
-    }
-  },
-  "calendarDayEmptyTitle": "No entries on {month}/{day}",
+  "calendarDayEmptyTitle": "No entries for this day yet",
   "@calendarDayEmptyTitle": {
-    "placeholders": {
-      "month": {
-        "type": "int"
-      },
-      "day": {
-        "type": "int"
-      }
-    }
+    "description": "Empty state title of the day list (the date is shown by the day tab label)"
   },
-  "calendarDayEmptyHintFirst": "Add your first entry using \"Enter Amount\" in the bottom right",
-  "calendarDayEmptyHint": "Add an entry using \"Enter Amount\" in the bottom right",
+  "calendarDayEmptyHint": "Add an expense or income with the buttons",
+  "calendarAddExpense": "Add expense",
+  "@calendarAddExpense": {
+    "description": "Empty state button: open the entry screen with type=expense"
+  },
+  "calendarAddIncome": "Add income",
+  "@calendarAddIncome": {
+    "description": "Empty state button: open the entry screen with type=income"
+  },
   "calendarReceiptFallbackLabel": "Receipt",
   "calendarCategoryUnknown": "Unknown",
   "calendarCategoryArchivedLabel": "{name} (Archived)",

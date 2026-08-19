@@ -500,20 +500,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String calendarMonthSummary(String expense, String income, String net) {
-    return '支出 $expense　收入 $income　结余 $net';
-  }
+  String get calendarDayEmptyTitle => '这一天还没有记录';
 
   @override
-  String calendarDayEmptyTitle(int month, int day) {
-    return '$month月$day日没有记录';
-  }
+  String get calendarDayEmptyHint => '通过按钮记录支出或收入';
 
   @override
-  String get calendarDayEmptyHintFirst => '可通过右下角的「输入金额」添加第一条记录';
+  String get calendarAddExpense => '添加支出';
 
   @override
-  String get calendarDayEmptyHint => '可通过右下角的「输入金额」添加记录';
+  String get calendarAddIncome => '添加收入';
 
   @override
   String get calendarReceiptFallbackLabel => '小票';

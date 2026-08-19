@@ -37,8 +37,8 @@ void main() {
     addTearDown(h.dispose);
     await pumpApp(tester, h);
 
-    // カレンダーのFABにラベルが付く
-    expect(find.text('金額を入力する'), findsOneWidget);
+    // カレンダーのFAB（小型・＋のみ。ラベルはツールチップ）
+    expect(find.byTooltip('金額を入力する'), findsOneWidget);
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
 
