@@ -32,6 +32,17 @@ class InstallmentPlan {
   int get firstMinor => payments[0];
 }
 
+/// 回数ドロップダウンの選択肢（FB 2026-08-18: 48回やそれ以上が欲しい。
+/// 主体はショッピングクレジットとして期間を増やし、住宅ローン基準も含める）。
+/// 全列挙はメニューが破綻するため密→疎の段階刻み:
+/// 2..60回は1刻み → 66/72/84/96/108/120回（5〜10年） → 年単位 180..420回（35年）。
+/// 計算（computeInstallment）は任意の回数で動くので刻みはUIだけの都合。
+final kInstallmentCountChoices = List<int>.unmodifiable([
+  for (var n = 2; n <= 60; n++) n,
+  66, 72, 84, 96, 108, 120,
+  180, 240, 300, 360, 420,
+]);
+
 InstallmentPlan computeInstallment({
   required int principalMinor,
   required int count,

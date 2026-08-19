@@ -56,19 +56,22 @@ class DriftInstallmentPlanRepository implements InstallmentPlanRepository {
 
   Future<void> _insertPayments(
       int planId, List<TransactionEntity> payments) async {
-    for (final tx in payments) {
-      assert(tx.amountYen >= 0);
-      await _db.transactionDao.insertTransaction(TransactionsCompanion.insert(
-        type: tx.type,
-        amount: tx.amountYen,
-        date: tx.date,
-        categoryId: tx.categoryId,
-        source: tx.source,
-        storeName: Value(tx.storeName),
-        memo: Value(tx.memo),
-        installmentPlanId: Value(planId),
-      ));
-    }
+    // 長期プラン（住宅ローン級=数百回）でも1往復で入るように一括insert。
+    await _db.batch((b) {
+      b.insertAll(_db.transactions, [
+        for (final tx in payments)
+          TransactionsCompanion.insert(
+            type: tx.type,
+            amount: tx.amountYen,
+            date: tx.date,
+            categoryId: tx.categoryId,
+            source: tx.source,
+            storeName: Value(tx.storeName),
+            memo: Value(tx.memo),
+            installmentPlanId: Value(planId),
+          ),
+      ]);
+    });
   }
 
   InstallmentPlanEntity _toEntity(InstallmentPlanRow r) => InstallmentPlanEntity(

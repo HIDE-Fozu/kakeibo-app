@@ -42,4 +42,16 @@ void main() {
     expect(p.totalMinor, 5000);
     expect(p.payments, [5000]);
   });
+
+  test('回数の選択肢: 2..60は1刻み・以降は段階刻みで420回（35年）まで', () {
+    expect(kInstallmentCountChoices.first, 2);
+    expect(kInstallmentCountChoices.last, 420);
+    // FB 2026-08-18: 48回やそれ以上（ショッピングクレジット〜住宅ローン基準）
+    expect(kInstallmentCountChoices, containsAll([36, 48, 60, 66, 120, 180, 360, 420]));
+    expect(kInstallmentCountChoices.contains(61), isFalse); // 60超は間引き
+    // 昇順・重複なし（ドロップダウンの前提）
+    final sorted = [...kInstallmentCountChoices]..sort();
+    expect(kInstallmentCountChoices, sorted);
+    expect(kInstallmentCountChoices.toSet().length, kInstallmentCountChoices.length);
+  });
 }

@@ -129,7 +129,7 @@ class _InstallmentPageState extends ConsumerState<InstallmentPage> {
                       border: const OutlineInputBorder(),
                     ),
                     items: [
-                      for (var n = 2; n <= 36; n++)
+                      for (final n in kInstallmentCountChoices)
                         CellDropdownItem(n, l.installmentCountItem(n)),
                     ],
                     onChanged: (v) => setState(() => _count = v),

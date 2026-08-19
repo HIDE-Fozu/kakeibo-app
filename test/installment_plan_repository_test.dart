@@ -94,4 +94,25 @@ void main() {
     expect(sep.single.amountYen, 500);
     expect(await txRepo.forMonth(2026, 10), isEmpty);
   });
+
+  test('add: 住宅ローン級（420回）も一括insertで全件入る', () async {
+    final repo = c.read(installmentPlanRepositoryProvider);
+    final payments = [
+      for (var i = 0; i < 420; i++)
+        TransactionEntity(
+          type: TxnType.expense,
+          amountYen: 100,
+          date: CivilDate(2026 + (8 + i) ~/ 12, (8 + i) % 12 + 1, 15),
+          categoryId: foodId,
+          source: TxnSource.manual,
+        ),
+    ];
+    final planId = await repo.add(planOf(count: 420), payments);
+    expect(await c.read(transactionRepositoryProvider).count(), 420);
+    // 先頭と最後（2026-09-15 と 2061-08-15）が計画に紐づいている
+    final first = await c.read(transactionRepositoryProvider).forMonth(2026, 9);
+    final last = await c.read(transactionRepositoryProvider).forMonth(2061, 8);
+    expect(first.single.installmentPlanId, planId);
+    expect(last.single.installmentPlanId, planId);
+  });
 }
