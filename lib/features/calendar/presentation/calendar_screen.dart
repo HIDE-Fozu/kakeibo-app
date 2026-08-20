@@ -38,20 +38,7 @@ class CalendarScreen extends ConsumerWidget {
     final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
 
-    return Stack(
-      children: [
-        // 紙の質感（FB 2026-08-20）: 粒子タイルを画面全体に敷く。色は
-        // パレットの地のままなのでカスタムテーマでも質感だけ乗る。
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Image.asset(
-              'assets/textures/paper_grain.png',
-              repeat: ImageRepeat.repeat,
-              filterQuality: FilterQuality.none,
-            ),
-          ),
-        ),
-        SafeArea(
+    return SafeArea(
       child: Column(
         children: [
           const BackupBanner(),
@@ -116,8 +103,6 @@ class CalendarScreen extends ConsumerWidget {
           Expanded(child: _DaySection(day: selected)),
         ],
       ),
-        ),
-      ],
     );
   }
 }
@@ -327,11 +312,11 @@ Widget _dayCell(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 日付はセルの右上・右揃え（FB 2026-08-20）
+        // 日付はセルの左上・金額は右揃え（FB 2026-08-20）
         Align(
-          alignment: Alignment.topRight,
+          alignment: Alignment.topLeft,
           child: Padding(
-            padding: const EdgeInsets.only(right: 3, top: 2),
+            padding: const EdgeInsets.only(left: 3, top: 2),
             child: Container(
               width: 20,
               height: 20,
@@ -364,25 +349,37 @@ Widget _dayCell(
             ),
           ),
         if (total > 0)
-          Text(
-            mf.compact(total),
-            style: TextStyle(
-              fontSize: 9,
-              height: 1.15,
-              fontFeatures: kTabularFigures,
-              color: context.kakeiboColors.expense,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: Text(
+                mf.compact(total),
+                style: TextStyle(
+                  fontSize: 9,
+                  height: 1.15,
+                  fontFeatures: kTabularFigures,
+                  color: context.kakeiboColors.expense,
+                ),
+              ),
             ),
           ),
         // まだ起票されていない固定費・収入（予定）。グレーで実績と区別する。
         if (ghost != 0)
-          Text(
-            mf.compact(ghost.abs()),
-            key: Key('ghost-amount-$iso'),
-            style: const TextStyle(
-              fontSize: 9,
-              height: 1.15,
-              fontFeatures: kTabularFigures,
-              color: kMuted,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: Text(
+                mf.compact(ghost.abs()),
+                key: Key('ghost-amount-$iso'),
+                style: const TextStyle(
+                  fontSize: 9,
+                  height: 1.15,
+                  fontFeatures: kTabularFigures,
+                  color: kMuted,
+                ),
+              ),
             ),
           ),
       ],

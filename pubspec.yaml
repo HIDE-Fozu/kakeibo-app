@@ -87,7 +87,6 @@ flutter:
   # カテゴリのイラストアイコン（slug対応表は lib/core/category_icon_assets.dart）
   assets:
     - assets/category_icons/
-    - assets/textures/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

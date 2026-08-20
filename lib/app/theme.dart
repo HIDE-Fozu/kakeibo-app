@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 // 役割分担: 「塗り・CTA・選択状態」は Primary Fill(#4A7FB5・白文字 4.2:1)、
 // 「文字・枠・小さいグリフ」は同系を締めた Primary Dark(#2F5C8A・白地 7.0:1)。
 
-const kPaper = Color(0xFFF6F0E3); // 生成りの紙色（全体背景・FB 2026-08-20で暖色に）
+const kPaper = Color(0xFFFAF8F4); // ウォームアイボリー（全体背景）
 const kCard = Color(0xFFFFFFFF); // ホワイト（カード・入力面）
 const kInk = Color(0xFF2F3A3D); // メインテキスト
 const kMuted = Color(0xFF748089); // セカンダリテキスト
@@ -41,7 +41,7 @@ const kInfo = Color(0xFF7A98C4);
 
 /// クローム面（バックアップ帯・電卓下の帯・レシート確認パネル等）。
 /// ベース背景よりわずかに沈ませた同系のアイボリー。
-const kChrome = Color(0xFFEFE8D9);
+const kChrome = Color(0xFFF4F2ED);
 
 /// 下部タブのラベル色（未選択）。仕様の Text Secondary。
 /// NavigationBar の仕様上ラベルはタブ別に色を変えられないため共通。
