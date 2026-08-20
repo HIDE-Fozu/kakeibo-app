@@ -10,7 +10,6 @@ import '../../../app/theme.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
-import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
 import '../../entry/presentation/entry_screen.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
@@ -37,16 +36,15 @@ class DayTransactionList extends ConsumerWidget {
     final cats =
         ref.watch(allCategoriesProvider).valueOrNull ?? const <CategoryEntity>[];
     final byId = {for (final c in cats) c.id: c};
-    // その日のゴースト（まだ起票されていない固定費・収入）と家事の行。
+    // その日のゴースト（まだ起票されていない固定費・収入）。
     final dayGhosts = ref
         .watch(monthGhostsProvider((day.year, day.month)))
         .where((g) => g.date == day)
         .toList();
-    final choreRows = buildChoreDayRows(context, ref, day);
-    // 空判定は取引・予定・家事の3レーンすべて空のとき（家事行が空状態の裏に
-    // 隠れる回帰を防ぐ）。2026-08-20 モック: 日付は日付タブが示すので文言から
+    // 空判定は取引・予定の2レーンが空のとき
+    //（家事の行は「つきいち」タブへ移設・FB 2026-08-20・calendar_screen）。2026-08-20 モック: 日付は日付タブが示すので文言から
     // 外し、支出/収入の追加ボタンをカード内に置く（開くのはFABと同じ入力画面）。
-    if (txs.isEmpty && dayGhosts.isEmpty && choreRows.isEmpty) {
+    if (txs.isEmpty && dayGhosts.isEmpty) {
       // 2026-08-20 モック: 日付は日付タブが示すので文言から外し、支出/収入の
       // 追加ボタンを置く。6週ある月はカードが〜90pxしかないため、高さに応じて
       // 2段構え（広い月=アイコン付き中央寄せ / 狭い月=文言＋ボタンのみ）。
@@ -137,7 +135,6 @@ class DayTransactionList extends ConsumerWidget {
           else
             _groupCard(context, ref, byId, grouped[unit]!),
         for (final g in dayGhosts) _ghostTile(context, ref, byId, g),
-        ...choreRows,
       ],
     );
   }

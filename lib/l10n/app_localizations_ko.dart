@@ -515,6 +515,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get calendarAddIncome => '수입 추가';
 
   @override
+  String get calendarChoreTab => '집안일';
+
+  @override
+  String get calendarChoreTabEmpty => '이 날의 집안일이 없습니다';
+
+  @override
   String get calendarReceiptFallbackLabel => '영수증';
 
   @override
@@ -598,7 +604,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onboardingStartButton => '시작하기';
 
   @override
-  String get homeFabEntryLabel => '금액 입력';
+  String get homeFabEntryLabel => '가계부 입력';
 
   @override
   String get homeNavCalendar => '캘린더';
@@ -769,11 +775,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get forecastLabelMonthEnd => '예상 수지(월말)';
 
   @override
-  String forecastLabelAtDate(String date) {
-    return '예상 수지($date 기준)';
-  }
-
-  @override
   String choreOverdueDays(int days) {
     return '$days일 지남';
   }
@@ -905,15 +906,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => '되돌리기';
-
-  @override
-  String get forecastAnchorSheetTitle => '예상 수지 기준일';
-
-  @override
-  String get forecastAnchorSheetNote => '오늘부터 기준일까지의 예정을 실적에 더해 표시합니다(기준일 포함)';
-
-  @override
-  String get forecastAnchorMonthEnd => '월말';
 
   @override
   String get calendarLegendChoreDone => '했어요';

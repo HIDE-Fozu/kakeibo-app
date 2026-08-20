@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../../app/cell_dropdown.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/dates.dart';
@@ -13,9 +12,8 @@ import '../../../domain/money/civil_date.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../app/navigation.dart';
 import '../../chores/application/chore_providers.dart';
-import '../../chores/presentation/chore_ui_common.dart';
+import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
-import '../../settings/application/settings_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
@@ -108,16 +106,57 @@ class CalendarScreen extends ConsumerWidget {
 }
 
 /// 日別リストのカード（画像1枚目参考・フラット近似）:
-/// 選択日のタブラベル（主色の塗り）＋白カードにリストを載せる。
-class _DaySection extends ConsumerWidget {
+/// 選択日タブと「つきいち」タブ（FB 2026-08-20）で内容を切り替え、
+/// 右端の「家計簿を入力」から選択日既定で入力画面へ。
+class _DaySection extends ConsumerStatefulWidget {
   final CivilDate day;
   const _DaySection({required this.day});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_DaySection> createState() => _DaySectionState();
+}
+
+class _DaySectionState extends ConsumerState<_DaySection> {
+  /// つきいちタブ表示中か（日を切り替えても維持）。
+  bool _chores = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final tag = Localizations.localeOf(context).toLanguageTag();
-    final label = DateFormat.MMMEd(tag).format(dateTimeOfCivil(day));
+    final label = DateFormat.MMMEd(tag).format(dateTimeOfCivil(widget.day));
+    final fill = context.kakeiboPalette.fill;
+
+    Widget tab({
+      required Key key,
+      required String text,
+      required bool selected,
+      required VoidCallback onTap,
+    }) =>
+        InkWell(
+          key: key,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: selected ? fill : context.kakeiboPalette.soft,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: selected ? Colors.white : kMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 2, 10, 4),
       child: Column(
@@ -126,44 +165,57 @@ class _DaySection extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Container(
-                key: const Key('day-tab-label'),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                decoration: BoxDecoration(
-                  color: context.kakeiboPalette.fill,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(8)),
-                ),
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600),
+              // ボタンのラベルは切らず、幅が足りないときはタブ側だけ縮む
+              //（Flexibleの均等割り上限で日本語まで省略される罠の回避）。
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: tab(
+                        key: const Key('day-tab-label'),
+                        text: label,
+                        selected: !_chores,
+                        onTap: () => setState(() => _chores = false),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: tab(
+                        key: const Key('day-tab-chores'),
+                        text: l.calendarChoreTab,
+                        selected: _chores,
+                        onTap: () => setState(() => _chores = true),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              // 旧FABの後継:「＋」で選択日を既定に入力画面へ。キーと文言を
-              // 引き継ぎ、既存の導線・テストと互換（FABはカードを塞ぐため廃止）。
+              const SizedBox(width: 8),
+              // 旧FABの後継。「＋だけでは分かりづらい」FBでラベル付きに。
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
-                child: IconButton(
+                child: FilledButton.icon(
                   key: const Key('fab-entry'),
-                  tooltip: l.homeFabEntryLabel,
-                  style: IconButton.styleFrom(
-                    backgroundColor: context.kakeiboPalette.fill,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: fill,
                     foregroundColor: Colors.white,
-                    minimumSize: const Size(36, 36),
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    minimumSize: const Size(0, 32),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  icon: const Icon(Icons.add, size: 22),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: Text(l.homeFabEntryLabel,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
                   onPressed: () {
                     ref
                         .read(entryFormControllerProvider.notifier)
-                        .startCreate(day);
-                    ref.read(homeTabIndexProvider.notifier).set(kInputTabIndex);
+                        .startCreate(widget.day);
+                    ref
+                        .read(homeTabIndexProvider.notifier)
+                        .set(kInputTabIndex);
                   },
                 ),
               ),
@@ -184,13 +236,41 @@ class _DaySection extends ConsumerWidget {
               ),
               child: SizedBox(
                 width: double.infinity,
-                child: DayTransactionList(day: day),
+                child: _chores
+                    ? _ChoreDayList(day: widget.day)
+                    : DayTransactionList(day: widget.day),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// 「つきいち」タブの中身: その日の実施記録・期日行（やったボタン付き）。
+/// 行の実装は日別リストに埋まっていた buildChoreDayRows をそのまま使う。
+class _ChoreDayList extends ConsumerWidget {
+  final CivilDate day;
+  const _ChoreDayList({required this.day});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final rows = buildChoreDayRows(context, ref, day);
+    if (rows.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            l.calendarChoreTabEmpty,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return ListView(children: rows);
   }
 }
 
@@ -513,48 +593,42 @@ class _SummaryCard extends ConsumerWidget {
               ],
             ),
           ),
-          // 見込み収支（実績差引 + 基準日までの固定費予定）。過去月は出ない。
+          // 見込み収支 = 実績差引＋月末までの固定費・収入の予定。過去月は出ない。
+          // 基準日（毎月N日）切り替えは「不要」FB（2026-08-20）で撤去し常に月末。
           if (forecast != null) ...[
             const Divider(height: 1, color: kLine),
-            InkWell(
+            Padding(
               key: const Key('forecast-line'),
-              borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(12)),
-              onTap: () => _showAnchorSheet(context, ref),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        forecast.anchorIsMonthEnd
-                            ? l.forecastLabelMonthEnd
-                            : l.forecastLabelAtDate(
-                                choreShortDate(context, forecast.anchor)),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(fontFamily: kLedgerFontFamily),
-                      ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l.forecastLabelMonthEnd,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(fontFamily: kLedgerFontFamily),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${forecast.forecast >= 0 ? '+${mf.format(forecast.forecast)}' : mf.format(forecast.forecast)} ▾',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: kLedgerFontFamily,
-                        fontFeatures: kTabularFigures,
-                        color: forecast.forecast < 0
-                            ? colors.expense
-                            : Theme.of(context).colorScheme.primary,
-                      ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    forecast.forecast >= 0
+                        ? '+${mf.format(forecast.forecast)}'
+                        : mf.format(forecast.forecast),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: kLedgerFontFamily,
+                      fontFeatures: kTabularFigures,
+                      color: forecast.forecast < 0
+                          ? colors.expense
+                          : Theme.of(context).colorScheme.primary,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -563,100 +637,4 @@ class _SummaryCard extends ConsumerWidget {
     );
   }
 
-  /// 基準日の選択シート（月末 / 毎月N日）。ルール別ではなくアプリ設定。
-  Future<void> _showAnchorSheet(BuildContext context, WidgetRef ref) async {
-    final l = AppLocalizations.of(context);
-    final current = ref.read(appSettingsProvider).forecastAnchorDay;
-    final picked = await showModalBottomSheet<int>(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) {
-        var day = current == 0 ? 25 : current; // 日指定へ切り替えた時の初期値
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) => SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l.forecastAnchorSheetTitle,
-                      style: Theme.of(ctx).textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text(l.forecastAnchorSheetNote,
-                      style: Theme.of(ctx).textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    key: const Key('forecast-anchor-monthend'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l.forecastAnchorMonthEnd),
-                    trailing: current == 0
-                        ? Icon(Icons.check,
-                            color: Theme.of(ctx).colorScheme.primary)
-                        : null,
-                    onTap: () => Navigator.pop(ctx, 0),
-                  ),
-                  ListTile(
-                    key: const Key('forecast-anchor-day'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Row(
-                      children: [
-                        // 白ピル＋セル幅・直下展開のメニュー（cell_dropdown）。
-                        Builder(builder: (pillContext) {
-                          final scheme = Theme.of(pillContext).colorScheme;
-                          return InkWell(
-                            key: const Key('forecast-anchor-day-dropdown'),
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () async {
-                              final picked = await showCellDropdown<int>(
-                                pillContext,
-                                centerItems: true,
-                                value: day,
-                                items: [
-                                  for (var d = 1; d <= 31; d++)
-                                    CellDropdownItem(d, l.dayOfMonthItem(d)),
-                                ],
-                              );
-                              if (picked != null) {
-                                setSheetState(() => day = picked);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: scheme.surface,
-                                border:
-                                    Border.all(color: scheme.outlineVariant),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(l.recurringEveryMonthDay(day)),
-                                  Icon(Icons.arrow_drop_down,
-                                      size: 20, color: scheme.primary),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                    trailing: current != 0
-                        ? Icon(Icons.check,
-                            color: Theme.of(ctx).colorScheme.primary)
-                        : null,
-                    onTap: () => Navigator.pop(ctx, day),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-    if (picked == null) return;
-    await ref.read(appSettingsProvider.notifier).setForecastAnchorDay(picked);
-  }
 }

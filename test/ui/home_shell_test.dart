@@ -37,8 +37,8 @@ void main() {
     addTearDown(h.dispose);
     await pumpApp(tester, h);
 
-    // カレンダーのFAB（小型・＋のみ。ラベルはツールチップ）
-    expect(find.byTooltip('金額を入力する'), findsOneWidget);
+    // 日付タブ行の入力ボタン（ラベル付き・FB 2026-08-20）
+    expect(find.text('家計簿を入力'), findsOneWidget);
     await tester.tap(find.byKey(const Key('fab-entry')));
     await tester.pumpAndSettle();
 

@@ -61,48 +61,6 @@ void main() {
     expect(find.byKey(const Key('recurring-save')), findsOneWidget);
   });
 
-  testWidgets('基準日シート: 毎月25日にすると見込みが25日時点になる', (tester) async {
-    setPhoneSurface(tester);
-    final h = await createHarness();
-    addTearDown(h.dispose);
-    await pumpApp(tester, h);
-    final c = containerOf(tester);
-    final catId = await foodCategoryId(c);
-    await c.read(recurringRuleRepositoryProvider).add(RecurringRuleEntity(
-          type: TxnType.expense,
-          amountMinor: 85000,
-          categoryId: catId,
-          dayOfMonth: 27,
-          startYm: 202607,
-        ));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('forecast-line')));
-    await tester.pumpAndSettle();
-    expect(find.text('見込み収支の基準日'), findsOneWidget);
-
-    // 「毎月25日」（日指定タイルの既定値）を選択
-    await tester.tap(find.byKey(const Key('forecast-anchor-day')));
-    await tester.pumpAndSettle();
-
-    // 25日時点: 家賃(27日)は含まれない → +¥0。ラベルは（7/25時点）。
-    // ラベルと金額は別テキストになった（サマリカード化）ので、
-    // 「差引 +¥0」と紛れないよう見込み行の配下で金額を確認する。
-    expect(find.textContaining('見込み収支（7/25時点）'), findsOneWidget);
-    expect(
-        find.descendant(
-            of: find.byKey(const Key('forecast-line')),
-            matching: find.textContaining('+¥0')),
-        findsOneWidget);
-
-    // 月末に戻す
-    await tester.tap(find.byKey(const Key('forecast-line')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('forecast-anchor-monthend')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('見込み収支（月末）'), findsOneWidget);
-  });
-
   testWidgets('家事: 期日ドット・今日の日パネルの「やった」で記録→期日が進む', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -120,6 +78,9 @@ void main() {
 
     // 今日(7/15)に期日ドット（橙）・日パネルに期日行+やったボタン
     expect(find.byKey(const Key('chore-dot-due-2026-07-15')), findsOneWidget);
+    // 家事行は「つきいち」タブへ移設（FB 2026-08-20）
+    await tester.tap(find.byKey(const Key('day-tab-chores')));
+    await tester.pumpAndSettle();
     expect(find.text('今日'), findsWidgets);
     final doneBtn = find.byKey(const Key('chore-done-btn-1'));
     expect(doneBtn, findsOneWidget);
@@ -151,9 +112,11 @@ void main() {
         anchorDate: const CivilDate(2026, 7, 1));
     await tester.pumpAndSettle();
 
-    // 期日7/1に赤ドット・今日のパネルに超過行（やった付き）
+    // 期日7/1に赤ドット・今日の「つきいち」タブに超過行（やった付き）
     expect(
         find.byKey(const Key('chore-dot-overdue-2026-07-01')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('day-tab-chores')));
+    await tester.pumpAndSettle();
     expect(find.text('14日超過'), findsOneWidget);
     expect(find.byKey(const Key('chore-done-btn-1')), findsOneWidget);
 

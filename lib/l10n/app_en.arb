@@ -353,6 +353,14 @@
   "@calendarAddIncome": {
     "description": "Empty state button: open the entry screen with type=income"
   },
+  "calendarChoreTab": "Chores",
+  "@calendarChoreTab": {
+    "description": "Day-section tab that shows the recurring chores of the selected day"
+  },
+  "calendarChoreTabEmpty": "No chores for this day",
+  "@calendarChoreTabEmpty": {
+    "description": "Empty state of the chores tab in the day section"
+  },
   "calendarReceiptFallbackLabel": "Receipt",
   "calendarCategoryUnknown": "Unknown",
   "calendarCategoryArchivedLabel": "{name} (Archived)",
@@ -443,7 +451,7 @@
   "onboardingTitle": "About Your Data",
   "onboardingBody": "• Your records are stored only on this device. Nothing is sent externally.\n• The app backs up automatically on this device, but please save an export from Settings in case you switch or lose your device.",
   "onboardingStartButton": "Get Started",
-  "homeFabEntryLabel": "Enter amount",
+  "homeFabEntryLabel": "Add entry",
   "homeNavCalendar": "Calendar",
   "homeNavSummary": "Summary",
   "homeNavSettings": "Settings",
@@ -625,15 +633,6 @@
   "forecastLabelMonthEnd": "Projected balance (end of month)",
   "@forecastLabelMonthEnd": {
     "description": "Forecast line label when the anchor is the end of month"
-  },
-  "forecastLabelAtDate": "Projected balance (as of {date})",
-  "@forecastLabelAtDate": {
-    "description": "Forecast line label when the anchor is a specific day",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
   },
   "choreOverdueDays": "{days}d overdue",
   "@choreOverdueDays": {
@@ -825,18 +824,6 @@
   "@choreUnarchiveButton": {
     "description": "Chore settings: unarchive button"
   },
-  "forecastAnchorSheetTitle": "Anchor date for the projected balance",
-  "@forecastAnchorSheetTitle": {
-    "description": "Bottom sheet title for choosing the forecast anchor date"
-  },
-  "forecastAnchorSheetNote": "Planned amounts up to and including the anchor date are added to the actual balance.",
-  "@forecastAnchorSheetNote": {
-    "description": "Bottom sheet explanation of the forecast anchor"
-  },
-  "forecastAnchorMonthEnd": "End of month",
-  "@forecastAnchorMonthEnd": {
-    "description": "Forecast anchor option: end of month (default)"
-  },
   "calendarLegendChoreDone": "chore done",
   "@calendarLegendChoreDone": {
     "description": "Calendar legend: green dot = chore recorded that day"
@@ -923,5 +910,8 @@
   },
   "installmentEditTitle": "Edit installment plan",
   "installmentDeleteConfirmContent": "This installment plan and all of its payments will be deleted.",
-  "hubInstallmentEmpty": "No installment plans yet"
+  "hubInstallmentEmpty": "No installment plans yet",
+  "@homeFabEntryLabel": {
+    "description": "Label of the add-entry button on the day tab row (was the FAB label)"
+  }
 }

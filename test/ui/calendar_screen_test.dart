@@ -49,7 +49,8 @@ void main() {
     expect(find.text('収入'), findsOneWidget);
     expect(find.text('¥2,000'), findsOneWidget);
     expect(find.text('差引'), findsOneWidget);
-    expect(find.text('+¥1,500'), findsOneWidget);
+    // 差引と見込み収支（月末・同額）の2箇所（▾撤去で文字列が一致するように）
+    expect(find.text('+¥1,500'), findsNWidgets(2));
 
     await tester.tap(find.byKey(const Key('next-month')));
     await tester.pumpAndSettle();

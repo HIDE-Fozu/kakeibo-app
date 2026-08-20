@@ -134,10 +134,7 @@ class MonthlyHubScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          forecast.anchorIsMonthEnd
-                              ? l.forecastLabelMonthEnd
-                              : l.forecastLabelAtDate(
-                                  choreShortDate(context, forecast.anchor)),
+                          l.forecastLabelMonthEnd,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),

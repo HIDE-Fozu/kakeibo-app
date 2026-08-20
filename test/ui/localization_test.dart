@@ -29,7 +29,7 @@ void main() {
     // 入力タブへ（FABは英語）。
     await tester.tap(find.text('Calendar'));
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Enter amount'), findsOneWidget); // 小型FABのツールチップ
+    expect(find.text('Add entry'), findsOneWidget); // 入力ボタン（英語）
   });
 
   // ドイツ語は最長になりやすくレイアウト崩れ（オーバーフロー）を検知しやすい。

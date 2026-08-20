@@ -1030,6 +1030,18 @@ abstract class AppLocalizations {
   /// **'Add income'**
   String get calendarAddIncome;
 
+  /// Day-section tab that shows the recurring chores of the selected day
+  ///
+  /// In en, this message translates to:
+  /// **'Chores'**
+  String get calendarChoreTab;
+
+  /// Empty state of the chores tab in the day section
+  ///
+  /// In en, this message translates to:
+  /// **'No chores for this day'**
+  String get calendarChoreTabEmpty;
+
   /// No description provided for @calendarReceiptFallbackLabel.
   ///
   /// In en, this message translates to:
@@ -1174,10 +1186,10 @@ abstract class AppLocalizations {
   /// **'Get Started'**
   String get onboardingStartButton;
 
-  /// No description provided for @homeFabEntryLabel.
+  /// Label of the add-entry button on the day tab row (was the FAB label)
   ///
   /// In en, this message translates to:
-  /// **'Enter amount'**
+  /// **'Add entry'**
   String get homeFabEntryLabel;
 
   /// No description provided for @homeNavCalendar.
@@ -1486,12 +1498,6 @@ abstract class AppLocalizations {
   /// **'Projected balance (end of month)'**
   String get forecastLabelMonthEnd;
 
-  /// Forecast line label when the anchor is a specific day
-  ///
-  /// In en, this message translates to:
-  /// **'Projected balance (as of {date})'**
-  String forecastLabelAtDate(String date);
-
   /// Chore status: overdue by N days
   ///
   /// In en, this message translates to:
@@ -1725,24 +1731,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get choreUnarchiveButton;
-
-  /// Bottom sheet title for choosing the forecast anchor date
-  ///
-  /// In en, this message translates to:
-  /// **'Anchor date for the projected balance'**
-  String get forecastAnchorSheetTitle;
-
-  /// Bottom sheet explanation of the forecast anchor
-  ///
-  /// In en, this message translates to:
-  /// **'Planned amounts up to and including the anchor date are added to the actual balance.'**
-  String get forecastAnchorSheetNote;
-
-  /// Forecast anchor option: end of month (default)
-  ///
-  /// In en, this message translates to:
-  /// **'End of month'**
-  String get forecastAnchorMonthEnd;
 
   /// Calendar legend: green dot = chore recorded that day
   ///

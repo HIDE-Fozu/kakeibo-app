@@ -7,7 +7,6 @@ import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/recurring_schedule.dart';
 import '../../chores/application/chore_providers.dart';
-import '../../settings/application/settings_controller.dart';
 
 class SelectedDay extends AutoDisposeNotifier<CivilDate> {
   @override
@@ -127,6 +126,6 @@ final monthForecastProvider = Provider.autoDispose.family<
     actualNet: summary.net,
     rules: rules,
     today: ref.watch(choreTodayProvider),
-    anchorDay: ref.watch(appSettingsProvider).forecastAnchorDay,
+    anchorDay: 0, // 常に月末（基準日切り替えは「不要」FB 2026-08-20で撤去）
   );
 });

@@ -512,6 +512,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get calendarAddIncome => '添加收入';
 
   @override
+  String get calendarChoreTab => '家务';
+
+  @override
+  String get calendarChoreTabEmpty => '这一天没有家务';
+
+  @override
   String get calendarReceiptFallbackLabel => '小票';
 
   @override
@@ -595,7 +601,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingStartButton => '开始使用';
 
   @override
-  String get homeFabEntryLabel => '输入金额';
+  String get homeFabEntryLabel => '记一笔';
 
   @override
   String get homeNavCalendar => '日历';
@@ -763,11 +769,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forecastLabelMonthEnd => '预计结余（月末）';
 
   @override
-  String forecastLabelAtDate(String date) {
-    return '预计结余（截至$date）';
-  }
-
-  @override
   String choreOverdueDays(int days) {
     return '已超期$days天';
   }
@@ -899,15 +900,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => '恢复';
-
-  @override
-  String get forecastAnchorSheetTitle => '预计结余的基准日';
-
-  @override
-  String get forecastAnchorSheetNote => '将今天到基准日（含当天）的预定金额计入实际结余显示';
-
-  @override
-  String get forecastAnchorMonthEnd => '月末';
 
   @override
   String get calendarLegendChoreDone => '已完成';

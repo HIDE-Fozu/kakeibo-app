@@ -532,6 +532,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get calendarAddIncome => 'Einnahme hinzufügen';
 
   @override
+  String get calendarChoreTab => 'Aufgaben';
+
+  @override
+  String get calendarChoreTabEmpty => 'Keine Aufgaben an diesem Tag';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Beleg';
 
   @override
@@ -618,7 +624,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingStartButton => 'Los geht\'s';
 
   @override
-  String get homeFabEntryLabel => 'Betrag eingeben';
+  String get homeFabEntryLabel => 'Eintrag erfassen';
 
   @override
   String get homeNavCalendar => 'Kalender';
@@ -798,11 +804,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get forecastLabelMonthEnd => 'Prognose (Monatsende)';
 
   @override
-  String forecastLabelAtDate(String date) {
-    return 'Prognose (zum $date)';
-  }
-
-  @override
   String choreOverdueDays(int days) {
     return '$days T. überfällig';
   }
@@ -936,16 +937,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => 'Wiederherstellen';
-
-  @override
-  String get forecastAnchorSheetTitle => 'Stichtag für die Prognose';
-
-  @override
-  String get forecastAnchorSheetNote =>
-      'Geplante Beträge bis einschließlich Stichtag werden zum Ist-Saldo addiert.';
-
-  @override
-  String get forecastAnchorMonthEnd => 'Monatsende';
 
   @override
   String get calendarLegendChoreDone => 'erledigt';

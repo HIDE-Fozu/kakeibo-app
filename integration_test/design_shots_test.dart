@@ -63,6 +63,13 @@ void main() {
     // 1) カレンダー全景（サマリカード・白カードセル・日別カードに行）
     await shot(t, 'design_1_calendar');
 
+    // 1b) つきいちタブ（空状態）→ 日別へ戻す
+    await t.tap(find.byKey(const Key('day-tab-chores')));
+    await settle(t);
+    await shot(t, 'design_1b_chores_tab');
+    await t.tap(find.byKey(const Key('day-tab-label')));
+    await settle(t);
+
     // 2) 空の日 → 空状態（支出/収入ボタン）
     await t.tap(find.text('5'));
     await settle(t);

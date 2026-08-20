@@ -513,6 +513,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get calendarAddIncome => '収入を追加';
 
   @override
+  String get calendarChoreTab => 'つきいち';
+
+  @override
+  String get calendarChoreTabEmpty => 'この日のつきいちタスクはありません';
+
+  @override
   String get calendarReceiptFallbackLabel => 'レシート';
 
   @override
@@ -596,7 +602,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingStartButton => 'はじめる';
 
   @override
-  String get homeFabEntryLabel => '金額を入力する';
+  String get homeFabEntryLabel => '家計簿を入力';
 
   @override
   String get homeNavCalendar => 'カレンダー';
@@ -766,11 +772,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get forecastLabelMonthEnd => '見込み収支（月末）';
 
   @override
-  String forecastLabelAtDate(String date) {
-    return '見込み収支（$date時点）';
-  }
-
-  @override
   String choreOverdueDays(int days) {
     return '$days日超過';
   }
@@ -902,15 +903,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => '元に戻す';
-
-  @override
-  String get forecastAnchorSheetTitle => '見込み収支の基準日';
-
-  @override
-  String get forecastAnchorSheetNote => '今日から基準日までの予定を実績に足して表示します（基準日当日を含む）';
-
-  @override
-  String get forecastAnchorMonthEnd => '月末';
 
   @override
   String get calendarLegendChoreDone => 'やった';

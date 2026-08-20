@@ -536,6 +536,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get calendarAddIncome => 'Ajouter un revenu';
 
   @override
+  String get calendarChoreTab => 'Tâches';
+
+  @override
+  String get calendarChoreTabEmpty => 'Aucune tâche pour ce jour';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Reçu';
 
   @override
@@ -622,7 +628,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingStartButton => 'Commencer';
 
   @override
-  String get homeFabEntryLabel => 'Saisir le montant';
+  String get homeFabEntryLabel => 'Saisir une entrée';
 
   @override
   String get homeNavCalendar => 'Calendrier';
@@ -805,11 +811,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get forecastLabelMonthEnd => 'Prévision (fin de mois)';
 
   @override
-  String forecastLabelAtDate(String date) {
-    return 'Prévision (au $date)';
-  }
-
-  @override
   String choreOverdueDays(int days) {
     return '$days j de retard';
   }
@@ -944,16 +945,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get choreUnarchiveButton => 'Restaurer';
-
-  @override
-  String get forecastAnchorSheetTitle => 'Date de référence de la prévision';
-
-  @override
-  String get forecastAnchorSheetNote =>
-      'Les montants prévus jusqu\'à la date de référence incluse s\'ajoutent au solde réel.';
-
-  @override
-  String get forecastAnchorMonthEnd => 'Fin de mois';
 
   @override
   String get calendarLegendChoreDone => 'fait';
