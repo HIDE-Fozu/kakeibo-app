@@ -317,6 +317,8 @@ ThemeData buildKakeiboTheme({Color? themeColor}) {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: kCard,
       indicatorColor: p.soft,
+      // 下タブは細く（既定80は余白が大きい・FB 2026-08-20）。
+      height: 62,
       iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(
             color: s.contains(WidgetState.selected) ? p.dark : kNavIdle,
           )),

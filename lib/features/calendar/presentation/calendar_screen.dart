@@ -473,13 +473,13 @@ class _SummaryCard extends ConsumerWidget {
               Text(label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: kMuted, fontFamily: kLedgerFontFamily)),
-              const SizedBox(height: 1),
+              const SizedBox(height: 4),
               Text(
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: valueColor,
                   fontFamily: kLedgerFontFamily,
@@ -490,7 +490,7 @@ class _SummaryCard extends ConsumerWidget {
           ),
         );
 
-    Widget vLine() => Container(width: 0.6, height: 30, color: kLine);
+    Widget vLine() => Container(width: 0.6, height: 40, color: kLine);
 
     return Container(
       key: const Key('month-summary-card'),
@@ -503,7 +503,8 @@ class _SummaryCard extends ConsumerWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            // 縦幅は広めに（「金額の場所が狭い」FB 2026-08-20）。
+            padding: const EdgeInsets.symmetric(vertical: 14),
             child: Row(
               children: [
                 col(l.summaryExpenseLabel, mf.format(summary.expense),
@@ -531,7 +532,7 @@ class _SummaryCard extends ConsumerWidget {
               onTap: () => _showAnchorSheet(context, ref),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Row(
                   children: [
                     Expanded(
