@@ -60,11 +60,13 @@ void main() {
     expect(find.text('2026年7月'), findsOneWidget);
   });
 
-  testWidgets('日セルに支出のみの略記マーカーが出る', (tester) async {
+  testWidgets('日セルの略記マーカー: 支出は−・収入は+で出る', (tester) async {
     final c = await pumpShell(tester);
     await seed(c, 12345, day: 20);
+    await seed(c, 270000, day: 25, type: TxnType.income);
     await tester.pumpAndSettle();
-    expect(find.text('1.2万'), findsOneWidget);
+    expect(find.text('-1.2万'), findsOneWidget);
+    expect(find.text('+27万'), findsOneWidget); // モック準拠（FB 2026-08-21）
   });
 
   testWidgets('日タップでその日のリスト、tap=編集・swipe=ごみ箱へ', (tester) async {

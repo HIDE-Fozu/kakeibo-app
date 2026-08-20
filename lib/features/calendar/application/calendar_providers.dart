@@ -84,6 +84,21 @@ final dayExpenseTotalsProvider = Provider.autoDispose
   }),
 );
 
+/// カレンダーセル用: 日別の収入合計（収入のみ、月streamからの派生）。
+/// セルは支出だけの仕様だったが、モック（+27万の緑）に合わせて収入も出す
+/// （FB 2026-08-21「収入が反映されてない」）。
+final dayIncomeTotalsProvider = Provider.autoDispose
+    .family<AsyncValue<Map<CivilDate, int>>, (int, int)>(
+  (ref, key) => ref.watch(monthTransactionsProvider(key)).whenData((txs) {
+    final map = <CivilDate, int>{};
+    for (final t in txs) {
+      if (t.type != TxnType.income) continue;
+      map[t.date] = (map[t.date] ?? 0) + t.amountYen;
+    }
+    return map;
+  }),
+);
+
 /// (year, month) 月内の「まだ起票されていない固定費・収入の予定」（ゴースト）。
 /// 実取引と混ざらない別レーン。カレンダー・日パネル・毎月タブで共用する。
 final monthGhostsProvider = Provider.autoDispose

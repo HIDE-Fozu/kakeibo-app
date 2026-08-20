@@ -32,6 +32,9 @@ class CalendarScreen extends ConsumerWidget {
     final totals =
         ref.watch(dayExpenseTotalsProvider((year, month))).valueOrNull ??
         const <CivilDate, int>{};
+    final incomes =
+        ref.watch(dayIncomeTotalsProvider((year, month))).valueOrNull ??
+        const <CivilDate, int>{};
     final ghosts = ref.watch(dayGhostTotalsProvider((year, month)));
     final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
@@ -79,12 +82,12 @@ class CalendarScreen extends ConsumerWidget {
                 );
               },
               // 数字を上・金額を下に分離（選択/今日の丸は数字だけを囲む小さめの丸）。
-              defaultBuilder: (context, day, _) => _dayCell(
-                  context, day, _DayStyle.normal, totals, ghosts, choreMarks, mf),
-              todayBuilder: (context, day, _) => _dayCell(
-                  context, day, _DayStyle.today, totals, ghosts, choreMarks, mf),
+              defaultBuilder: (context, day, _) => _dayCell(context, day,
+                  _DayStyle.normal, totals, incomes, ghosts, choreMarks, mf),
+              todayBuilder: (context, day, _) => _dayCell(context, day,
+                  _DayStyle.today, totals, incomes, ghosts, choreMarks, mf),
               selectedBuilder: (context, day, _) => _dayCell(context, day,
-                  _DayStyle.selected, totals, ghosts, choreMarks, mf),
+                  _DayStyle.selected, totals, incomes, ghosts, choreMarks, mf),
               outsideBuilder: (context, day, _) => Container(
                 margin: _kCellMargin,
                 decoration: _kCellDeco,
@@ -351,12 +354,14 @@ Widget _dayCell(
   DateTime day,
   _DayStyle style,
   Map<CivilDate, int> totals,
+  Map<CivilDate, int> incomes,
   Map<CivilDate, int> ghosts,
   Map<CivilDate, ChoreDayMarks> choreMarks,
   MoneyFormatter mf,
 ) {
   final civil = civilOfDateTime(day);
   final total = totals[civil] ?? 0;
+  final income = incomes[civil] ?? 0;
   final ghost = ghosts[civil] ?? 0;
   final marks = choreMarks[civil];
   BoxDecoration? deco;
@@ -428,44 +433,42 @@ Widget _dayCell(
               ],
             ),
           ),
-        if (total > 0)
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 3),
-              child: Text(
-                mf.compact(total),
-                style: TextStyle(
-                  fontSize: 9,
-                  height: 1.15,
-                  fontFeatures: kTabularFigures,
-                  color: context.kakeiboColors.expense,
-                ),
-              ),
-            ),
-          ),
-        // まだ起票されていない固定費・収入（予定）。グレーで実績と区別する。
-        if (ghost != 0)
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 3),
-              child: Text(
-                mf.compact(ghost.abs()),
-                key: Key('ghost-amount-$iso'),
-                style: const TextStyle(
-                  fontSize: 9,
-                  height: 1.15,
-                  fontFeatures: kTabularFigures,
-                  color: kMuted,
-                ),
-              ),
-            ),
-          ),
+        // 金額レーン: 支出（−赤）→ 収入（+緑）→ 予定（グレー）の優先順で
+        // 最大2行（正方形セルの縦予算のため。3つ重なる日は予定を省く）。
+        ...[
+          if (total > 0)
+            _cellAmount('-${mf.compact(total)}',
+                context.kakeiboColors.expense),
+          if (income > 0)
+            _cellAmount('+${mf.compact(income)}',
+                context.kakeiboColors.income),
+          // まだ起票されていない固定費・収入（予定）。グレーで実績と区別する。
+          if (ghost != 0)
+            _cellAmount(mf.compact(ghost.abs()), kMuted,
+                key: Key('ghost-amount-$iso')),
+        ].take(2),
       ],
     ),
   );
 }
+
+/// セル内の金額1行（右揃え・9pt）。
+Widget _cellAmount(String text, Color color, {Key? key}) => Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 3),
+        child: Text(
+          text,
+          key: key,
+          style: TextStyle(
+            fontSize: 9,
+            height: 1.15,
+            fontFeatures: kTabularFigures,
+            color: color,
+          ),
+        ),
+      ),
+    );
 
 Widget _dot(Color color, Key key) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
