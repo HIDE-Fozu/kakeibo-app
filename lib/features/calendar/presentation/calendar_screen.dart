@@ -38,7 +38,20 @@ class CalendarScreen extends ConsumerWidget {
     final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
 
-    return SafeArea(
+    return Stack(
+      children: [
+        // 紙の質感（FB 2026-08-20）: 粒子タイルを画面全体に敷く。色は
+        // パレットの地のままなのでカスタムテーマでも質感だけ乗る。
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Image.asset(
+              'assets/textures/paper_grain.png',
+              repeat: ImageRepeat.repeat,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
+        ),
+        SafeArea(
       child: Column(
         children: [
           const BackupBanner(),
@@ -103,6 +116,8 @@ class CalendarScreen extends ConsumerWidget {
           Expanded(child: _DaySection(day: selected)),
         ],
       ),
+        ),
+      ],
     );
   }
 }
@@ -312,11 +327,11 @@ Widget _dayCell(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 日付はセルの左上（FB 2026-08-20・モック2枚目の配置）
+        // 日付はセルの右上・右揃え（FB 2026-08-20）
         Align(
-          alignment: Alignment.topLeft,
+          alignment: Alignment.topRight,
           child: Padding(
-            padding: const EdgeInsets.only(left: 3, top: 2),
+            padding: const EdgeInsets.only(right: 3, top: 2),
             child: Container(
               width: 20,
               height: 20,
