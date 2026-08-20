@@ -67,6 +67,16 @@
 - **QAスクショは日付フォルダ分け**: 撮影ドライバ（test_driver/integration_test.dart）の
   保存先を `build/qa_screens/<YYYY-MM-DD>/` に変更。既存画像も更新日で整理済み。
 
+### 追記2（同日FB第2弾）
+
+- **日付はセルの右上・右揃え**（左上→右上に変更）。
+- **背景を紙の質感に**: kPaper を生成り #F6F0E3 へ（kChrome #EFE8D9）。
+  質感は `assets/textures/paper_grain.png`（python生成の96pxタイル・透明地に
+  粒/繊維のみ）を calendar_screen で ImageRepeat.repeat で敷く。
+  パレット色から独立なのでカスタムテーマでも質感だけ乗る。
+  生成スクリプトはコミットせず（再生成する場合は引き継ぎのこの節参照:
+  zlib+structで手書きPNG・seed 20260820）。
+
 ## ★次にやること
 
 1. **ユーザーの見た目レビュー**（design_1〜3スクショ or 実機）→ 微調整FB。
