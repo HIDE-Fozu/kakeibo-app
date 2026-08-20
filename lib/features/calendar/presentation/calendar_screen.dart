@@ -76,10 +76,7 @@ class CalendarScreen extends ConsumerWidget {
                 return Center(
                   child: Text(
                     label,
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: color,
-                        fontFamily: kLedgerFontFamily),
+                    style: TextStyle(fontSize: 12, color: color),
                   ),
                 );
               },
@@ -143,8 +140,7 @@ class _DaySection extends ConsumerWidget {
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: kLedgerFontFamily),
+                      fontWeight: FontWeight.w600),
                 ),
               ),
               const Spacer(),
@@ -329,10 +325,7 @@ Widget _dayCell(
               child: Text(
                 '${day.day}',
                 style: TextStyle(
-                    fontSize: 11,
-                    color: numColor,
-                    fontWeight: weight,
-                    fontFamily: kLedgerFontFamily),
+                    fontSize: 11, color: numColor, fontWeight: weight),
               ),
             ),
           ),
@@ -365,7 +358,6 @@ Widget _dayCell(
                 style: TextStyle(
                   fontSize: 9,
                   height: 1.15,
-                  fontFamily: kLedgerFontFamily,
                   fontFeatures: kTabularFigures,
                   color: context.kakeiboColors.expense,
                 ),
@@ -384,7 +376,6 @@ Widget _dayCell(
                 style: const TextStyle(
                   fontSize: 9,
                   height: 1.15,
-                  fontFamily: kLedgerFontFamily,
                   fontFeatures: kTabularFigures,
                   color: kMuted,
                 ),
