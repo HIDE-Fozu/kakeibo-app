@@ -49,10 +49,41 @@ final monthTransactionsProvider = StreamProvider.autoDispose
   return ref.watch(transactionRepositoryProvider).watchMonth(year, month);
 });
 
+/// 月全体の起票済み合計（サマリタブ・見込み収支の入力用）。
+/// 分割払いの将来回など未来日付の起票済み取引も含む。
+/// カレンダー上部サマリはこれではなく monthToDateSummaryProvider を使う。
 final monthSummaryProvider =
     StreamProvider.autoDispose.family<MonthlySummary, (int, int)>((ref, key) {
   final (year, month) = key;
   return ref.watch(transactionRepositoryProvider).watchSummary(year, month);
+});
+
+/// カレンダー上部サマリ用:「今日までの実績」合計（FB 2026-08-21「金額の計算が間違ってる」）。
+///
+/// 分割払いは登録時に将来回まで一括起票される一方、給料などの固定収入は
+/// 期日到来時に起票される（それまではゴースト）。月全体を合計すると
+/// 「未来の支出だけ差引に入る」非対称が上部サマリに露出するため、
+/// 当月表示中は date <= today のみを合計する。過去月・未来月はその月全体。
+/// 未来分の受け皿はセルの日別表示と見込み収支（月末）。
+final monthToDateSummaryProvider = Provider.autoDispose
+    .family<AsyncValue<MonthlySummary>, (int, int)>((ref, key) {
+  final (year, month) = key;
+  final today = ref.watch(choreTodayProvider);
+  final bounded = year == today.year && month == today.month;
+  return ref.watch(monthTransactionsProvider(key)).whenData((txs) {
+    var income = 0;
+    var expense = 0;
+    for (final t in txs) {
+      if (bounded && t.date.isAfter(today)) continue;
+      switch (t.type) {
+        case TxnType.income:
+          income += t.amountYen;
+        case TxnType.expense:
+          expense += t.amountYen;
+      }
+    }
+    return MonthlySummary(income: income, expense: expense);
+  });
 });
 
 final monthSpendingProvider = StreamProvider.autoDispose
@@ -128,7 +159,9 @@ final dayGhostTotalsProvider =
   return map;
 });
 
-/// 見込み収支（実績差引 + 基準日までの予定）。過去月は null（非表示）。
+/// 見込み収支（月全体の起票済み差引 + 月末までの未起票予定）。過去月は null（非表示）。
+/// 入力は monthSummaryProvider（月全体）: 分割払いの将来回など起票済みの
+/// 未来分はここに含まれ、未起票の固定費・収入はゴースト側から足される。
 final monthForecastProvider = Provider.autoDispose.family<
     ({int forecast, CivilDate anchor, bool anchorIsMonthEnd})?,
     (int, int)>((ref, key) {

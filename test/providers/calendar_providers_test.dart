@@ -63,6 +63,48 @@ void main() {
     expect(list.single.amountYen, 500);
   });
 
+  test('monthToDateSummary: 当月は今日(7/15)まで実績のみ・未来の起票分は除外', () async {
+    final sub = c.listen(monthToDateSummaryProvider((2026, 7)), (_, _) {});
+    addTearDown(sub.close);
+    await addTx(500, day: 14);
+    await addTx(300, day: 15); // 当日は含む
+    await addTx(72000, day: 27); // 分割払いの将来回相当（起票済み・未来日付）
+    await addTx(270000, day: 25, type: TxnType.income); // 未来日付の収入も同様に除外
+    await pumpEventQueue();
+    final s = sub.read().requireValue;
+    expect(s.expense, 800);
+    expect(s.income, 0);
+    expect(s.net, -800);
+  });
+
+  test('monthToDateSummary: 過去月・未来月はその月全体を合計する', () async {
+    Future<void> at(CivilDate d, int yen) =>
+        c.read(transactionRepositoryProvider).add(TransactionEntity(
+              type: TxnType.expense,
+              amountYen: yen,
+              date: d,
+              categoryId: foodId,
+              source: TxnSource.manual,
+            ));
+    await at(const CivilDate(2026, 6, 30), 1000); // 過去月
+    await at(const CivilDate(2026, 8, 20), 2000); // 未来月
+    final past = c.listen(monthToDateSummaryProvider((2026, 6)), (_, _) {});
+    final future = c.listen(monthToDateSummaryProvider((2026, 8)), (_, _) {});
+    addTearDown(past.close);
+    addTearDown(future.close);
+    await pumpEventQueue();
+    expect(past.read().requireValue.expense, 1000);
+    expect(future.read().requireValue.expense, 2000);
+  });
+
+  test('見込み収支(月末)は未来の起票済み支出を含む（上部サマリとの役割分担）', () async {
+    final sub = c.listen(monthForecastProvider((2026, 7)), (_, _) {});
+    addTearDown(sub.close);
+    await addTx(72000, day: 27);
+    await pumpEventQueue();
+    expect(sub.read()?.forecast, -72000);
+  });
+
   test('dayExpenseTotals は支出のみを日別合計する', () async {
     final sub = c.listen(dayExpenseTotalsProvider((2026, 7)), (_, _) {});
     addTearDown(sub.close);

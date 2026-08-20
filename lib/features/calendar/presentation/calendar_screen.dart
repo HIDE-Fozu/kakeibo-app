@@ -26,8 +26,10 @@ class CalendarScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final (year, month) = ref.watch(currentMonthProvider);
     final selected = ref.watch(selectedDayProvider);
+    // 上部サマリは「今日までの実績」（FB 2026-08-21）。月全体・月末見込みとは
+    // 役割分担: 未来分はセルと見込み収支が受け持つ。
     final summary =
-        ref.watch(monthSummaryProvider((year, month))).valueOrNull ??
+        ref.watch(monthToDateSummaryProvider((year, month))).valueOrNull ??
         const MonthlySummary(income: 0, expense: 0);
     final totals =
         ref.watch(dayExpenseTotalsProvider((year, month))).valueOrNull ??
@@ -596,7 +598,8 @@ class _SummaryCard extends ConsumerWidget {
               ],
             ),
           ),
-          // 見込み収支 = 実績差引＋月末までの固定費・収入の予定。過去月は出ない。
+          // 見込み収支 = 月全体の起票済み差引＋月末までの未起票予定。過去月は出ない。
+          // （上の差引=今日まで実績とは定義が違う: 分割払いの将来回はこちらに入る）
           // 基準日（毎月N日）切り替えは「不要」FB（2026-08-20）で撤去し常に月末。
           if (forecast != null) ...[
             const Divider(height: 1, color: kLine),

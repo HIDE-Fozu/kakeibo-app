@@ -60,6 +60,19 @@ void main() {
     expect(find.text('2026年7月'), findsOneWidget);
   });
 
+  testWidgets('上部サマリは今日まで実績・見込み(月末)は将来回込み（FB 2026-08-21）', (tester) async {
+    final c = await pumpShell(tester);
+    await seed(c, 500); // 今日=7/15
+    await seed(c, 72000, day: 27); // 分割払いの将来回相当（起票済み・未来日付）
+    await tester.pumpAndSettle();
+
+    // 支出は今日までの ¥500 のみ（月全体の ¥72,500 にならない）
+    expect(find.text('¥500'), findsOneWidget);
+    expect(find.text('¥72,500'), findsNothing);
+    // 見込み収支（月末）には将来回も入る
+    expect(find.text('-¥72,500'), findsOneWidget);
+  });
+
   testWidgets('日セルの略記マーカー: 支出は−・収入は+で出る', (tester) async {
     final c = await pumpShell(tester);
     await seed(c, 12345, day: 20);
