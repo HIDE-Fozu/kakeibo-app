@@ -539,7 +539,7 @@ class _SummaryCard extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final mf = ref.watch(moneyFormatterProvider);
     final net = summary.net;
-    final netLabel = net >= 0 ? '+${mf.format(net)}' : mf.format(net);
+    final netLabel = mf.net(net);
     final forecast = ref.watch(monthForecastProvider((year, month)));
     final colors = context.kakeiboColors;
 
@@ -621,9 +621,7 @@ class _SummaryCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    forecast.forecast >= 0
-                        ? '+${mf.format(forecast.forecast)}'
-                        : mf.format(forecast.forecast),
+                    mf.net(forecast.forecast),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,

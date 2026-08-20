@@ -91,9 +91,10 @@ void main() {
     await tester.tap(find.byKey(Key('hub-rule-switch-$id')));
     await tester.pumpAndSettle();
 
-    // 停止中: 予定バッジが消え、見込みは実績のみ（+¥0）
+    // 停止中: 予定バッジが消え、見込みは実績のみ（0は符号なし ¥0・FB 2026-08-21）
     expect(find.text('予定'), findsNothing);
-    expect(find.textContaining('+¥0'), findsOneWidget);
+    expect(find.text('¥0'), findsOneWidget);
+    expect(find.textContaining('+¥0'), findsNothing);
   });
 
   testWidgets('＋からつきいちタスクを作成→一覧に出る（次回=今日+間隔）', (tester) async {

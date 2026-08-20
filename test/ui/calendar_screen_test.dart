@@ -60,6 +60,14 @@ void main() {
     expect(find.text('2026年7月'), findsOneWidget);
   });
 
+  testWidgets('取引ゼロの月: 差引・見込みに「+¥0」を出さない（FB 2026-08-21）', (tester) async {
+    await pumpShell(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('+¥0'), findsNothing);
+    // 支出・収入・差引・見込み（月末）の4箇所とも符号なしの ¥0
+    expect(find.text('¥0'), findsNWidgets(4));
+  });
+
   testWidgets('上部サマリは今日まで実績・見込み(月末)は将来回込み（FB 2026-08-21）', (tester) async {
     final c = await pumpShell(tester);
     await seed(c, 500); // 今日=7/15

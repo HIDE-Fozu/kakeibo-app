@@ -139,9 +139,7 @@ class MonthlyHubScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        forecast.forecast >= 0
-                            ? '+${mf.format(forecast.forecast)}'
-                            : mf.format(forecast.forecast),
+                        mf.net(forecast.forecast),
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: forecast.forecast < 0

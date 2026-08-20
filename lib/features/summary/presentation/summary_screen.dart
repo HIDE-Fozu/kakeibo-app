@@ -71,17 +71,17 @@ class SummaryScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _totalRow(context, l.summaryIncomeLabel, '+${mf.format(summary.income)}',
+                          _totalRow(context, l.summaryIncomeLabel, mf.net(summary.income),
                               color: context.kakeiboColors.income),
-                          _totalRow(context, l.summaryExpenseLabel, '-${mf.format(summary.expense)}',
+                          _totalRow(context, l.summaryExpenseLabel, summary.expense > 0
+                                  ? '-${mf.format(summary.expense)}'
+                                  : mf.format(summary.expense),
                               color: context.kakeiboColors.expense),
                           const Divider(),
                           _totalRow(
                             context,
                             l.summaryNetLabel,
-                            summary.net >= 0
-                                ? '+${mf.format(summary.net)}'
-                                : mf.format(summary.net),
+                            mf.net(summary.net),
                             emphasize: true,
                           ),
                         ],

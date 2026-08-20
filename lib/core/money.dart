@@ -125,6 +125,10 @@ class MoneyFormatter {
     return '$s${format(minor)}';
   }
 
+  /// 差引・見込みの符号つき表示。正のみ＋を付け、0は符号なし・負は format の−。
+  /// （0円に＋が付くのは変「差し引き0なのに+」FB 2026-08-21）
+  String net(int minor) => minor > 0 ? '+${format(minor)}' : format(minor);
+
   /// カレンダーセル用のコンパクト表記。JPYは「万」表記を維持、他はintlのcompact。
   /// 0以下は空文字（セル非表示）。
   String compact(int minor) {

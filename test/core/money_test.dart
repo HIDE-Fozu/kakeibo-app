@@ -14,6 +14,13 @@ void main() {
   });
 
   group('MoneyFormatter', () {
+    test('net: 正のみ＋・0は符号なし・負は−（「差し引き0なのに+」FB 2026-08-21）', () {
+      final mf = MoneyFormatter(const Locale('ja'), currencyForCode('JPY'));
+      expect(mf.net(1500), '+¥1,500');
+      expect(mf.net(0), '¥0');
+      expect(mf.net(-72500), '-¥72,500');
+    });
+
     test('JPY は formatYen 相当（¥・小数なし・「万」）', () {
       final mf = MoneyFormatter(const Locale('ja'), currencyForCode('JPY'));
       expect(mf.format(1250), '¥1,250');
