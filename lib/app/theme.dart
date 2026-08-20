@@ -50,9 +50,11 @@ const kNavIdle = kMuted;
 // タブ別のアイコンアクセント色（kNavMonthly/kNavSummary/kNavSettings）は
 // 2026-08-20 モックで未選択グレー統一（kNavIdle）に置き換えたため撤去。
 
-const kExpense = Color(0xFFD97C6C); // 支出（状態）
+// 支出/収入の意味色。旧D97C6C/59A98Aは「金額の色が明るすぎる」FB（2026-08-20）で
+// 帳簿らしい深い色に変更（白地コントラスト 支出≈5.2:1 / 収入≈4.3:1）。
+const kExpense = Color(0xFFB5483A); // 支出（状態）
 const kExpenseSoft = Color(0xFFF7E4DF);
-const kIncome = Color(0xFF59A98A); // 収入（状態）
+const kIncome = Color(0xFF3E8465); // 収入（状態）
 
 /// Income の淡色は指定に無いため Expense Light と同じ明度感で作った派生。
 const kIncomeSoft = Color(0xFFE2F0E9);
