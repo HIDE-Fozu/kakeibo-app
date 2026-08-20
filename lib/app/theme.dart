@@ -97,6 +97,10 @@ const kSubScale = <Color>[
   kPrimarySoft,
 ];
 
+/// 帳簿風の明朝（カレンダー画面の見出し・数字・金額用・FB 2026-08-20）。
+/// iOS同梱のヒラギノ明朝を指定（Androidや未搭載環境では既定にフォールバック）。
+const kLedgerFontFamily = 'Hiragino Mincho ProN';
+
 /// 金額表示は等幅数字（桁が揃う）
 const kTabularFigures = <FontFeature>[FontFeature.tabularFigures()];
 

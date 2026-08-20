@@ -76,7 +76,10 @@ class CalendarScreen extends ConsumerWidget {
                 return Center(
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 12, color: color),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: color,
+                        fontFamily: kLedgerFontFamily),
                   ),
                 );
               },
@@ -140,7 +143,8 @@ class _DaySection extends ConsumerWidget {
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600),
+                      fontWeight: FontWeight.w600,
+                      fontFamily: kLedgerFontFamily),
                 ),
               ),
               const Spacer(),
@@ -325,7 +329,10 @@ Widget _dayCell(
               child: Text(
                 '${day.day}',
                 style: TextStyle(
-                    fontSize: 11, color: numColor, fontWeight: weight),
+                    fontSize: 11,
+                    color: numColor,
+                    fontWeight: weight,
+                    fontFamily: kLedgerFontFamily),
               ),
             ),
           ),
@@ -358,6 +365,7 @@ Widget _dayCell(
                 style: TextStyle(
                   fontSize: 9,
                   height: 1.15,
+                  fontFamily: kLedgerFontFamily,
                   fontFeatures: kTabularFigures,
                   color: context.kakeiboColors.expense,
                 ),
@@ -376,6 +384,7 @@ Widget _dayCell(
                 style: const TextStyle(
                   fontSize: 9,
                   height: 1.15,
+                  fontFamily: kLedgerFontFamily,
                   fontFeatures: kTabularFigures,
                   color: kMuted,
                 ),
@@ -418,7 +427,10 @@ class _MonthHeader extends ConsumerWidget {
             child: Center(
               child: Text(
                 l.calendarMonthYearHeader(year, month),
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontFamily: kLedgerFontFamily),
               ),
             ),
           ),
@@ -459,10 +471,8 @@ class _SummaryCard extends ConsumerWidget {
           child: Column(
             children: [
               Text(label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: kMuted)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: kMuted, fontFamily: kLedgerFontFamily)),
               const SizedBox(height: 1),
               Text(
                 value,
@@ -472,6 +482,7 @@ class _SummaryCard extends ConsumerWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: valueColor,
+                  fontFamily: kLedgerFontFamily,
                   fontFeatures: kTabularFigures,
                 ),
               ),
@@ -531,7 +542,10 @@ class _SummaryCard extends ConsumerWidget {
                                 choreShortDate(context, forecast.anchor)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(fontFamily: kLedgerFontFamily),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -540,6 +554,7 @@ class _SummaryCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
+                        fontFamily: kLedgerFontFamily,
                         fontFeatures: kTabularFigures,
                         color: forecast.forecast < 0
                             ? colors.expense
