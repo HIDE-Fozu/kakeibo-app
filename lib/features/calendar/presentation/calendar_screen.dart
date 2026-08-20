@@ -49,14 +49,16 @@ class CalendarScreen extends ConsumerWidget {
           // の白カードとして独立させる。旧「下半分を白いMaterial面」構成は撤去。
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: TableCalendar<int>(
+            child: LayoutBuilder(builder: (context, box) {
+              // セルは正方形・比率1（FB 2026-08-20）: 行高＝セル幅（幅/7）。
+              // マージン(_kCellMargin)は四辺同値なので白カード自体も正方形になる。
+              final cellSize = box.maxWidth / 7;
+              return TableCalendar<int>(
             firstDay: DateTime(2000, 1, 1),
             lastDay: DateTime(2100, 12, 31),
             focusedDay: dateTimeOfCivil(CivilDate(year, month, 1)),
             headerVisible: false,
-            // セルは正方形に近い縦横比（FB 2026-08-20: 幅≈52に対し55）。
-            // 58 = 数字22 + 家事ドット5 + 実績額12 + 予定額12 + 余白＋カード margin3。
-            rowHeight: 58,
+            rowHeight: cellSize,
             // 前後月のはみ出しマスも空の白カードで埋める（モック2枚目）。
             calendarStyle: const CalendarStyle(outsideDaysVisible: true),
             // 曜日ヘッダは日本語（日月火水木金土）。日曜=薄赤 / 土曜=薄青。
@@ -90,7 +92,8 @@ class CalendarScreen extends ConsumerWidget {
                 decoration: _kCellDeco,
               ),
             ),
-            ),
+              );
+            }),
           ),
           // 凡例は家事ドットの分だけ。固定費の予定（ゴースト）はルールがある限り
           // 毎月出るため凡例が常時表示になっていた（「ずっと出てる」FB 2026-08-16）。
@@ -298,28 +301,38 @@ Widget _dayCell(
       break;
   }
   final iso = civil.toIso();
+  // 縦の予算はセル幅-マージン3（SE級の375px幅で約48）。
+  // 日付2+20 + ドット4 + 実績額11 + 予定額11 = 48 に収める。
   return Container(
     margin: _kCellMargin,
     decoration: _kCellDeco,
-    child: Align(
+    // alignment を指定して白カードをセル一杯に広げる（無指定だと中身の
+    // 高さに縮んで正方形にならない）。
     alignment: Alignment.topCenter,
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 2),
-        Container(
-          width: 22,
-          height: 22,
-          alignment: Alignment.center,
-          decoration: deco,
-          child: Text(
-            '${day.day}',
-            style: TextStyle(fontSize: 12, color: numColor, fontWeight: weight),
+        // 日付はセルの左上（FB 2026-08-20・モック2枚目の配置）
+        Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 3, top: 2),
+            child: Container(
+              width: 20,
+              height: 20,
+              alignment: Alignment.center,
+              decoration: deco,
+              child: Text(
+                '${day.day}',
+                style: TextStyle(
+                    fontSize: 11, color: numColor, fontWeight: weight),
+              ),
+            ),
           ),
         ),
         if (marks != null)
           SizedBox(
-            height: 5,
+            height: 4,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -336,35 +349,28 @@ Widget _dayCell(
             ),
           ),
         if (total > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Text(
-              mf.compact(total),
-              style: TextStyle(
-                fontSize: 9,
-                height: 1.2,
-                fontFeatures: kTabularFigures,
-                color: context.kakeiboColors.expense,
-              ),
+          Text(
+            mf.compact(total),
+            style: TextStyle(
+              fontSize: 9,
+              height: 1.15,
+              fontFeatures: kTabularFigures,
+              color: context.kakeiboColors.expense,
             ),
           ),
         // まだ起票されていない固定費・収入（予定）。グレーで実績と区別する。
         if (ghost != 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Text(
-              mf.compact(ghost.abs()),
-              key: Key('ghost-amount-$iso'),
-              style: const TextStyle(
-                fontSize: 9,
-                height: 1.2,
-                fontFeatures: kTabularFigures,
-                color: kMuted,
-              ),
+          Text(
+            mf.compact(ghost.abs()),
+            key: Key('ghost-amount-$iso'),
+            style: const TextStyle(
+              fontSize: 9,
+              height: 1.15,
+              fontFeatures: kTabularFigures,
+              color: kMuted,
             ),
           ),
       ],
-    ),
     ),
   );
 }
@@ -373,8 +379,8 @@ Widget _dot(Color color, Key key) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
       child: Container(
         key: key,
-        width: 5,
-        height: 5,
+        width: 4,
+        height: 4,
         decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
