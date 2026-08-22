@@ -88,6 +88,8 @@ final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(
     ref.watch(appDatabaseProvider),
     store: ref.watch(autoBackupStoreProvider),
+    // 分割払いカード（prefs住まい）をバックアップv9に収録するため。
+    prefs: ref.watch(sharedPreferencesProvider),
   ),
 );
 

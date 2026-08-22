@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database.dart';
+import '../settings/installment_cards.dart';
 import 'auto_backup_store.dart';
 import 'backup_codec.dart';
 import 'backup_data.dart';
@@ -12,8 +14,12 @@ class BackupService {
   final BackupCodec _codec;
   final AutoBackupStore? _store;
 
+  /// 分割払いカード（プリセット）の保存先。DBではなくprefsに住む唯一の
+  /// バックアップ対象。null（テスト等）なら export は「未収録」になる。
+  final SharedPreferences? _prefs;
+
   BackupService(this._db,
-      {this._codec = const BackupCodec(), this._store});
+      {this._codec = const BackupCodec(), this._store, this._prefs});
 
   Future<BackupPayload> exportPayload() async {
     final cats = await (_db.select(_db.categories)
@@ -34,9 +40,15 @@ class BackupService {
     final plans = await (_db.select(_db.installmentPlans)
           ..orderBy([(r) => OrderingTerm.asc(r.id)]))
         .get();
+    final prefs = _prefs;
     return BackupPayload(
       formatVersion: BackupCodec.formatVersion,
       exportedAt: DateTime.now().toUtc(),
+      // prefsがあれば常に収録（未登録=空リスト）。無ければ「未収録」(null)。
+      installmentCards: prefs == null
+          ? null
+          : decodeInstallmentCardPrefs(
+              prefs.getStringList(kInstallmentCardsPrefsKey)),
       categories: [
         for (final c in cats)
           BackupCategory(
@@ -157,7 +169,19 @@ class BackupService {
 
   /// 検証済みpayloadでDB全体を置換する。単一トランザクション＝途中失敗は全ロールバック。
   /// 呼び出し前に codec.decode を通すこと（検証はcodecの責務）。
+  /// 分割払いカード（prefs）はDBトランザクション成立後に置換する。
+  /// 収録済み（非null）のときだけ書き、v8以前（null）は端末のカードを保つ。
   Future<void> applyRestore(BackupPayload payload) async {
+    await _applyDbRestore(payload);
+    final cards = payload.installmentCards;
+    final prefs = _prefs;
+    if (cards != null && prefs != null) {
+      await prefs.setStringList(
+          kInstallmentCardsPrefsKey, encodeInstallmentCardPrefs(cards));
+    }
+  }
+
+  Future<void> _applyDbRestore(BackupPayload payload) async {
     await _db.transaction(() async {
       // 自己参照FK（parentId）対策: driftのbatchは行ごとに別文でINSERTするため、
       // 内訳が親より先に挿入されると即時FK検査で落ちる。このトランザクション内は

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakeibo_app/data/backup/backup_codec.dart';
 import 'package:kakeibo_app/data/backup/backup_data.dart';
+import 'package:kakeibo_app/data/settings/installment_cards.dart';
 import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 
@@ -49,6 +50,9 @@ BackupPayload samplePayload() => BackupPayload(
           updatedAt: DateTime.utc(2026, 8, 16, 0, 0, 0),
         ),
       ],
+      installmentCards: const [
+        InstallmentCard(name: '楽天カード', annualRatePercent: 15.0),
+      ],
       recurringRules: [
         BackupRecurringRule(
           id: 1, type: TxnType.expense, amount: 80000, categoryId: 1,
@@ -88,7 +92,7 @@ void main() {
     final json = codec.encode(samplePayload());
     final root = jsonDecode(json) as Map<String, dynamic>;
 
-    expect(root['formatVersion'], 8);
+    expect(root['formatVersion'], BackupCodec.formatVersion);
     expect(root['exportedAt'], '2026-07-03T12:00:00.000Z');
 
     final cats = root['categories'] as List;
@@ -109,6 +113,10 @@ void main() {
     expect(tx['paymentMethod'], 'cash');
     expect(tx['createdAt'], '2026-07-03T01:02:03.000Z'); // UTC ISO
     expect(tx['memo'], 'スーパー, "特売"'); // JSONは任意文字を安全に運ぶ
+
+    final cards = root['installmentCards'] as List;
+    expect((cards.single as Map)['name'], '楽天カード');
+    expect((cards.single as Map)['annualRatePercent'], 15.0);
   });
 
   test('null optionals serialize as JSON null', () {
@@ -260,7 +268,7 @@ void main() {
 
     test('v1 JSON（parentIdなし）はmigrateされ全カテゴリparentId=null', () {
       final payload = codec.decode(validV1Json());
-      expect(payload.formatVersion, 8); // decodeはマイグレーション後に現行版を返す
+      expect(payload.formatVersion, BackupCodec.formatVersion); // decodeはマイグレーション後に現行版を返す
       expect(payload.categories.every((c) => c.parentId == null), isTrue);
     });
 
@@ -309,7 +317,7 @@ void main() {
         r.remove('recurringRules');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 8);
+      expect(payload.formatVersion, BackupCodec.formatVersion);
       expect(payload.recurringRules, isEmpty);
     });
 
@@ -377,7 +385,7 @@ void main() {
         t['intervalDays'] = 14; // anchor 7/1 + 14日 = 7/15 → 毎月の予定日は15
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 8);
+      expect(payload.formatVersion, BackupCodec.formatVersion);
       final t = payload.choreTasks.single;
       expect(t.repeatUnit, ChoreRepeatUnit.everyDays); // 間隔の意味を失わない
       expect(t.intervalDays, 14);
@@ -418,7 +426,7 @@ void main() {
         r.remove('choreRecords');
       });
       final payload = codec.decode(json);
-      expect(payload.formatVersion, 8);
+      expect(payload.formatVersion, BackupCodec.formatVersion);
       expect(payload.choreTasks, isEmpty);
       expect(payload.choreRecords, isEmpty);
     });
@@ -503,6 +511,55 @@ void main() {
         })),
         throwsA(isA<BackupValidationError>()),
       );
+    });
+  });
+
+  group('formatVersion 9（分割払いカード）', () {
+    test('v8バックアップ（installmentCards無し）は「未収録」(null)で復元される', () {
+      final json = mutate((r) {
+        r['formatVersion'] = 8;
+        r.remove('installmentCards');
+      });
+      final decoded = codec.decode(json);
+      // null＝復元時に端末の登録カードを変更しない、の目印。空[]とは区別する。
+      expect(decoded.installmentCards, isNull);
+    });
+
+    test('収録済みのカードは内容どおり復元される（空リストも保持）', () {
+      final decoded = codec.decode(codec.encode(samplePayload()));
+      expect(decoded.installmentCards, hasLength(1));
+      expect(decoded.installmentCards!.single.name, '楽天カード');
+      expect(decoded.installmentCards!.single.annualRatePercent, 15.0);
+
+      final empty =
+          codec.decode(mutate((r) => r['installmentCards'] = <dynamic>[]));
+      expect(empty.installmentCards, isNotNull);
+      expect(empty.installmentCards, isEmpty);
+    });
+
+    test('不正なカード -> BackupValidationError', () {
+      Map<String, dynamic> card(Map<String, dynamic> r) =>
+          (r['installmentCards'] as List).single as Map<String, dynamic>;
+      expect(() => codec.decode(mutate((r) => card(r)['name'] = '')),
+          throwsA(isA<BackupValidationError>()));
+      // タブは端末保存（prefs）の区切り文字なので拒否
+      expect(() => codec.decode(mutate((r) => card(r)['name'] = 'a\tb')),
+          throwsA(isA<BackupValidationError>()));
+      expect(
+          () => codec.decode(mutate((r) => card(r)['annualRatePercent'] = -1)),
+          throwsA(isA<BackupValidationError>()));
+      expect(() => codec.decode(mutate((r) {
+            final cards = r['installmentCards'] as List;
+            cards.add(Map<String, dynamic>.from(cards.first as Map)); // 同名
+          })), throwsA(isA<BackupValidationError>()));
+    });
+
+    test('カードの率が数値でない -> BackupFormatError', () {
+      expect(
+          () => codec.decode(mutate((r) =>
+              ((r['installmentCards'] as List).single
+                  as Map)['annualRatePercent'] = '15')),
+          throwsA(isA<BackupFormatError>()));
     });
   });
 }

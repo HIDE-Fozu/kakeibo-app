@@ -11,6 +11,7 @@ import 'package:kakeibo_app/data/db/enums.dart';
 import 'package:kakeibo_app/domain/entities.dart';
 import 'package:kakeibo_app/domain/money/civil_date.dart';
 import 'package:kakeibo_app/features/settings/application/backup_controller.dart';
+import 'package:kakeibo_app/features/settings/application/settings_controller.dart';
 
 import '../support/test_app.dart';
 import '../support/test_db.dart';
@@ -140,6 +141,23 @@ void main() {
     // 復元前スナップショット（2件時点）が自動退避されている
     expect(c.read(autoBackupStoreProvider).listGenerations().length,
         greaterThanOrEqualTo(2));
+  });
+
+  test('restoreFrom: 分割払いカードも置換され、設定に即反映される', () async {
+    await setUpWith();
+    await seedTx();
+    AppSettings settings() => c.read(appSettingsProvider.notifier);
+    await settings().saveInstallmentCard('楽天カード', 15.0);
+    await ctrl().backupNow(); // 楽天1枚の時点の世代
+
+    await settings().saveInstallmentCard('VISA', 18.0); // 2枚に
+    final src = ctrl().listRestoreSources().first;
+    await ctrl().restoreFrom(src);
+
+    // invalidate 済みなので read だけで復元後のカードが見える
+    final cards = c.read(appSettingsProvider).installmentCards;
+    expect(cards.map((x) => x.name), ['楽天カード']);
+    expect(cards.single.annualRatePercent, 15.0);
   });
 
   test('restoreFrom: 暗号化はパスフレーズ必須・誤りは復号エラー', () async {

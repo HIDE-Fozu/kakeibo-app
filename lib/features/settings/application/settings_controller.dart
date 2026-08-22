@@ -2,18 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../data/settings/installment_cards.dart';
+
+export '../../../data/settings/installment_cards.dart' show InstallmentCard;
 
 /// 入力グリッドのカテゴリ並び順。
 /// recentlyUsed=最近使った順（既定）/ manual=自分で決めた固定順（sortOrder）。
 enum CategoryOrderMode { recentlyUsed, manual }
-
-/// 分割払いで使うカード（名称＋実質年率）。端末ローカル（SharedPreferences）。
-/// 「カード名称を登録すれば次から選択で金利入力を省略できる」FB 2026-08-16。
-class InstallmentCard {
-  final String name;
-  final double annualRatePercent;
-  const InstallmentCard({required this.name, required this.annualRatePercent});
-}
 
 class SettingsState {
   final bool onboardingDone;
@@ -58,8 +53,8 @@ class AppSettings extends Notifier<SettingsState> {
   static const kCategoryOrder = 'categoryOrder';
   static const kLocale = 'locale';
   static const kCurrency = 'currency';
-  // 分割払いカード。1件 = "名称\t実質年率"（タブ区切り）の StringList。
-  static const kInstallmentCards = 'installmentCards';
+  // 分割払いカード。形式は data/settings/installment_cards.dart（バックアップと共用）。
+  static const kInstallmentCards = kInstallmentCardsPrefsKey;
 
   @override
   SettingsState build() {
@@ -79,16 +74,8 @@ class AppSettings extends Notifier<SettingsState> {
           : CategoryOrderMode.recentlyUsed,
       locale: parseLocale(p.getString(kLocale)),
       currencyCode: p.getString(kCurrency) ?? 'JPY',
-      installmentCards: [
-        for (final e in p.getStringList(kInstallmentCards) ?? const [])
-          if (e.contains('\t') &&
-              double.tryParse(e.substring(e.indexOf('\t') + 1)) != null)
-            InstallmentCard(
-              name: e.substring(0, e.indexOf('\t')),
-              annualRatePercent:
-                  double.parse(e.substring(e.indexOf('\t') + 1)),
-            ),
-      ],
+      installmentCards:
+          decodeInstallmentCardPrefs(p.getStringList(kInstallmentCards)),
     );
   }
 
@@ -100,8 +87,8 @@ class AppSettings extends Notifier<SettingsState> {
         if (c.name != name) c,
       InstallmentCard(name: name, annualRatePercent: ratePercent),
     ];
-    await p.setStringList(kInstallmentCards,
-        [for (final c in cards) '${c.name}\t${c.annualRatePercent}']);
+    await p.setStringList(
+        kInstallmentCards, encodeInstallmentCardPrefs(cards));
     ref.invalidateSelf();
   }
 

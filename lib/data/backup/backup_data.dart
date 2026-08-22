@@ -1,4 +1,5 @@
 import '../db/enums.dart';
+import '../settings/installment_cards.dart';
 import '../../domain/money/civil_date.dart';
 
 /// バックアップ関連の例外の基底。message は人間向け（UI表示は後続フェーズ）。
@@ -223,6 +224,11 @@ class BackupPayload {
 
   /// 分割払いの計画（formatVersion 8で追加。旧バックアップは空で復元）。
   final List<BackupInstallmentPlan> installmentPlans;
+
+  /// 分割払いカードのプリセット（formatVersion 9で追加。SharedPreferences由来）。
+  /// null = v8以前のバックアップで「未収録」。復元時は端末の登録カードを変更しない。
+  /// 非null（空含む）= 収録済み。復元時はその内容で置換する。
+  final List<InstallmentCard>? installmentCards;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
@@ -232,5 +238,6 @@ class BackupPayload {
     this.choreTasks = const [],
     this.choreRecords = const [],
     this.installmentPlans = const [],
+    this.installmentCards,
   });
 }

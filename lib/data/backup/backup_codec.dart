@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'backup_data.dart';
+import '../settings/installment_cards.dart';
 import '../db/enums.dart';
 import '../../domain/money/civil_date.dart';
 import '../../domain/services/chore_schedule.dart'
@@ -19,7 +20,10 @@ class BackupCodec {
   ///     v5以前は「N日ごと」だったので everyDays として復元する。
   /// v8: installmentPlans（分割払いの計画）と transactions[].installmentPlanId
   ///     を追加。旧バックアップは空/nullで復元。
-  static const int formatVersion = 8;
+  /// v9: installmentCards（分割払いカードのプリセット・SharedPreferences由来）
+  ///     を追加。キー欠落＝「未収録」(null) として復元時に端末のカードを
+  ///     変更しないため、v8→v9 のマイグレーションでは補完しない。
+  static const int formatVersion = 9;
 
   const BackupCodec();
 
@@ -75,6 +79,14 @@ class BackupCodec {
             'updatedAt': pl.updatedAt.toUtc().toIso8601String(),
           },
       ],
+      if (p.installmentCards != null)
+        'installmentCards': [
+          for (final c in p.installmentCards!)
+            {
+              'name': c.name,
+              'annualRatePercent': c.annualRatePercent,
+            },
+        ],
       'recurringRules': [
         for (final r in p.recurringRules)
           {
@@ -422,6 +434,38 @@ class BackupCodec {
       }
     }
 
+    // --- installmentCards（v9・任意キー） ---
+    // キー欠落/null = 未収録（v8以前）。復元時に端末の登録カードを変更しない。
+    final cardsRaw = opt<List<dynamic>>(root, 'installmentCards', 'root');
+    List<InstallmentCard>? installmentCards;
+    if (cardsRaw != null) {
+      installmentCards = <InstallmentCard>[];
+      final cardNames = <String>{};
+      for (final (i, raw) in cardsRaw.indexed) {
+        if (raw is! Map<String, dynamic>) {
+          throw BackupFormatError('installmentCards[$i] がオブジェクトではありません');
+        }
+        final ctx = 'installmentCards[$i]';
+        final name = req<String>(raw, 'name', ctx);
+        if (name.isEmpty) {
+          throw BackupValidationError('$ctx.name が空です');
+        }
+        if (name.contains('\t')) {
+          // タブは端末保存（prefs）の区切り文字。含むと保存形式が壊れる。
+          throw BackupValidationError('$ctx.name にタブ文字は使えません');
+        }
+        final rate = req<num>(raw, 'annualRatePercent', ctx).toDouble();
+        if (rate < 0) {
+          throw BackupValidationError('$ctx.annualRatePercent が負です: $rate');
+        }
+        if (!cardNames.add(name)) {
+          throw BackupValidationError('カード名 "$name" が重複しています');
+        }
+        installmentCards
+            .add(InstallmentCard(name: name, annualRatePercent: rate));
+      }
+    }
+
     // --- choreTasks / choreRecords（v5） ---
     final choreTasksRaw = req<List<dynamic>>(root, 'choreTasks', 'root');
     final choreTasks = <BackupChoreTask>[];
@@ -517,6 +561,7 @@ class BackupCodec {
       choreTasks: choreTasks,
       choreRecords: choreRecords,
       installmentPlans: installmentPlans,
+      installmentCards: installmentCards,
     );
   }
 
@@ -540,6 +585,11 @@ class BackupCodec {
           m = _migrateV6toV7(m);
         case 7:
           m = _migrateV7toV8(m);
+        case 8:
+          // v8→v9: 変換なし。installmentCards はキー欠落を「未収録」の
+          // 目印に使うため、空リストで補完してはいけない（補完すると
+          // 復元時に端末の登録カードを消してしまう）。
+          break;
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
