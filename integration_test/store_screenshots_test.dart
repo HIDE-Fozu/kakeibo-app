@@ -105,7 +105,7 @@ void main() {
     // 通貨設定（JPY以外のロケールのみ・取引0件のうちに）
     final row = currencyRow[localeTag];
     if (row != null) {
-      await goTab(t, Icons.settings);
+      await goTab(t, Icons.settings_outlined);
       await t.scrollUntilVisible(find.byKey(const Key('currency-tile')), 200);
       await settle(t);
       await tapKey(t, 'currency-tile');
@@ -175,7 +175,7 @@ void main() {
     await tapKey(t, 'entry-back');
 
     // 4) サマリ
-    await goTab(t, Icons.bar_chart);
+    await goTab(t, Icons.pie_chart_outline);
     await shot(t, 'store_${localeTag}_4_summary');
   });
 }
