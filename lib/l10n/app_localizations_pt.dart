@@ -537,6 +537,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calendarChoreTabEmpty => 'Nenhuma tarefa para este dia';
 
   @override
+  String get calendarMemoTab => 'Notas';
+
+  @override
+  String get shoppingMemoHint =>
+      'Notas de compras (ex.: leite, papel higiênico)';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Recibo';
 
   @override

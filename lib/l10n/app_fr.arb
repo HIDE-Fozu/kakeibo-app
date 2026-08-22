@@ -155,6 +155,8 @@
   "calendarAddIncome": "Ajouter un revenu",
   "calendarChoreTab": "Tâches",
   "calendarChoreTabEmpty": "Aucune tâche pour ce jour",
+  "calendarMemoTab": "Mémo",
+  "shoppingMemoHint": "Mémo de courses (ex. : lait, papier toilette)",
   "calendarReceiptFallbackLabel": "Reçu",
   "calendarCategoryUnknown": "Inconnu",
   "calendarCategoryArchivedLabel": "{name} (archivée)",

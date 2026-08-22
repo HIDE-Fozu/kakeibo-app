@@ -518,6 +518,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get calendarChoreTabEmpty => '这一天没有家务';
 
   @override
+  String get calendarMemoTab => '备忘';
+
+  @override
+  String get shoppingMemoHint => '购物备忘（例如：牛奶、卫生纸）';
+
+  @override
   String get calendarReceiptFallbackLabel => '小票';
 
   @override

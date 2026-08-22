@@ -155,6 +155,8 @@
   "calendarAddIncome": "Einnahme hinzufügen",
   "calendarChoreTab": "Aufgaben",
   "calendarChoreTabEmpty": "Keine Aufgaben an diesem Tag",
+  "calendarMemoTab": "Notizen",
+  "shoppingMemoHint": "Einkaufsnotizen (z. B. Milch, Toilettenpapier)",
   "calendarReceiptFallbackLabel": "Beleg",
   "calendarCategoryUnknown": "Unbekannt",
   "calendarCategoryArchivedLabel": "{name} (archiviert)",

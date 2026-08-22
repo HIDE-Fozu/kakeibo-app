@@ -538,6 +538,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get calendarChoreTabEmpty => 'Keine Aufgaben an diesem Tag';
 
   @override
+  String get calendarMemoTab => 'Notizen';
+
+  @override
+  String get shoppingMemoHint =>
+      'Einkaufsnotizen (z. B. Milch, Toilettenpapier)';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Beleg';
 
   @override

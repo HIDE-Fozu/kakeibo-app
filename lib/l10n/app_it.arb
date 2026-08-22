@@ -155,6 +155,8 @@
   "calendarAddIncome": "Aggiungi entrata",
   "calendarChoreTab": "Faccende",
   "calendarChoreTabEmpty": "Nessuna faccenda per questo giorno",
+  "calendarMemoTab": "Note",
+  "shoppingMemoHint": "Note della spesa (es.: latte, carta igienica)",
   "calendarReceiptFallbackLabel": "Scontrino",
   "calendarCategoryUnknown": "Sconosciuta",
   "calendarCategoryArchivedLabel": "{name} (archiviata)",

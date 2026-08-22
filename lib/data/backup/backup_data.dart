@@ -229,6 +229,10 @@ class BackupPayload {
   /// null = v8以前のバックアップで「未収録」。復元時は端末の登録カードを変更しない。
   /// 非null（空含む）= 収録済み。復元時はその内容で置換する。
   final List<InstallmentCard>? installmentCards;
+
+  /// 買い物メモ（formatVersion 9で追加。SharedPreferences由来）。
+  /// null = 未収録（v8以前）。復元時は端末のメモを変更しない。
+  final String? shoppingMemo;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
@@ -239,5 +243,6 @@ class BackupPayload {
     this.choreRecords = const [],
     this.installmentPlans = const [],
     this.installmentCards,
+    this.shoppingMemo,
   });
 }

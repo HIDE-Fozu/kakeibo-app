@@ -155,6 +155,8 @@
   "calendarAddIncome": "Adicionar receita",
   "calendarChoreTab": "Tarefas",
   "calendarChoreTabEmpty": "Nenhuma tarefa para este dia",
+  "calendarMemoTab": "Notas",
+  "shoppingMemoHint": "Notas de compras (ex.: leite, papel higiênico)",
   "calendarReceiptFallbackLabel": "Recibo",
   "calendarCategoryUnknown": "Desconhecida",
   "calendarCategoryArchivedLabel": "{name} (Arquivada)",

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database.dart';
 import '../settings/installment_cards.dart';
+import '../settings/shopping_memo_prefs.dart';
 import 'auto_backup_store.dart';
 import 'backup_codec.dart';
 import 'backup_data.dart';
@@ -14,8 +15,8 @@ class BackupService {
   final BackupCodec _codec;
   final AutoBackupStore? _store;
 
-  /// 分割払いカード（プリセット）の保存先。DBではなくprefsに住む唯一の
-  /// バックアップ対象。null（テスト等）なら export は「未収録」になる。
+  /// prefs住まいのバックアップ対象（分割払いカード・買い物メモ）の保存先。
+  /// null（テスト等）なら export は「未収録」になる。
   final SharedPreferences? _prefs;
 
   BackupService(this._db,
@@ -49,6 +50,8 @@ class BackupService {
           ? null
           : decodeInstallmentCardPrefs(
               prefs.getStringList(kInstallmentCardsPrefsKey)),
+      shoppingMemo:
+          prefs == null ? null : (prefs.getString(kShoppingMemoPrefsKey) ?? ''),
       categories: [
         for (final c in cats)
           BackupCategory(
@@ -174,10 +177,14 @@ class BackupService {
   Future<void> applyRestore(BackupPayload payload) async {
     await _applyDbRestore(payload);
     final cards = payload.installmentCards;
+    final memo = payload.shoppingMemo;
     final prefs = _prefs;
     if (cards != null && prefs != null) {
       await prefs.setStringList(
           kInstallmentCardsPrefsKey, encodeInstallmentCardPrefs(cards));
+    }
+    if (memo != null && prefs != null) {
+      await prefs.setString(kShoppingMemoPrefsKey, memo);
     }
   }
 

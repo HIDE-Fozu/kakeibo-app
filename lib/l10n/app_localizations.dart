@@ -1042,6 +1042,18 @@ abstract class AppLocalizations {
   /// **'No chores for this day'**
   String get calendarChoreTabEmpty;
 
+  /// Day-section tab that shows the free-form shopping memo pad
+  ///
+  /// In en, this message translates to:
+  /// **'Memo'**
+  String get calendarMemoTab;
+
+  /// Hint text of the shopping memo pad on the calendar tab
+  ///
+  /// In en, this message translates to:
+  /// **'Things to buy (e.g. milk, toilet paper)'**
+  String get shoppingMemoHint;
+
   /// No description provided for @calendarReceiptFallbackLabel.
   ///
   /// In en, this message translates to:

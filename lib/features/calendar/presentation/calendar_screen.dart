@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +19,7 @@ import '../../entry/application/entry_form_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
+import '../../memo/presentation/shopping_memo_pad.dart';
 
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
@@ -42,7 +45,16 @@ class CalendarScreen extends ConsumerWidget {
     final mf = ref.watch(moneyFormatterProvider);
 
     return SafeArea(
-      child: Column(
+      // キーボード（メモ編集ページの遷移中など）で縦が潰れても崩れないよう、
+      // 最低高を確保して不足分はスクロールに逃がす。通常時は
+      // maxHeight >= _kMinBodyHeight なので見た目・挙動とも従来どおり。
+      child: LayoutBuilder(builder: (context, outer) {
+        final squeezed = outer.maxHeight < _kMinBodyHeight;
+        return SingleChildScrollView(
+          physics: squeezed ? null : const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            height: math.max(outer.maxHeight, _kMinBodyHeight),
+            child: Column(
         children: [
           const BackupBanner(),
           _MonthHeader(year: year, month: month),
@@ -105,14 +117,24 @@ class CalendarScreen extends ConsumerWidget {
             _CalendarLegend(hasChores: choreMarks.isNotEmpty),
           Expanded(child: _DaySection(day: selected)),
         ],
-      ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }
 
+/// カレンダー画面が成立する最低の本体高さ。これ未満（キーボード表示中など）は
+/// スクロールに切り替える。iPhone縦持ちの通常時はこれを上回る。
+const _kMinBodyHeight = 640.0;
+
 /// 日別リストのカード（画像1枚目参考・フラット近似）:
 /// 選択日タブと「つきいち」タブ（FB 2026-08-20）で内容を切り替え、
 /// 右端の「家計簿を入力」から選択日既定で入力画面へ。
+/// 日別カードのタブ。日付（取引リスト）/ つきいち / 買い物メモ。
+enum _DayTab { day, chores, memo }
+
 class _DaySection extends ConsumerStatefulWidget {
   final CivilDate day;
   const _DaySection({required this.day});
@@ -122,8 +144,8 @@ class _DaySection extends ConsumerStatefulWidget {
 }
 
 class _DaySectionState extends ConsumerState<_DaySection> {
-  /// つきいちタブ表示中か（日を切り替えても維持）。
-  bool _chores = false;
+  /// 表示中のタブ（日を切り替えても維持）。
+  _DayTab _tab = _DayTab.day;
 
   @override
   Widget build(BuildContext context) {
@@ -176,21 +198,37 @@ class _DaySectionState extends ConsumerState<_DaySection> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    // 3タブとも Flexible（冗長ロケールでも溢れず縮むだけ）。
+                    // flex はラベル長の比（日付 8月23日(日) > つきいち > メモ）。
+                    // 均等割だと幅が余っていても短タブ側から切れるための重み付け。
                     Flexible(
+                      flex: 4,
                       child: tab(
                         key: const Key('day-tab-label'),
                         text: label,
-                        selected: !_chores,
-                        onTap: () => setState(() => _chores = false),
+                        selected: _tab == _DayTab.day,
+                        onTap: () => setState(() => _tab = _DayTab.day),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Flexible(
+                      flex: 3,
                       child: tab(
                         key: const Key('day-tab-chores'),
                         text: l.calendarChoreTab,
-                        selected: _chores,
-                        onTap: () => setState(() => _chores = true),
+                        selected: _tab == _DayTab.chores,
+                        onTap: () => setState(() => _tab = _DayTab.chores),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // 買い物メモ（家計簿の入力とは無関係のメモ帳・2026-08-23）
+                    Flexible(
+                      flex: 2,
+                      child: tab(
+                        key: const Key('day-tab-memo'),
+                        text: l.calendarMemoTab,
+                        selected: _tab == _DayTab.memo,
+                        onTap: () => setState(() => _tab = _DayTab.memo),
                       ),
                     ),
                   ],
@@ -241,9 +279,11 @@ class _DaySectionState extends ConsumerState<_DaySection> {
               ),
               child: SizedBox(
                 width: double.infinity,
-                child: _chores
-                    ? _ChoreDayList(day: widget.day)
-                    : DayTransactionList(day: widget.day),
+                child: switch (_tab) {
+                  _DayTab.day => DayTransactionList(day: widget.day),
+                  _DayTab.chores => _ChoreDayList(day: widget.day),
+                  _DayTab.memo => const ShoppingMemoPad(),
+                },
               ),
             ),
           ),

@@ -519,6 +519,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get calendarChoreTabEmpty => 'この日のつきいちタスクはありません';
 
   @override
+  String get calendarMemoTab => 'メモ';
+
+  @override
+  String get shoppingMemoHint => '買い物メモ（例: 牛乳、トイレットペーパー）';
+
+  @override
   String get calendarReceiptFallbackLabel => 'レシート';
 
   @override

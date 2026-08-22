@@ -53,6 +53,7 @@ BackupPayload samplePayload() => BackupPayload(
       installmentCards: const [
         InstallmentCard(name: '楽天カード', annualRatePercent: 15.0),
       ],
+      shoppingMemo: '牛乳、トイレットペーパー',
       recurringRules: [
         BackupRecurringRule(
           id: 1, type: TxnType.expense, amount: 80000, categoryId: 1,
@@ -117,6 +118,7 @@ void main() {
     final cards = root['installmentCards'] as List;
     expect((cards.single as Map)['name'], '楽天カード');
     expect((cards.single as Map)['annualRatePercent'], 15.0);
+    expect(root['shoppingMemo'], '牛乳、トイレットペーパー');
   });
 
   test('null optionals serialize as JSON null', () {
@@ -519,10 +521,12 @@ void main() {
       final json = mutate((r) {
         r['formatVersion'] = 8;
         r.remove('installmentCards');
+        r.remove('shoppingMemo');
       });
       final decoded = codec.decode(json);
-      // null＝復元時に端末の登録カードを変更しない、の目印。空[]とは区別する。
+      // null＝復元時に端末側を変更しない、の目印。空[]や空文字とは区別する。
       expect(decoded.installmentCards, isNull);
+      expect(decoded.shoppingMemo, isNull);
     });
 
     test('収録済みのカードは内容どおり復元される（空リストも保持）', () {

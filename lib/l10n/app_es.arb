@@ -155,6 +155,8 @@
   "calendarAddIncome": "Añadir ingreso",
   "calendarChoreTab": "Tareas",
   "calendarChoreTabEmpty": "No hay tareas para este día",
+  "calendarMemoTab": "Notas",
+  "shoppingMemoHint": "Notas de compra (p. ej., leche, papel higiénico)",
   "calendarReceiptFallbackLabel": "Recibo",
   "calendarCategoryUnknown": "Desconocida",
   "calendarCategoryArchivedLabel": "{name} (archivada)",

@@ -155,6 +155,8 @@
   "calendarAddIncome": "収入を追加",
   "calendarChoreTab": "つきいち",
   "calendarChoreTabEmpty": "この日のつきいちタスクはありません",
+  "calendarMemoTab": "メモ",
+  "shoppingMemoHint": "買い物メモ（例: 牛乳、トイレットペーパー）",
   "calendarReceiptFallbackLabel": "レシート",
   "calendarCategoryUnknown": "不明",
   "calendarCategoryArchivedLabel": "{name}（アーカイブ）",

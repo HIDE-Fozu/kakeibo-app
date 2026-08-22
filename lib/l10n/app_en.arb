@@ -361,6 +361,14 @@
   "@calendarChoreTabEmpty": {
     "description": "Empty state of the chores tab in the day section"
   },
+  "calendarMemoTab": "Memo",
+  "@calendarMemoTab": {
+    "description": "Day-section tab that shows the free-form shopping memo pad"
+  },
+  "shoppingMemoHint": "Things to buy (e.g. milk, toilet paper)",
+  "@shoppingMemoHint": {
+    "description": "Hint text of the shopping memo pad on the calendar tab"
+  },
   "calendarReceiptFallbackLabel": "Receipt",
   "calendarCategoryUnknown": "Unknown",
   "calendarCategoryArchivedLabel": "{name} (Archived)",

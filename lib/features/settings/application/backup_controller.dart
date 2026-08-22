@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../../data/backup/backup_codec.dart';
 import '../../chores/application/chore_providers.dart';
 import 'settings_controller.dart';
+import '../../memo/application/shopping_memo_controller.dart';
 
 class RestoreSource {
   final File file;
@@ -128,8 +129,10 @@ class BackupController extends Notifier<void> {
         .read(backupServiceProvider)
         .restoreFromJson(json, allowEmpty: allowEmpty);
     ref.invalidate(lastBackupProvider);
-    // 分割払いカード（prefs）も置換された可能性があるので設定を再読込する。
+    // prefs住まいのデータ（分割払いカード・買い物メモ）も置換された
+    // 可能性があるので再読込する。
     ref.invalidate(appSettingsProvider);
+    ref.invalidate(shoppingMemoProvider);
     // つきいちタスクも置換されたので、予約済み通知とバッジを復元後の内容へ
     // 同期し直す（消えたタスクの通知が残らないように）。失敗しても復元は成立。
     await ref

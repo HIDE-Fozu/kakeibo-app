@@ -155,6 +155,8 @@
   "calendarAddIncome": "添加收入",
   "calendarChoreTab": "家务",
   "calendarChoreTabEmpty": "这一天没有家务",
+  "calendarMemoTab": "备忘",
+  "shoppingMemoHint": "购物备忘（例如：牛奶、卫生纸）",
   "calendarReceiptFallbackLabel": "小票",
   "calendarCategoryUnknown": "未知",
   "calendarCategoryArchivedLabel": "{name}（已归档）",

@@ -521,6 +521,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get calendarChoreTabEmpty => '이 날의 집안일이 없습니다';
 
   @override
+  String get calendarMemoTab => '메모';
+
+  @override
+  String get shoppingMemoHint => '장보기 메모 (예: 우유, 화장지)';
+
+  @override
   String get calendarReceiptFallbackLabel => '영수증';
 
   @override
