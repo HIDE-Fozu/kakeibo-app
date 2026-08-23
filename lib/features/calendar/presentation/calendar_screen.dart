@@ -16,6 +16,7 @@ import '../../../app/navigation.dart';
 import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
@@ -582,6 +583,13 @@ class _SummaryCard extends ConsumerWidget {
     final netLabel = mf.net(net);
     final forecast = ref.watch(monthForecastProvider((year, month)));
     final colors = context.kakeiboColors;
+    // 毎月の予算（設定でオンオフ・毎月共通の1金額・2026-08-23要望）。
+    // 残り = 予算 − このカードの「支出」。同じカード上の数字で引き算が
+    // 成り立つので、ユーザーが見て検算できる（支出の定義は上の列と同じ）。
+    final settings = ref.watch(appSettingsProvider);
+    final budget = settings.budgetEnabled && settings.monthlyBudgetMinor > 0
+        ? settings.monthlyBudgetMinor
+        : null;
 
     Widget col(String label, String value, Color valueColor) => Expanded(
           child: Column(
@@ -638,47 +646,78 @@ class _SummaryCard extends ConsumerWidget {
               ],
             ),
           ),
+          if (budget != null)
+            _summaryLine(
+              context,
+              key: const Key('budget-line'),
+              label: l.budgetRemainingLabel,
+              // 残高なので＋は付けない（付くのは差引・見込みの符号表示だけ）。
+              // 使いすぎのマイナスは format 側が−を付ける。
+              value: mf.format(budget - summary.expense),
+              negative: budget - summary.expense < 0,
+              colors: colors,
+            ),
           // 見込み収支 = 月全体の起票済み差引＋月末までの未起票予定。過去月は出ない。
           // （上の差引=今日まで実績とは定義が違う: 分割払いの将来回はこちらに入る）
           // 基準日（毎月N日）切り替えは「不要」FB（2026-08-20）で撤去し常に月末。
-          if (forecast != null) ...[
-            const Divider(height: 1, color: kLine),
-            Padding(
+          if (forecast != null)
+            _summaryLine(
+              context,
               key: const Key('forecast-line'),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l.forecastLabelMonthEnd,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontFamily: kLedgerFontFamily),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    mf.net(forecast.forecast),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: kLedgerFontFamily,
-                      fontFeatures: kTabularFigures,
-                      color: forecast.forecast < 0
-                          ? colors.expense
-                          : Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
+              label: l.forecastLabelMonthEnd,
+              value: mf.net(forecast.forecast),
+              negative: forecast.forecast < 0,
+              colors: colors,
             ),
-          ],
         ],
       ),
     );
   }
 
+  /// 3カラムの下に積むラベル＋金額の行（予算の残り・見込み収支で共用）。
+  Widget _summaryLine(
+    BuildContext context, {
+    required Key key,
+    required String label,
+    required String value,
+    required bool negative,
+    required KakeiboColors colors,
+  }) =>
+      Column(
+        children: [
+          const Divider(height: 1, color: kLine),
+          Padding(
+            key: key,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(fontFamily: kLedgerFontFamily),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: kLedgerFontFamily,
+                    fontFeatures: kTabularFigures,
+                    color: negative
+                        ? colors.expense
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
 }

@@ -1054,6 +1054,30 @@ abstract class AppLocalizations {
   /// **'Things to buy (e.g. milk, toilet paper)'**
   String get shoppingMemoHint;
 
+  /// No description provided for @settingsBudgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget'**
+  String get settingsBudgetTitle;
+
+  /// No description provided for @settingsBudgetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the remaining budget above the calendar'**
+  String get settingsBudgetSubtitle;
+
+  /// No description provided for @settingsBudgetAmountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget amount'**
+  String get settingsBudgetAmountTitle;
+
+  /// No description provided for @budgetRemainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget left'**
+  String get budgetRemainingLabel;
+
   /// No description provided for @calendarReceiptFallbackLabel.
   ///
   /// In en, this message translates to:

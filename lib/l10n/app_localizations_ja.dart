@@ -525,6 +525,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shoppingMemoHint => '買い物メモ（例: 牛乳、トイレットペーパー）';
 
   @override
+  String get settingsBudgetTitle => '毎月の予算';
+
+  @override
+  String get settingsBudgetSubtitle => 'オンにするとカレンダー上部に予算の残りを表示します';
+
+  @override
+  String get settingsBudgetAmountTitle => '予算額';
+
+  @override
+  String get budgetRemainingLabel => '予算の残り';
+
+  @override
   String get calendarReceiptFallbackLabel => 'レシート';
 
   @override

@@ -545,6 +545,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Notas de compra (p. ej., leche, papel higiénico)';
 
   @override
+  String get settingsBudgetTitle => 'Presupuesto mensual';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Muestra el presupuesto restante encima del calendario';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Importe del presupuesto';
+
+  @override
+  String get budgetRemainingLabel => 'Presupuesto restante';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Recibo';
 
   @override

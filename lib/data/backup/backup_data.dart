@@ -209,6 +209,13 @@ class BackupChoreRecord {
   });
 }
 
+/// 毎月の予算（オンオフ＋金額・最小単位）。formatVersion 9で追加。
+class BackupBudget {
+  final bool enabled;
+  final int amountMinor;
+  const BackupBudget({required this.enabled, required this.amountMinor});
+}
+
 class BackupPayload {
   final int formatVersion;
   final DateTime? exportedAt;
@@ -233,6 +240,10 @@ class BackupPayload {
   /// 買い物メモ（formatVersion 9で追加。SharedPreferences由来）。
   /// null = 未収録（v8以前）。復元時は端末のメモを変更しない。
   final String? shoppingMemo;
+
+  /// 毎月の予算（formatVersion 9で追加。SharedPreferences由来）。
+  /// null = 未収録（v8以前）。復元時は端末の予算設定を変更しない。
+  final BackupBudget? budget;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
@@ -244,5 +255,6 @@ class BackupPayload {
     this.installmentPlans = const [],
     this.installmentCards,
     this.shoppingMemo,
+    this.budget,
   });
 }

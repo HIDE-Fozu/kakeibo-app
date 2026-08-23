@@ -546,6 +546,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Note della spesa (es.: latte, carta igienica)';
 
   @override
+  String get settingsBudgetTitle => 'Budget mensile';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Mostra il budget residuo sopra il calendario';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Importo del budget';
+
+  @override
+  String get budgetRemainingLabel => 'Budget residuo';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Scontrino';
 
   @override

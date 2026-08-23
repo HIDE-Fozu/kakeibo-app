@@ -545,6 +545,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einkaufsnotizen (z. B. Milch, Toilettenpapier)';
 
   @override
+  String get settingsBudgetTitle => 'Monatsbudget';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Zeigt das verbleibende Budget über dem Kalender an';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Budgetbetrag';
+
+  @override
+  String get budgetRemainingLabel => 'Verbleibendes Budget';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Beleg';
 
   @override

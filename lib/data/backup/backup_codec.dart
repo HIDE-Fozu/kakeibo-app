@@ -20,10 +20,10 @@ class BackupCodec {
   ///     v5以前は「N日ごと」だったので everyDays として復元する。
   /// v8: installmentPlans（分割払いの計画）と transactions[].installmentPlanId
   ///     を追加。旧バックアップは空/nullで復元。
-  /// v9: installmentCards（分割払いカードのプリセット）と shoppingMemo
-  ///     （買い物メモ）を追加。ともにSharedPreferences由来。キー欠落＝
-  ///     「未収録」(null) として復元時に端末側を変更しないため、
-  ///     v8→v9 のマイグレーションでは補完しない。
+  /// v9: installmentCards（分割払いカードのプリセット）・shoppingMemo
+  ///     （買い物メモ）・budget（毎月の予算）を追加。いずれも
+  ///     SharedPreferences由来。キー欠落＝「未収録」(null) として復元時に
+  ///     端末側を変更しないため、v8→v9 のマイグレーションでは補完しない。
   static const int formatVersion = 9;
 
   const BackupCodec();
@@ -89,6 +89,11 @@ class BackupCodec {
             },
         ],
       if (p.shoppingMemo != null) 'shoppingMemo': p.shoppingMemo,
+      if (p.budget != null)
+        'budget': {
+          'enabled': p.budget!.enabled,
+          'amountMinor': p.budget!.amountMinor,
+        },
       'recurringRules': [
         for (final r in p.recurringRules)
           {
@@ -440,6 +445,20 @@ class BackupCodec {
     // キー欠落/null = 未収録（v8以前）。復元時に端末のメモを変更しない。
     final shoppingMemo = opt<String>(root, 'shoppingMemo', 'root');
 
+    // --- budget（v9・任意キー） ---
+    final budgetRaw = opt<Map<String, dynamic>>(root, 'budget', 'root');
+    BackupBudget? budget;
+    if (budgetRaw != null) {
+      final amount = req<int>(budgetRaw, 'amountMinor', 'budget');
+      if (amount < 0) {
+        throw BackupValidationError('budget.amountMinor が負です: $amount');
+      }
+      budget = BackupBudget(
+        enabled: req<bool>(budgetRaw, 'enabled', 'budget'),
+        amountMinor: amount,
+      );
+    }
+
     // --- installmentCards（v9・任意キー） ---
     // キー欠落/null = 未収録（v8以前）。復元時に端末の登録カードを変更しない。
     final cardsRaw = opt<List<dynamic>>(root, 'installmentCards', 'root');
@@ -569,6 +588,7 @@ class BackupCodec {
       installmentPlans: installmentPlans,
       installmentCards: installmentCards,
       shoppingMemo: shoppingMemo,
+      budget: budget,
     );
   }
 

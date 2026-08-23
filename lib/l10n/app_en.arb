@@ -369,6 +369,10 @@
   "@shoppingMemoHint": {
     "description": "Hint text of the shopping memo pad on the calendar tab"
   },
+  "settingsBudgetTitle": "Monthly budget",
+  "settingsBudgetSubtitle": "Show the remaining budget above the calendar",
+  "settingsBudgetAmountTitle": "Budget amount",
+  "budgetRemainingLabel": "Budget left",
   "calendarReceiptFallbackLabel": "Receipt",
   "calendarCategoryUnknown": "Unknown",
   "calendarCategoryArchivedLabel": "{name} (Archived)",

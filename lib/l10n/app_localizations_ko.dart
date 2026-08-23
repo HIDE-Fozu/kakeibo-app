@@ -527,6 +527,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shoppingMemoHint => '장보기 메모 (예: 우유, 화장지)';
 
   @override
+  String get settingsBudgetTitle => '매월 예산';
+
+  @override
+  String get settingsBudgetSubtitle => '켜면 달력 상단에 예산 잔액을 표시합니다';
+
+  @override
+  String get settingsBudgetAmountTitle => '예산 금액';
+
+  @override
+  String get budgetRemainingLabel => '예산 잔액';
+
+  @override
   String get calendarReceiptFallbackLabel => '영수증';
 
   @override

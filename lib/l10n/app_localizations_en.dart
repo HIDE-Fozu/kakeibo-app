@@ -539,6 +539,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingMemoHint => 'Things to buy (e.g. milk, toilet paper)';
 
   @override
+  String get settingsBudgetTitle => 'Monthly budget';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Show the remaining budget above the calendar';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Budget amount';
+
+  @override
+  String get budgetRemainingLabel => 'Budget left';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Receipt';
 
   @override

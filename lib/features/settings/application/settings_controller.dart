@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
+import '../../../data/settings/budget_prefs.dart';
 import '../../../data/settings/installment_cards.dart';
 
 export '../../../data/settings/installment_cards.dart' show InstallmentCard;
@@ -29,6 +30,13 @@ class SettingsState {
 
   /// 分割払いの登録済みカード（名称順不同・名前で一意）。
   final List<InstallmentCard> installmentCards;
+
+  /// 毎月の予算（毎月共通の1金額・2026-08-23要望）。
+  /// オンならカレンダー上部サマリに「予算の残り」を表示する。
+  final bool budgetEnabled;
+
+  /// 予算額（最小単位）。未設定は0。
+  final int monthlyBudgetMinor;
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
@@ -38,6 +46,8 @@ class SettingsState {
     this.locale,
     this.currencyCode = 'JPY',
     this.installmentCards = const [],
+    this.budgetEnabled = false,
+    this.monthlyBudgetMinor = 0,
   });
 }
 
@@ -55,6 +65,9 @@ class AppSettings extends Notifier<SettingsState> {
   static const kCurrency = 'currency';
   // 分割払いカード。形式は data/settings/installment_cards.dart（バックアップと共用）。
   static const kInstallmentCards = kInstallmentCardsPrefsKey;
+  // 毎月の予算。キーは data/settings/budget_prefs.dart（バックアップと共用）。
+  static const kBudgetEnabled = kBudgetEnabledPrefsKey;
+  static const kMonthlyBudgetMinor = kMonthlyBudgetMinorPrefsKey;
 
   @override
   SettingsState build() {
@@ -76,7 +89,21 @@ class AppSettings extends Notifier<SettingsState> {
       currencyCode: p.getString(kCurrency) ?? 'JPY',
       installmentCards:
           decodeInstallmentCardPrefs(p.getStringList(kInstallmentCards)),
+      budgetEnabled: p.getBool(kBudgetEnabled) ?? false,
+      monthlyBudgetMinor: p.getInt(kMonthlyBudgetMinor) ?? 0,
     );
+  }
+
+  Future<void> setBudgetEnabled(bool value) async {
+    await ref.read(sharedPreferencesProvider).setBool(kBudgetEnabled, value);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setMonthlyBudget(int minor) async {
+    await ref
+        .read(sharedPreferencesProvider)
+        .setInt(kMonthlyBudgetMinor, minor);
+    ref.invalidateSelf();
   }
 
   /// 分割払いカードを保存（同名は上書き）。

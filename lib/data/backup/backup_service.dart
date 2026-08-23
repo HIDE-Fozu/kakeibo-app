@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database.dart';
+import '../settings/budget_prefs.dart';
 import '../settings/installment_cards.dart';
 import '../settings/shopping_memo_prefs.dart';
 import 'auto_backup_store.dart';
@@ -52,6 +53,12 @@ class BackupService {
               prefs.getStringList(kInstallmentCardsPrefsKey)),
       shoppingMemo:
           prefs == null ? null : (prefs.getString(kShoppingMemoPrefsKey) ?? ''),
+      budget: prefs == null
+          ? null
+          : BackupBudget(
+              enabled: prefs.getBool(kBudgetEnabledPrefsKey) ?? false,
+              amountMinor: prefs.getInt(kMonthlyBudgetMinorPrefsKey) ?? 0,
+            ),
       categories: [
         for (final c in cats)
           BackupCategory(
@@ -185,6 +192,11 @@ class BackupService {
     }
     if (memo != null && prefs != null) {
       await prefs.setString(kShoppingMemoPrefsKey, memo);
+    }
+    final budget = payload.budget;
+    if (budget != null && prefs != null) {
+      await prefs.setBool(kBudgetEnabledPrefsKey, budget.enabled);
+      await prefs.setInt(kMonthlyBudgetMinorPrefsKey, budget.amountMinor);
     }
   }
 

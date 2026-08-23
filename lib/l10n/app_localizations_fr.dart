@@ -549,6 +549,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mémo de courses (ex. : lait, papier toilette)';
 
   @override
+  String get settingsBudgetTitle => 'Budget mensuel';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Affiche le budget restant au-dessus du calendrier';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Montant du budget';
+
+  @override
+  String get budgetRemainingLabel => 'Budget restant';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Reçu';
 
   @override

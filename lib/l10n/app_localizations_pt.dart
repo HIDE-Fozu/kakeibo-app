@@ -544,6 +544,19 @@ class AppLocalizationsPt extends AppLocalizations {
       'Notas de compras (ex.: leite, papel higiênico)';
 
   @override
+  String get settingsBudgetTitle => 'Orçamento mensal';
+
+  @override
+  String get settingsBudgetSubtitle =>
+      'Mostra o orçamento restante acima do calendário';
+
+  @override
+  String get settingsBudgetAmountTitle => 'Valor do orçamento';
+
+  @override
+  String get budgetRemainingLabel => 'Orçamento restante';
+
+  @override
   String get calendarReceiptFallbackLabel => 'Recibo';
 
   @override

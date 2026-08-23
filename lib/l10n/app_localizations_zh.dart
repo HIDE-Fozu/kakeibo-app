@@ -524,6 +524,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shoppingMemoHint => '购物备忘（例如：牛奶、卫生纸）';
 
   @override
+  String get settingsBudgetTitle => '每月预算';
+
+  @override
+  String get settingsBudgetSubtitle => '开启后在日历上方显示预算余额';
+
+  @override
+  String get settingsBudgetAmountTitle => '预算金额';
+
+  @override
+  String get budgetRemainingLabel => '预算余额';
+
+  @override
   String get calendarReceiptFallbackLabel => '小票';
 
   @override
