@@ -45,21 +45,24 @@ class CalendarScreen extends ConsumerWidget {
     final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
 
-    // メモを開いている間は日別カードをカレンダーの上までせり上げる
-    // （メモは長く書くので広い面が要る・FB 2026-08-27）。
-    final expanded = ref.watch(daySheetExpandedProvider);
+    // 日別カードはタブ行を上へドラッグすると広がる（FB 2026-08-27）。
+    // 0 なら通常位置。基準の高さは描画後に実測して覚える。
+    final raise = ref.watch(daySheetRaiseProvider);
+    final baseHeight = ref.watch(daySheetBaseHeightProvider);
+
 
     return SafeArea(
       // キーボード（メモ編集ページの遷移中など）で縦が潰れても崩れないよう、
       // 最低高を確保して不足分はスクロールに逃がす。通常時は
       // maxHeight >= _kMinBodyHeight なので見た目・挙動とも従来どおり。
       child: LayoutBuilder(builder: (context, outer) {
-        // せり上げ中（メモを書いている間）はキーボードで縦が縮んでも
-        // スクロールに逃がさない。カードがキーボードのすぐ上に収まり、
-        // 背後のカレンダーは切り取って敷くだけにする（タップで戻る面）。
-        final squeezed = !expanded && outer.maxHeight < _kMinBodyHeight;
+        // 縦が足りない＝キーボードが出ている。このときスクロールに逃がすと
+        // カレンダーごと画面が動いて書きにくいので、広げているときと同じく
+        // カードをキーボードのすぐ上に固定し、背後は切り取って敷くだけにする。
+        final tight = outer.maxHeight < _kMinBodyHeight;
+        final overlay = baseHeight != null && (raise > 0 || tight);
         final bodyHeight =
-            expanded ? outer.maxHeight : math.max(outer.maxHeight, _kMinBodyHeight);
+            overlay ? outer.maxHeight : math.max(outer.maxHeight, _kMinBodyHeight);
         final backdrop = Column(
         children: [
           const BackupBanner(),
@@ -121,21 +124,28 @@ class CalendarScreen extends ConsumerWidget {
           // 意味は日別リストの「予定」バッジで伝わるので凡例からは外した。
           if (choreMarks.isNotEmpty)
             _CalendarLegend(hasChores: choreMarks.isNotEmpty),
-          // せり上げ中はここを空けて、下のオーバーレイに描かせる。
+          // 広げている間はここを空けて、下のオーバーレイに描かせる。
+          // 場所は空けたまま測り続けるので、基準の高さは変わらない。
           Expanded(
-            child: expanded
-                ? const SizedBox.expand()
-                : _DaySection(day: selected),
+            child: _DaySheetSlot(
+              child: overlay
+                  ? const SizedBox.expand()
+                  : _DaySection(day: selected),
+            ),
           ),
         ],
             );
         return SingleChildScrollView(
-          physics: squeezed ? null : const NeverScrollableScrollPhysics(),
+          // 逃がし先のスクロールは、オーバーレイに切り替えられないとき
+          //（基準の高さをまだ測れていない初回）だけの保険。
+          physics: (tight && !overlay)
+              ? null
+              : const NeverScrollableScrollPhysics(),
           child: SizedBox(
             height: bodyHeight,
             child: Stack(children: [
             // 背景は本来の高さで組んでから切り取る（縦が足りなくても溢れない）。
-            expanded
+            overlay
                 ? ClipRect(
                     child: OverflowBox(
                       alignment: Alignment.topCenter,
@@ -145,7 +155,7 @@ class CalendarScreen extends ConsumerWidget {
                     ),
                   )
                 : backdrop,
-            if (expanded) ...[
+            if (overlay) ...[
               // 背景（カレンダー側）をタップすると閉じてカレンダーに戻る。
               // うっすら落として「カードが上に乗っている」ことを見せる
               //（落とさないとタブ行の隙間からセルの数字が透けて雑然とする）。
@@ -157,7 +167,7 @@ class CalendarScreen extends ConsumerWidget {
                     // 先にフォーカスを外す。残したままだとキーボードだけが
                     // 出っぱなしで、カードが縮んで書けなくなる。
                     FocusManager.instance.primaryFocus?.unfocus();
-                    ref.read(daySheetExpandedProvider.notifier).set(false);
+                    ref.read(daySheetRaiseProvider.notifier).reset();
                   },
                   child: ColoredBox(
                     color: kPaper.withValues(alpha: 0.72),
@@ -170,7 +180,8 @@ class CalendarScreen extends ConsumerWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: _expandedSheetHeight(bodyHeight),
+                height: math.min(baseHeight + raise,
+                    bodyHeight - (tight ? 60 : _kMinBackdropHeight)),
                 // タブ行の帯は透明なので、紙色で塞がないと後ろのセルの数字が
                 // タブの隙間から覗いて雑然とする。
                 child: ColoredBox(
@@ -187,17 +198,32 @@ class CalendarScreen extends ConsumerWidget {
   }
 }
 
-/// せり上げたときの日別カードの高さ。上には「背景をタップして戻る」面を残すが、
-/// キーボードで縦が縮んでいるときは書く面を優先して残しを薄くする。
-double _expandedSheetHeight(double bodyHeight) {
-  final tight = bodyHeight < 520; // キーボードが出ている等
-  final preferred = bodyHeight * (tight ? 0.78 : 0.62);
-  final maxBySheet = bodyHeight - (tight ? 120 : _kMinBackdropHeight);
-  return math.max(200, math.min(preferred, maxBySheet));
-}
+/// ドラッグで広げられる上限（この高さまでカードを伸ばせる）。
+double _dragLimit(BuildContext context) =>
+    MediaQuery.sizeOf(context).height - _kMinBackdropHeight;
 
-/// せり上げ中に上へ残したい高さ（サマリ＋カレンダー数行ぶん）。
-const _kMinBackdropHeight = 300.0;
+/// 広げたときに上へ残す高さ（サマリ＋カレンダー数行ぶん）。
+/// ここが「背景をタップして戻る」ための面になる。
+const _kMinBackdropHeight = 150.0;
+
+/// 通常位置での日別カードの高さを測って覚えるだけの入れ物。
+/// レイアウト結果からしか分からないので、描画後に一度だけ書き戻す。
+class _DaySheetSlot extends ConsumerWidget {
+  final Widget child;
+  const _DaySheetSlot({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      LayoutBuilder(builder: (context, box) {
+        final h = box.maxHeight;
+        if (h.isFinite && h > 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(daySheetBaseHeightProvider.notifier).set(h);
+          });
+        }
+        return child;
+      });
+}
 
 /// カレンダー画面が成立する最低の本体高さ。これ未満（キーボード表示中など）は
 /// スクロールに切り替える。iPhone縦持ちの通常時はこれを上回る。
@@ -253,7 +279,27 @@ class _DaySection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // タブ行を上へドラッグするとカードが広がる（FB 2026-08-27）。
+          // タップ＝タブ切り替え / 縦ドラッグ＝広げる、で役割を分ける。
+          GestureDetector(
+            key: const Key('day-sheet-drag'),
+            behavior: HitTestBehavior.translucent,
+            onVerticalDragUpdate: (d) {
+              final base = ref.read(daySheetBaseHeightProvider);
+              if (base == null) return;
+              final max = math.max(0.0, _dragLimit(context) - base);
+              final next = ref.read(daySheetRaiseProvider) - d.delta.dy;
+              ref
+                  .read(daySheetRaiseProvider.notifier)
+                  .set(next.clamp(0.0, max));
+            },
+            onVerticalDragEnd: (_) {
+              // わずかな指のブレで中途半端に浮いたままにしない。
+              if (ref.read(daySheetRaiseProvider) < 24) {
+                ref.read(daySheetRaiseProvider.notifier).reset();
+              }
+            },
+            child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // ボタンのラベルは切らず、幅が足りないときはタブ側だけ縮む
@@ -336,6 +382,7 @@ class _DaySection extends ConsumerWidget {
                 ),
               ),
             ],
+            ),
           ),
           Expanded(
             // Material にして白カード自体をインク波紋の面にする（旧構成と同じ理由）。

@@ -36,17 +36,35 @@ class DayTabState extends AutoDisposeNotifier<DayTab> {
 final dayTabProvider =
     NotifierProvider.autoDispose<DayTabState, DayTab>(DayTabState.new);
 
-/// 日別カードを上へせり上げているか（メモを書くための広い面）。
-/// メモタブを開くと true。背景のカレンダーをタップすると false に戻る。
-class DaySheetExpanded extends AutoDisposeNotifier<bool> {
+/// 日別カードを通常位置から何px上へ広げているか（0=通常）。
+/// タブ行を上へドラッグすると増える（FB 2026-08-27）。
+/// タップは「編集」、ドラッグは「広げる」と役割を分けてあるので、
+/// 書き始めた拍子に画面が動いて入力を取りこぼすことがない。
+class DaySheetRaise extends AutoDisposeNotifier<double> {
   @override
-  bool build() => false;
+  double build() => 0;
 
-  void set(bool value) => state = value;
+  void set(double value) => state = value < 0 ? 0 : value;
+  void reset() => state = 0;
 }
 
-final daySheetExpandedProvider =
-    NotifierProvider.autoDispose<DaySheetExpanded, bool>(DaySheetExpanded.new);
+final daySheetRaiseProvider =
+    NotifierProvider.autoDispose<DaySheetRaise, double>(DaySheetRaise.new);
+
+/// 通常位置での日別カードの高さ（実測）。ドラッグ量を足して実高さにする。
+/// レイアウト結果からしか分からないので、描画後に一度だけ測って覚える。
+class DaySheetBaseHeight extends AutoDisposeNotifier<double?> {
+  @override
+  double? build() => null;
+
+  void set(double value) {
+    if (state == null || (state! - value).abs() > 0.5) state = value;
+  }
+}
+
+final daySheetBaseHeightProvider =
+    NotifierProvider.autoDispose<DaySheetBaseHeight, double?>(
+        DaySheetBaseHeight.new);
 
 class CurrentMonth extends AutoDisposeNotifier<(int, int)> {
   @override

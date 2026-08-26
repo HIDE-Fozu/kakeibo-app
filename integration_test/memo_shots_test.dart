@@ -25,37 +25,37 @@ void main() {
     await bootstrap();
     await t.pumpAndSettle(const Duration(seconds: 1));
 
-    // 1) メモタブに切り替えただけ＝位置はそのまま
+    // 1) メモタブに切り替えただけ＝1行の入力欄が出るだけ
     await t.tap(find.byKey(const Key('day-tab-memo')));
     await settle(t);
-    await shot(t, 'memo_1_tab_only');
+    await shot(t, 'memo_1_one_line');
 
-    // 1b) メモ欄をタップするとせり上がる
-    await t.tap(find.byKey(const Key('shopping-memo-field')));
+    // 2) 1タップで入力できる（画面は動かない）。キーボードを出したまま撮る。
+    await t.tap(find.byKey(const Key('shopping-memo-pad')));
     await t.pumpAndSettle(const Duration(milliseconds: 600));
-    await shot(t, 'memo_1b_raised');
-
-    // 1c) せり上げ中につきいちへ切り替えても高さは維持される
-    await t.tap(find.byKey(const Key('day-tab-chores')));
-    await settle(t);
-    await shot(t, 'memo_1c_raised_chores');
-    await t.tap(find.byKey(const Key('day-tab-memo')));
-    await settle(t);
-
-    // 2) その場で入力（別ページへ飛ばない）。キーボードを出したまま撮る。
+    await shot(t, 'memo_2_tap_to_type');
     await t.enterText(find.byKey(const Key('shopping-memo-field')),
         '牛乳\nトイレットペーパー\nたまご');
     await t.pumpAndSettle(const Duration(milliseconds: 600));
-    await shot(t, 'memo_2_typing');
+    await shot(t, 'memo_3_typed');
 
-    // 3) キーボードを閉じた状態
-    FocusManager.instance.primaryFocus?.unfocus();
+    // 3) タブ行を上へドラッグすると広がる
+    await t.drag(find.byKey(const Key('day-sheet-drag')), const Offset(0, -260));
     await t.pumpAndSettle(const Duration(milliseconds: 600));
-    await shot(t, 'memo_3_filled');
+    await shot(t, 'memo_4_dragged_up');
 
-    // 4) 背景（カレンダー）をタップすると元に戻る
-    await t.tapAt(const Offset(200, 260));
+    // 4) 広げたまま つきいち へ切り替えても高さは維持
+    await t.tap(find.byKey(const Key('day-tab-chores')));
     await settle(t);
-    await shot(t, 'memo_4_collapsed');
+    await shot(t, 'memo_5_dragged_chores');
+    await t.tap(find.byKey(const Key('day-tab-memo')));
+    await settle(t);
+
+    // 5) 背景（カレンダー）をタップすると元に戻る
+    FocusManager.instance.primaryFocus?.unfocus();
+    await t.pumpAndSettle(const Duration(milliseconds: 400));
+    await t.tapAt(const Offset(200, 200));
+    await t.pumpAndSettle(const Duration(milliseconds: 600));
+    await shot(t, 'memo_6_back');
   });
 }
