@@ -20,6 +20,34 @@ class SelectedDay extends AutoDisposeNotifier<CivilDate> {
 final selectedDayProvider =
     NotifierProvider.autoDispose<SelectedDay, CivilDate>(SelectedDay.new);
 
+/// 日別カードのタブ。日付（取引リスト）/ つきいち / 買い物メモ。
+enum DayTab { day, chores, memo }
+
+/// 表示中のタブ。日を切り替えても維持する。
+/// カード自体の高さ（daySheetExpandedProvider）とは独立に持つ：
+/// 「メモと同じタブ列のつきいち・日付を押しても高さは変わらない」ため。
+class DayTabState extends AutoDisposeNotifier<DayTab> {
+  @override
+  DayTab build() => DayTab.day;
+
+  void select(DayTab tab) => state = tab;
+}
+
+final dayTabProvider =
+    NotifierProvider.autoDispose<DayTabState, DayTab>(DayTabState.new);
+
+/// 日別カードを上へせり上げているか（メモを書くための広い面）。
+/// メモタブを開くと true。背景のカレンダーをタップすると false に戻る。
+class DaySheetExpanded extends AutoDisposeNotifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
+final daySheetExpandedProvider =
+    NotifierProvider.autoDispose<DaySheetExpanded, bool>(DaySheetExpanded.new);
+
 class CurrentMonth extends AutoDisposeNotifier<(int, int)> {
   @override
   (int, int) build() {

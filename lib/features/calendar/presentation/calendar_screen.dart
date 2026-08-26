@@ -45,17 +45,23 @@ class CalendarScreen extends ConsumerWidget {
     final choreMarks = ref.watch(choreMonthMarksProvider((year, month)));
     final mf = ref.watch(moneyFormatterProvider);
 
+    // メモを開いている間は日別カードをカレンダーの上までせり上げる
+    // （メモは長く書くので広い面が要る・FB 2026-08-27）。
+    final expanded = ref.watch(daySheetExpandedProvider);
+
     return SafeArea(
       // キーボード（メモ編集ページの遷移中など）で縦が潰れても崩れないよう、
       // 最低高を確保して不足分はスクロールに逃がす。通常時は
       // maxHeight >= _kMinBodyHeight なので見た目・挙動とも従来どおり。
       child: LayoutBuilder(builder: (context, outer) {
         final squeezed = outer.maxHeight < _kMinBodyHeight;
+        final bodyHeight = math.max(outer.maxHeight, _kMinBodyHeight);
         return SingleChildScrollView(
           physics: squeezed ? null : const NeverScrollableScrollPhysics(),
           child: SizedBox(
-            height: math.max(outer.maxHeight, _kMinBodyHeight),
-            child: Column(
+            height: bodyHeight,
+            child: Stack(children: [
+            Column(
         children: [
           const BackupBanner(),
           _MonthHeader(year: year, month: month),
@@ -116,15 +122,61 @@ class CalendarScreen extends ConsumerWidget {
           // 意味は日別リストの「予定」バッジで伝わるので凡例からは外した。
           if (choreMarks.isNotEmpty)
             _CalendarLegend(hasChores: choreMarks.isNotEmpty),
-          Expanded(child: _DaySection(day: selected)),
+          // せり上げ中はここを空けて、下のオーバーレイに描かせる。
+          Expanded(
+            child: expanded
+                ? const SizedBox.expand()
+                : _DaySection(day: selected),
+          ),
         ],
             ),
+            if (expanded) ...[
+              // 背景（カレンダー側）をタップすると閉じてカレンダーに戻る。
+              // うっすら落として「カードが上に乗っている」ことを見せる
+              //（落とさないとタブ行の隙間からセルの数字が透けて雑然とする）。
+              Positioned.fill(
+                child: GestureDetector(
+                  key: const Key('day-sheet-scrim'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () =>
+                      ref.read(daySheetExpandedProvider.notifier).set(false),
+                  child: ColoredBox(
+                    color: kPaper.withValues(alpha: 0.72),
+                  ),
+                ),
+              ),
+              // せり上がった日別カード。カレンダーが2行ぶんは見えるように残し、
+              // そこが「戻る」ためのタップ面になる。
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: _expandedSheetHeight(bodyHeight),
+                // タブ行の帯は透明なので、紙色で塞がないと後ろのセルの数字が
+                // タブの隙間から覗いて雑然とする。
+                child: ColoredBox(
+                  color: kPaper,
+                  child: _DaySection(day: selected),
+                ),
+              ),
+            ],
+          ]),
           ),
         );
       }),
     );
   }
 }
+
+/// せり上げたときの日別カードの高さ。上に最低 [_kMinBackdropHeight] は残して
+/// 「背景をタップして戻る」面を確保する。
+double _expandedSheetHeight(double bodyHeight) => math.max(
+      240,
+      math.min(bodyHeight * 0.62, bodyHeight - _kMinBackdropHeight),
+    );
+
+/// せり上げ中に上へ残す最小の高さ（サマリ＋カレンダー数行ぶん）。
+const _kMinBackdropHeight = 300.0;
 
 /// カレンダー画面が成立する最低の本体高さ。これ未満（キーボード表示中など）は
 /// スクロールに切り替える。iPhone縦持ちの通常時はこれを上回る。
@@ -133,29 +185,19 @@ const _kMinBodyHeight = 640.0;
 /// 日別リストのカード（画像1枚目参考・フラット近似）:
 /// 選択日タブと「つきいち」タブ（FB 2026-08-20）で内容を切り替え、
 /// 右端の「家計簿を入力」から選択日既定で入力画面へ。
-/// 日別カードのタブ。日付（取引リスト）/ つきいち / 買い物メモ。
-enum _DayTab { day, chores, memo }
-
-class _DaySection extends ConsumerStatefulWidget {
+class _DaySection extends ConsumerWidget {
   final CivilDate day;
   const _DaySection({required this.day});
 
   @override
-  ConsumerState<_DaySection> createState() => _DaySectionState();
-}
-
-class _DaySectionState extends ConsumerState<_DaySection> {
-  /// 表示中のタブ（日を切り替えても維持）。
-  _DayTab _tab = _DayTab.day;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final tag = Localizations.localeOf(context).toLanguageTag();
-    final label = DateFormat.MMMEd(tag).format(dateTimeOfCivil(widget.day));
+    final label = DateFormat.MMMEd(tag).format(dateTimeOfCivil(day));
     final fill = context.kakeiboPalette.fill;
+    final tab = ref.watch(dayTabProvider);
 
-    Widget tab({
+    Widget tabButton({
       required Key key,
       required String text,
       required bool selected,
@@ -202,34 +244,44 @@ class _DaySectionState extends ConsumerState<_DaySection> {
                     // 3タブとも Flexible（冗長ロケールでも溢れず縮むだけ）。
                     // flex はラベル長の比（日付 8月23日(日) > つきいち > メモ）。
                     // 均等割だと幅が余っていても短タブ側から切れるための重み付け。
+                    // 日付・つきいちは**カードの高さを変えない**（メモを開いた
+                    // まま中身だけ切り替えられるように・FB 2026-08-27）。
                     Flexible(
                       flex: 4,
-                      child: tab(
+                      child: tabButton(
                         key: const Key('day-tab-label'),
                         text: label,
-                        selected: _tab == _DayTab.day,
-                        onTap: () => setState(() => _tab = _DayTab.day),
+                        selected: tab == DayTab.day,
+                        onTap: () =>
+                            ref.read(dayTabProvider.notifier).select(DayTab.day),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Flexible(
                       flex: 3,
-                      child: tab(
+                      child: tabButton(
                         key: const Key('day-tab-chores'),
                         text: l.calendarChoreTab,
-                        selected: _tab == _DayTab.chores,
-                        onTap: () => setState(() => _tab = _DayTab.chores),
+                        selected: tab == DayTab.chores,
+                        onTap: () => ref
+                            .read(dayTabProvider.notifier)
+                            .select(DayTab.chores),
                       ),
                     ),
                     const SizedBox(width: 4),
-                    // 買い物メモ（家計簿の入力とは無関係のメモ帳・2026-08-23）
+                    // 買い物メモ。開くとカードが上へせり上がる（広く書けるように）。
                     Flexible(
                       flex: 2,
-                      child: tab(
+                      child: tabButton(
                         key: const Key('day-tab-memo'),
                         text: l.calendarMemoTab,
-                        selected: _tab == _DayTab.memo,
-                        onTap: () => setState(() => _tab = _DayTab.memo),
+                        selected: tab == DayTab.memo,
+                        onTap: () {
+                          ref
+                              .read(dayTabProvider.notifier)
+                              .select(DayTab.memo);
+                          ref.read(daySheetExpandedProvider.notifier).set(true);
+                        },
                       ),
                     ),
                   ],
@@ -256,7 +308,7 @@ class _DaySectionState extends ConsumerState<_DaySection> {
                   onPressed: () {
                     ref
                         .read(entryFormControllerProvider.notifier)
-                        .startCreate(widget.day);
+                        .startCreate(day);
                     ref
                         .read(homeTabIndexProvider.notifier)
                         .set(kInputTabIndex);
@@ -280,10 +332,10 @@ class _DaySectionState extends ConsumerState<_DaySection> {
               ),
               child: SizedBox(
                 width: double.infinity,
-                child: switch (_tab) {
-                  _DayTab.day => DayTransactionList(day: widget.day),
-                  _DayTab.chores => _ChoreDayList(day: widget.day),
-                  _DayTab.memo => const ShoppingMemoPad(),
+                child: switch (tab) {
+                  DayTab.day => DayTransactionList(day: day),
+                  DayTab.chores => _ChoreDayList(day: day),
+                  DayTab.memo => const ShoppingMemoPad(),
                 },
               ),
             ),

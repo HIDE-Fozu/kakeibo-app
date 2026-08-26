@@ -30,6 +30,13 @@ void main() {
     await settle(t);
     await shot(t, 'memo_1_empty');
 
+    // 1b) せり上げ中につきいちへ切り替えても高さは維持される
+    await t.tap(find.byKey(const Key('day-tab-chores')));
+    await settle(t);
+    await shot(t, 'memo_1b_expanded_chores');
+    await t.tap(find.byKey(const Key('day-tab-memo')));
+    await settle(t);
+
     // 2) 編集ページ＋入力
     await t.tap(find.byKey(const Key('shopping-memo-pad')));
     await settle(t);
@@ -38,9 +45,14 @@ void main() {
     await settle(t);
     await shot(t, 'memo_2_editor');
 
-    // 3) 完了で閉じた後のタブ表示
+    // 3) 完了で閉じた後のタブ表示（せり上がったまま）
     await t.tap(find.byKey(const Key('shopping-memo-done')));
     await settle(t);
     await shot(t, 'memo_3_filled');
+
+    // 4) 背景（カレンダー）をタップすると元に戻る
+    await t.tapAt(const Offset(200, 260));
+    await settle(t);
+    await shot(t, 'memo_4_collapsed');
   });
 }
