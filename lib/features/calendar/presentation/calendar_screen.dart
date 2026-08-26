@@ -153,8 +153,12 @@ class CalendarScreen extends ConsumerWidget {
                 child: GestureDetector(
                   key: const Key('day-sheet-scrim'),
                   behavior: HitTestBehavior.opaque,
-                  onTap: () =>
-                      ref.read(daySheetExpandedProvider.notifier).set(false),
+                  onTap: () {
+                    // 先にフォーカスを外す。残したままだとキーボードだけが
+                    // 出っぱなしで、カードが縮んで書けなくなる。
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    ref.read(daySheetExpandedProvider.notifier).set(false);
+                  },
                   child: ColoredBox(
                     color: kPaper.withValues(alpha: 0.72),
                   ),
@@ -286,19 +290,18 @@ class _DaySection extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    // 買い物メモ。開くとカードが上へせり上がる（広く書けるように）。
+                    // 買い物メモ。タブを押しただけでは位置は変えず、
+                    // メモ欄をタップして書き始めたときにせり上がる
+                    //（FB 2026-08-27）。
                     Flexible(
                       flex: 2,
                       child: tabButton(
                         key: const Key('day-tab-memo'),
                         text: l.calendarMemoTab,
                         selected: tab == DayTab.memo,
-                        onTap: () {
-                          ref
-                              .read(dayTabProvider.notifier)
-                              .select(DayTab.memo);
-                          ref.read(daySheetExpandedProvider.notifier).set(true);
-                        },
+                        onTap: () => ref
+                            .read(dayTabProvider.notifier)
+                            .select(DayTab.memo),
                       ),
                     ),
                   ],

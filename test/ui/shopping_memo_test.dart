@@ -55,7 +55,7 @@ void main() {
     expect(find.byKey(const Key('day-tab-memo')), findsOneWidget);
   });
 
-  testWidgets('メモを開くとカードがせり上がり、背景タップで戻る', (tester) async {
+  testWidgets('メモタブを押しただけでは位置は変わらない', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
@@ -64,26 +64,38 @@ void main() {
     // 日付タブのときはせり上げ用のオーバーレイは無い
     expect(find.byKey(const Key('day-sheet-scrim')), findsNothing);
 
+    // メモに切り替えただけでは、つきいちや日付を押したときと同じで動かない
     await tester.tap(find.byKey(const Key('day-tab-memo')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('day-sheet-scrim')), findsNothing);
+    final collapsedH = sheetHeight(tester);
+
+    // メモ欄をタップして書き始めるとせり上がる
+    await tester.tap(find.byKey(const Key('shopping-memo-field')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget);
+    expect(sheetHeight(tester), greaterThan(collapsedH));
+  });
+
+  testWidgets('せり上げたあと背景タップで戻る', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+
+    await tester.tap(find.byKey(const Key('day-tab-memo')));
+    await tester.pumpAndSettle();
+    final collapsedH = sheetHeight(tester);
+    await tester.tap(find.byKey(const Key('shopping-memo-field')));
+    await tester.pumpAndSettle();
     final expandedH = sheetHeight(tester);
 
-    // 背景（カレンダー側）をタップすると戻る
+    // 背景（カレンダー側）をタップすると戻る。キーボードも閉じる。
     await tester.tapAt(const Offset(200, 260));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('day-sheet-scrim')), findsNothing);
-
-    // 戻ったあとは元の高さ（せり上がりぶん低い）
-    await tester.tap(find.byKey(const Key('day-tab-memo')));
-    await tester.pumpAndSettle();
-    await tester.tapAt(const Offset(200, 260));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('day-tab-label')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('day-tab-memo')));
-    await tester.pumpAndSettle();
-    expect(sheetHeight(tester), expandedH);
+    expect(sheetHeight(tester), collapsedH);
+    expect(collapsedH, lessThan(expandedH));
   });
 
   testWidgets('せり上げ中に日付・つきいちを押しても高さは変わらない', (tester) async {
@@ -93,6 +105,8 @@ void main() {
     await pumpApp(tester, h);
 
     await tester.tap(find.byKey(const Key('day-tab-memo')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('shopping-memo-field')));
     await tester.pumpAndSettle();
     final expandedH = sheetHeight(tester);
 

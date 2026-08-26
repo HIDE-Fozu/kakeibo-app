@@ -25,21 +25,24 @@ void main() {
     await bootstrap();
     await t.pumpAndSettle(const Duration(seconds: 1));
 
-    // 1) メモタブ（空・ヒント表示）
+    // 1) メモタブに切り替えただけ＝位置はそのまま
     await t.tap(find.byKey(const Key('day-tab-memo')));
     await settle(t);
-    await shot(t, 'memo_1_empty');
+    await shot(t, 'memo_1_tab_only');
 
-    // 1b) せり上げ中につきいちへ切り替えても高さは維持される
+    // 1b) メモ欄をタップするとせり上がる
+    await t.tap(find.byKey(const Key('shopping-memo-field')));
+    await t.pumpAndSettle(const Duration(milliseconds: 600));
+    await shot(t, 'memo_1b_raised');
+
+    // 1c) せり上げ中につきいちへ切り替えても高さは維持される
     await t.tap(find.byKey(const Key('day-tab-chores')));
     await settle(t);
-    await shot(t, 'memo_1b_expanded_chores');
+    await shot(t, 'memo_1c_raised_chores');
     await t.tap(find.byKey(const Key('day-tab-memo')));
     await settle(t);
 
     // 2) その場で入力（別ページへ飛ばない）。キーボードを出したまま撮る。
-    await t.tap(find.byKey(const Key('shopping-memo-field')));
-    await settle(t);
     await t.enterText(find.byKey(const Key('shopping-memo-field')),
         '牛乳\nトイレットペーパー\nたまご');
     await t.pumpAndSettle(const Duration(milliseconds: 600));
