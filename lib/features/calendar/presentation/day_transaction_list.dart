@@ -14,6 +14,7 @@ import '../../entry/application/entry_form_controller.dart';
 import '../../entry/presentation/entry_screen.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import '../application/calendar_providers.dart';
+import '../../../domain/services/payable_builder.dart';
 import '../../payment/application/payment_providers.dart';
 import '../../payment/presentation/payable_detail_page.dart';
 
@@ -144,7 +145,14 @@ class DayTransactionList extends ConsumerWidget {
     );
   }
 
-  /// 「未払」バッジから未払金の詳細（あとから分割）へ。
+  String _badgeLabel(AppLocalizations l, PayableBadge b) => switch (b) {
+        PayableBadgeTimes(:final count) => l.payableTimesOption(count),
+        PayableBadgeNextMonth() => l.payableBadgeNextMonth,
+        PayableBadgeMonthAfterNext() => l.payableBadgeMonthAfterNext,
+        PayableBadgeMonth(:final month) => l.payableBadgeMonth(month),
+      };
+
+  /// バッジから未払金の詳細（あとから分割）へ。
   /// 取引の編集（金額・カテゴリ）は行タップ側のまま変えない。
   Future<void> _openPayable(
       BuildContext context, WidgetRef ref, TransactionEntity tx) async {
@@ -310,8 +318,8 @@ class DayTransactionList extends ConsumerWidget {
       Map<int, CategoryEntity> byId, TransactionEntity tx,
       {bool dense = false}) {
     final l = AppLocalizations.of(context);
-    final cardPurchaseIds =
-        ref.watch(cardPurchaseTxIdsOnMonthProvider((day.year, day.month)));
+    final payableBadges =
+        ref.watch(payableBadgesOnMonthProvider((day.year, day.month)));
     final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final cat = byId[tx.categoryId];
@@ -345,9 +353,9 @@ class DayTransactionList extends ConsumerWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // カードで買った分は「未払」。現金が動くのは引き落とし日。
-            // タップで「あとから分割」（回数・開始月の変更）へ。
-            if (tx.id != null && cardPurchaseIds.contains(tx.id))
+            // カードで買った分のバッジ。状態（未払）ではなく**いつ払うか**を
+            // 出す（ユーザー要望 2026-08-27）。タップで「あとから分割」へ。
+            if (tx.id != null && payableBadges[tx.id] != null)
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: InkWell(
@@ -362,7 +370,7 @@ class DayTransactionList extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      l.payableBadge,
+                      _badgeLabel(l, payableBadges[tx.id]!),
                       style: TextStyle(
                           fontSize: 10, color: scheme.onSurfaceVariant),
                     ),

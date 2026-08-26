@@ -7,6 +7,8 @@ import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/payable_builder.dart';
 import '../../../domain/services/payment_schedule.dart';
 import '../../../domain/services/recurring_schedule.dart' show ymOf;
+import '../../calendar/application/calendar_providers.dart'
+    show monthTransactionsProvider;
 import '../../chores/application/chore_providers.dart';
 import '../../settings/application/settings_controller.dart';
 
@@ -98,6 +100,30 @@ final cardPaymentsToDateProvider =
     sum += l.amountMinor;
   }
   return sum;
+});
+
+/// 行のバッジ（いつ払うか）。取引IDごとに1つ。
+final payableBadgesOnMonthProvider = Provider.autoDispose
+    .family<Map<int, PayableBadge>, (int, int)>((ref, key) {
+  if (!ref.watch(paymentModeEnabledProvider)) return const {};
+  final byTx = ref.watch(payablesPurchasedInProvider(key)).valueOrNull;
+  if (byTx == null || byTx.isEmpty) return const {};
+  final txs = ref.watch(monthTransactionsProvider(key)).valueOrNull;
+  if (txs == null) return const {};
+  final dateById = {for (final t in txs) t.id: t.date};
+  return {
+    for (final e in byTx.entries)
+      if (dateById[e.key] != null)
+        e.key: payableBadgeOf(e.value, dateById[e.key]!),
+  };
+});
+
+final payablesPurchasedInProvider = StreamProvider.autoDispose
+    .family<Map<int, PayableEntity>, (int, int)>((ref, key) {
+  if (!ref.watch(paymentModeEnabledProvider)) return Stream.value(const {});
+  return ref
+      .watch(payableRepositoryProvider)
+      .watchPayablesPurchasedIn(key.$1, key.$2);
 });
 
 /// 購入日に「未払」と出すための、その日のカード購入の取引ID。

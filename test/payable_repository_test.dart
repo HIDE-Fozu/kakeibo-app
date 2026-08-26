@@ -141,6 +141,66 @@ void main() {
     });
   });
 
+  group('バッジ（いつ払うか）', () {
+    test('翌月・翌々月・具体月・回数を出し分ける', () async {
+      final cardId = await rakuten();
+      final txId = await buyTx(3000, const CivilDate(2026, 8, 10));
+
+      // 既定（月末締め）＝翌月
+      await payables.add(buildSinglePayable(
+        transactionId: txId,
+        cardId: cardId,
+        amountMinor: 3000,
+        purchaseDate: const CivilDate(2026, 8, 10),
+      ));
+      var p = (await payables.forTransaction(txId))!;
+      expect(payableBadgeOf(p, const CivilDate(2026, 8, 10)),
+          isA<PayableBadgeNextMonth>());
+
+      // 27日締めで28日に買う＝翌々月
+      await payables.replace(buildSinglePayable(
+        id: p.id,
+        transactionId: txId,
+        cardId: cardId,
+        amountMinor: 3000,
+        purchaseDate: const CivilDate(2026, 8, 28),
+        closingDay: 27,
+      ));
+      p = (await payables.forTransaction(txId))!;
+      expect(payableBadgeOf(p, const CivilDate(2026, 8, 28)),
+          isA<PayableBadgeMonthAfterNext>());
+
+      // もっと先へずらしたら月そのもの
+      await payables.replace(buildSinglePayable(
+        id: p.id,
+        transactionId: txId,
+        cardId: cardId,
+        amountMinor: 3000,
+        purchaseDate: const CivilDate(2026, 8, 10),
+        paymentYm: 202612,
+      ));
+      p = (await payables.forTransaction(txId))!;
+      final badge = payableBadgeOf(p, const CivilDate(2026, 8, 10));
+      expect(badge, isA<PayableBadgeMonth>());
+      expect((badge as PayableBadgeMonth).month, 12);
+
+      // 分割は回数
+      await payables.replace(buildInstallmentPayable(
+        id: p.id,
+        transactionId: txId,
+        cardId: cardId,
+        principalMinor: 3000,
+        count: 3,
+        annualRatePercent: 0,
+        startYm: 202609,
+      ));
+      p = (await payables.forTransaction(txId))!;
+      final times = payableBadgeOf(p, const CivilDate(2026, 8, 10));
+      expect(times, isA<PayableBadgeTimes>());
+      expect((times as PayableBadgeTimes).count, 3);
+    });
+  });
+
   group('あとから分割', () {
     test('1万円を10回に割ると各月に載り、合計＝総額', () async {
       final cardId = await rakuten();

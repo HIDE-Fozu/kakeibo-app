@@ -57,9 +57,28 @@ CivilDate adjustToBusinessDay(
   return d;
 }
 
-/// 購入日から決まる既定の支払い月（月末締め・翌月払い）。
-/// 締めが月末でないカード/加盟店は、未払金ごとにこの値を上書きして使う。
-int defaultPaymentYm(CivilDate purchaseDate) => nextYm(ymOf(purchaseDate));
+/// 月末締めを表す締め日。短い月でも末日に丸まるので31でよい。
+const int kClosingDayMonthEnd = 31;
+
+/// 購入日と締め日から決まる支払い月。
+///
+/// 締め日**まで**の利用はその月の締めに入り翌月払い。締め日を**過ぎた**利用は
+/// 次の締めに回るので翌々月払いになる。
+/// 例: 27日締めのカードで 8/27 の買い物は9月払い、8/28 は10月払い。
+/// 月末締め（既定）は常に翌月払い。
+/// 加盟店によって締めが違うケース（楽天カードは楽天市場だけ27日締め）は、
+/// これで出した既定値を未払金ごとに上書きして合わせる。
+int defaultPaymentYm(CivilDate purchaseDate,
+    {int closingDay = kClosingDayMonthEnd}) {
+  final last = daysInMonth(purchaseDate.year, purchaseDate.month);
+  final effective = closingDay > last ? last : closingDay;
+  final ym = nextYm(ymOf(purchaseDate));
+  return purchaseDate.day <= effective ? ym : nextYm(ym);
+}
+
+/// a 月から b 月までの月数（b が後なら正）。
+int monthsBetweenYm(int a, int b) =>
+    ((b ~/ 100) * 12 + b % 100) - ((a ~/ 100) * 12 + a % 100);
 
 /// 分割の支払い月の並び。startYm から count ヶ月ぶん連続。
 List<int> paymentYmsFrom(int startYm, int count) {

@@ -66,6 +66,7 @@ class DriftPaymentCardRepository implements PaymentCardRepository {
         id: r.id,
         name: r.name,
         payDay: r.payDay,
+        closingDay: r.closingDay,
         businessDayRule: r.businessDayRule,
         annualRatePercent: r.annualRatePercent,
         sortOrder: r.sortOrder,
@@ -76,6 +77,7 @@ class DriftPaymentCardRepository implements PaymentCardRepository {
       PaymentCardsCompanion.insert(
         name: c.name,
         payDay: c.payDay,
+        closingDay: Value(c.closingDay),
         businessDayRule: Value(c.businessDayRule),
         annualRatePercent: Value(c.annualRatePercent),
         sortOrder: Value(c.sortOrder),
@@ -129,6 +131,27 @@ class DriftPayableRepository implements PayableRepository {
         )
         .watch()
         .map((rows) => {for (final r in rows) r.read<int>('tx')});
+  }
+
+  @override
+  Stream<Map<int, PayableEntity>> watchPayablesPurchasedIn(
+      int year, int month) {
+    final startIso = CivilDate.firstOfMonthIso(year, month);
+    final endIso = CivilDate.firstOfNextMonthIso(year, month);
+    final q = _db.select(_db.payables).join([
+      innerJoin(_db.transactions,
+          _db.transactions.id.equalsExp(_db.payables.transactionId)),
+    ])
+      ..where(_db.transactions.date.isBiggerOrEqualValue(startIso) &
+          _db.transactions.date.isSmallerThanValue(endIso));
+    return q.watch().asyncMap((rows) async {
+      final out = <int, PayableEntity>{};
+      for (final r in rows) {
+        final row = r.readTable(_db.payables);
+        out[row.transactionId] = _toEntity(row, await _scheduleOf(row.id));
+      }
+      return out;
+    });
   }
 
   @override

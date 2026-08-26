@@ -1,5 +1,6 @@
 import 'money/civil_date.dart';
-import 'services/payment_schedule.dart' show PayableInstallment;
+import 'services/payment_schedule.dart'
+    show PayableInstallment, kClosingDayMonthEnd;
 import '../data/db/enums.dart';
 
 class TransactionEntity {
@@ -62,6 +63,7 @@ class PaymentCardEntity {
   final int? id;
   final String name;
   final int payDay; // 引き落とし日 1..31（短い月は末日に丸め）
+  final int closingDay; // 締め日 1..31（31=月末締め）
   final BusinessDayRule businessDayRule; // 休業日の寄せ方（既定=翌営業日）
   final double annualRatePercent; // 「あとから分割」の既定の実質年率
   final int sortOrder;
@@ -71,6 +73,7 @@ class PaymentCardEntity {
     this.id,
     required this.name,
     required this.payDay,
+    this.closingDay = kClosingDayMonthEnd,
     this.businessDayRule = BusinessDayRule.next,
     this.annualRatePercent = 0,
     this.sortOrder = 0,
@@ -81,6 +84,7 @@ class PaymentCardEntity {
     int? id,
     String? name,
     int? payDay,
+    int? closingDay,
     BusinessDayRule? businessDayRule,
     double? annualRatePercent,
     int? sortOrder,
@@ -90,6 +94,7 @@ class PaymentCardEntity {
         id: id ?? this.id,
         name: name ?? this.name,
         payDay: payDay ?? this.payDay,
+        closingDay: closingDay ?? this.closingDay,
         businessDayRule: businessDayRule ?? this.businessDayRule,
         annualRatePercent: annualRatePercent ?? this.annualRatePercent,
         sortOrder: sortOrder ?? this.sortOrder,

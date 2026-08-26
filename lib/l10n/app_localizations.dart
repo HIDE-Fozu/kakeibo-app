@@ -1114,6 +1114,42 @@ abstract class AppLocalizations {
   /// **'Spent (count on the purchase date)'**
   String get summaryBasisAccrualOption;
 
+  /// No description provided for @paymentCardClosingDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing day'**
+  String get paymentCardClosingDayLabel;
+
+  /// No description provided for @closingDayMonthEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End of month'**
+  String get closingDayMonthEnd;
+
+  /// No description provided for @closingDayNth.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String closingDayNth(int day);
+
+  /// No description provided for @payableBadgeNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next mo.'**
+  String get payableBadgeNextMonth;
+
+  /// No description provided for @payableBadgeMonthAfterNext.
+  ///
+  /// In en, this message translates to:
+  /// **'In 2 mo.'**
+  String get payableBadgeMonthAfterNext;
+
+  /// No description provided for @payableBadgeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{month}/'**
+  String payableBadgeMonth(int month);
+
   /// No description provided for @payableDetailTitle.
   ///
   /// In en, this message translates to:
@@ -1179,12 +1215,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{month}/{year}'**
   String payableYmFormat(int year, int month);
-
-  /// No description provided for @payableBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Unpaid'**
-  String get payableBadge;
 
   /// No description provided for @cardPaymentRowLabel.
   ///

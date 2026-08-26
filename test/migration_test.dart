@@ -793,6 +793,7 @@ CREATE TABLE "transactions" (
     final card = await db.select(db.paymentCards).getSingle();
     expect(card.name, '楽天カード');
     expect(card.payDay, 27);
+    expect(card.closingDay, 31); // 既定=月末締め
     expect(card.businessDayRule, BusinessDayRule.next); // 既定=翌営業日
     final sched = await db.select(db.payableSchedules).getSingle();
     expect(sched.ym, 202609);

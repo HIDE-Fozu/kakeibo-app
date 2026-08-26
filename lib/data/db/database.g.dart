@@ -4518,6 +4518,18 @@ class $PaymentCardsTable extends PaymentCards
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _closingDayMeta = const VerificationMeta(
+    'closingDay',
+  );
+  @override
+  late final GeneratedColumn<int> closingDay = GeneratedColumn<int>(
+    'closing_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(31),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<BusinessDayRule, String>
   businessDayRule =
@@ -4600,6 +4612,7 @@ class $PaymentCardsTable extends PaymentCards
     id,
     name,
     payDay,
+    closingDay,
     businessDayRule,
     annualRatePercent,
     sortOrder,
@@ -4637,6 +4650,12 @@ class $PaymentCardsTable extends PaymentCards
       );
     } else if (isInserting) {
       context.missing(_payDayMeta);
+    }
+    if (data.containsKey('closing_day')) {
+      context.handle(
+        _closingDayMeta,
+        closingDay.isAcceptableOrUnknown(data['closing_day']!, _closingDayMeta),
+      );
     }
     if (data.containsKey('annual_rate_percent')) {
       context.handle(
@@ -4692,6 +4711,10 @@ class $PaymentCardsTable extends PaymentCards
         DriftSqlType.int,
         data['${effectivePrefix}pay_day'],
       )!,
+      closingDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}closing_day'],
+      )!,
       businessDayRule: $PaymentCardsTable.$converterbusinessDayRule.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -4736,6 +4759,10 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
   final int id;
   final String name;
   final int payDay;
+
+  /// 締め日 1..31（31=月末締め・既定）。締め日までの利用は翌月払い、
+  /// 締め日を過ぎた利用は翌々月払いになる。
+  final int closingDay;
   final BusinessDayRule businessDayRule;
   final double annualRatePercent;
   final int sortOrder;
@@ -4746,6 +4773,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
     required this.id,
     required this.name,
     required this.payDay,
+    required this.closingDay,
     required this.businessDayRule,
     required this.annualRatePercent,
     required this.sortOrder,
@@ -4759,6 +4787,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['pay_day'] = Variable<int>(payDay);
+    map['closing_day'] = Variable<int>(closingDay);
     {
       map['business_day_rule'] = Variable<String>(
         $PaymentCardsTable.$converterbusinessDayRule.toSql(businessDayRule),
@@ -4777,6 +4806,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
       id: Value(id),
       name: Value(name),
       payDay: Value(payDay),
+      closingDay: Value(closingDay),
       businessDayRule: Value(businessDayRule),
       annualRatePercent: Value(annualRatePercent),
       sortOrder: Value(sortOrder),
@@ -4795,6 +4825,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       payDay: serializer.fromJson<int>(json['payDay']),
+      closingDay: serializer.fromJson<int>(json['closingDay']),
       businessDayRule: $PaymentCardsTable.$converterbusinessDayRule.fromJson(
         serializer.fromJson<String>(json['businessDayRule']),
       ),
@@ -4812,6 +4843,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'payDay': serializer.toJson<int>(payDay),
+      'closingDay': serializer.toJson<int>(closingDay),
       'businessDayRule': serializer.toJson<String>(
         $PaymentCardsTable.$converterbusinessDayRule.toJson(businessDayRule),
       ),
@@ -4827,6 +4859,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
     int? id,
     String? name,
     int? payDay,
+    int? closingDay,
     BusinessDayRule? businessDayRule,
     double? annualRatePercent,
     int? sortOrder,
@@ -4837,6 +4870,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
     id: id ?? this.id,
     name: name ?? this.name,
     payDay: payDay ?? this.payDay,
+    closingDay: closingDay ?? this.closingDay,
     businessDayRule: businessDayRule ?? this.businessDayRule,
     annualRatePercent: annualRatePercent ?? this.annualRatePercent,
     sortOrder: sortOrder ?? this.sortOrder,
@@ -4849,6 +4883,9 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       payDay: data.payDay.present ? data.payDay.value : this.payDay,
+      closingDay: data.closingDay.present
+          ? data.closingDay.value
+          : this.closingDay,
       businessDayRule: data.businessDayRule.present
           ? data.businessDayRule.value
           : this.businessDayRule,
@@ -4870,6 +4907,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('payDay: $payDay, ')
+          ..write('closingDay: $closingDay, ')
           ..write('businessDayRule: $businessDayRule, ')
           ..write('annualRatePercent: $annualRatePercent, ')
           ..write('sortOrder: $sortOrder, ')
@@ -4885,6 +4923,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
     id,
     name,
     payDay,
+    closingDay,
     businessDayRule,
     annualRatePercent,
     sortOrder,
@@ -4899,6 +4938,7 @@ class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
           other.id == this.id &&
           other.name == this.name &&
           other.payDay == this.payDay &&
+          other.closingDay == this.closingDay &&
           other.businessDayRule == this.businessDayRule &&
           other.annualRatePercent == this.annualRatePercent &&
           other.sortOrder == this.sortOrder &&
@@ -4911,6 +4951,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
   final Value<int> id;
   final Value<String> name;
   final Value<int> payDay;
+  final Value<int> closingDay;
   final Value<BusinessDayRule> businessDayRule;
   final Value<double> annualRatePercent;
   final Value<int> sortOrder;
@@ -4921,6 +4962,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.payDay = const Value.absent(),
+    this.closingDay = const Value.absent(),
     this.businessDayRule = const Value.absent(),
     this.annualRatePercent = const Value.absent(),
     this.sortOrder = const Value.absent(),
@@ -4932,6 +4974,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
     this.id = const Value.absent(),
     required String name,
     required int payDay,
+    this.closingDay = const Value.absent(),
     this.businessDayRule = const Value.absent(),
     this.annualRatePercent = const Value.absent(),
     this.sortOrder = const Value.absent(),
@@ -4944,6 +4987,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<int>? payDay,
+    Expression<int>? closingDay,
     Expression<String>? businessDayRule,
     Expression<double>? annualRatePercent,
     Expression<int>? sortOrder,
@@ -4955,6 +4999,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (payDay != null) 'pay_day': payDay,
+      if (closingDay != null) 'closing_day': closingDay,
       if (businessDayRule != null) 'business_day_rule': businessDayRule,
       if (annualRatePercent != null) 'annual_rate_percent': annualRatePercent,
       if (sortOrder != null) 'sort_order': sortOrder,
@@ -4968,6 +5013,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
     Value<int>? id,
     Value<String>? name,
     Value<int>? payDay,
+    Value<int>? closingDay,
     Value<BusinessDayRule>? businessDayRule,
     Value<double>? annualRatePercent,
     Value<int>? sortOrder,
@@ -4979,6 +5025,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
       id: id ?? this.id,
       name: name ?? this.name,
       payDay: payDay ?? this.payDay,
+      closingDay: closingDay ?? this.closingDay,
       businessDayRule: businessDayRule ?? this.businessDayRule,
       annualRatePercent: annualRatePercent ?? this.annualRatePercent,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -4999,6 +5046,9 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
     }
     if (payDay.present) {
       map['pay_day'] = Variable<int>(payDay.value);
+    }
+    if (closingDay.present) {
+      map['closing_day'] = Variable<int>(closingDay.value);
     }
     if (businessDayRule.present) {
       map['business_day_rule'] = Variable<String>(
@@ -5031,6 +5081,7 @@ class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('payDay: $payDay, ')
+          ..write('closingDay: $closingDay, ')
           ..write('businessDayRule: $businessDayRule, ')
           ..write('annualRatePercent: $annualRatePercent, ')
           ..write('sortOrder: $sortOrder, ')
@@ -9381,6 +9432,7 @@ typedef $$PaymentCardsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required int payDay,
+      Value<int> closingDay,
       Value<BusinessDayRule> businessDayRule,
       Value<double> annualRatePercent,
       Value<int> sortOrder,
@@ -9393,6 +9445,7 @@ typedef $$PaymentCardsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<int> payDay,
+      Value<int> closingDay,
       Value<BusinessDayRule> businessDayRule,
       Value<double> annualRatePercent,
       Value<int> sortOrder,
@@ -9445,6 +9498,11 @@ class $$PaymentCardsTableFilterComposer
 
   ColumnFilters<int> get payDay => $composableBuilder(
     column: $table.payDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9529,6 +9587,11 @@ class $$PaymentCardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get businessDayRule => $composableBuilder(
     column: $table.businessDayRule,
     builder: (column) => ColumnOrderings(column),
@@ -9577,6 +9640,11 @@ class $$PaymentCardsTableAnnotationComposer
 
   GeneratedColumn<int> get payDay =>
       $composableBuilder(column: $table.payDay, builder: (column) => column);
+
+  GeneratedColumn<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<BusinessDayRule, String>
   get businessDayRule => $composableBuilder(
@@ -9660,6 +9728,7 @@ class $$PaymentCardsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> payDay = const Value.absent(),
+                Value<int> closingDay = const Value.absent(),
                 Value<BusinessDayRule> businessDayRule = const Value.absent(),
                 Value<double> annualRatePercent = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
@@ -9670,6 +9739,7 @@ class $$PaymentCardsTableTableManager
                 id: id,
                 name: name,
                 payDay: payDay,
+                closingDay: closingDay,
                 businessDayRule: businessDayRule,
                 annualRatePercent: annualRatePercent,
                 sortOrder: sortOrder,
@@ -9682,6 +9752,7 @@ class $$PaymentCardsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required int payDay,
+                Value<int> closingDay = const Value.absent(),
                 Value<BusinessDayRule> businessDayRule = const Value.absent(),
                 Value<double> annualRatePercent = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
@@ -9692,6 +9763,7 @@ class $$PaymentCardsTableTableManager
                 id: id,
                 name: name,
                 payDay: payDay,
+                closingDay: closingDay,
                 businessDayRule: businessDayRule,
                 annualRatePercent: annualRatePercent,
                 sortOrder: sortOrder,

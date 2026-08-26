@@ -78,6 +78,38 @@ void main() {
       expect(defaultPaymentYm(const CivilDate(2026, 12, 5)), 202701);
     });
 
+    test('締め日までは翌月払い・過ぎたら翌々月払い', () {
+      // 27日締め（楽天市場）: 8/27までは9月払い、8/28以降は10月払い
+      expect(defaultPaymentYm(const CivilDate(2026, 8, 27), closingDay: 27),
+          202609);
+      expect(defaultPaymentYm(const CivilDate(2026, 8, 28), closingDay: 27),
+          202610);
+      // 15日締め（セゾン等）
+      expect(defaultPaymentYm(const CivilDate(2026, 8, 15), closingDay: 15),
+          202609);
+      expect(defaultPaymentYm(const CivilDate(2026, 8, 16), closingDay: 15),
+          202610);
+    });
+
+    test('締め日が月末日より大きい月は末日に丸める', () {
+      // 2月に30日締め → 実質28日締め。2/28は3月払い（翌々月にはならない）
+      expect(defaultPaymentYm(const CivilDate(2026, 2, 28), closingDay: 30),
+          202603);
+    });
+
+    test('締め日が年をまたぐ場合', () {
+      // 12/28（27日締め）→ 12月の締めに乗らず2月払い
+      expect(defaultPaymentYm(const CivilDate(2026, 12, 28), closingDay: 27),
+          202702);
+    });
+
+    test('monthsBetweenYm は月数を返す', () {
+      expect(monthsBetweenYm(202608, 202609), 1);
+      expect(monthsBetweenYm(202608, 202610), 2);
+      expect(monthsBetweenYm(202612, 202701), 1);
+      expect(monthsBetweenYm(202609, 202608), -1);
+    });
+
     test('分割の支払い月は開始月から連続する', () {
       expect(paymentYmsFrom(202611, 4), [202611, 202612, 202701, 202702]);
       expect(paymentYmsFrom(202609, 1), [202609]);

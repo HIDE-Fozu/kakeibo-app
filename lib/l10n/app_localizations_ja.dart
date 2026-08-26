@@ -555,6 +555,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get summaryBasisAccrualOption => '支出（買った日で数える）';
 
   @override
+  String get paymentCardClosingDayLabel => '締め日';
+
+  @override
+  String get closingDayMonthEnd => '月末';
+
+  @override
+  String closingDayNth(int day) {
+    return '$day日';
+  }
+
+  @override
+  String get payableBadgeNextMonth => '翌月';
+
+  @override
+  String get payableBadgeMonthAfterNext => '翌々月';
+
+  @override
+  String payableBadgeMonth(int month) {
+    return '$month月';
+  }
+
+  @override
   String get payableDetailTitle => '未払金';
 
   @override
@@ -590,9 +612,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String payableYmFormat(int year, int month) {
     return '$year年$month月';
   }
-
-  @override
-  String get payableBadge => '未払';
 
   @override
   String cardPaymentRowLabel(String card) {

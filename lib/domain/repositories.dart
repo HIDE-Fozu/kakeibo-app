@@ -105,6 +105,10 @@ abstract interface class PayableRepository {
   /// 現金主義のサマリで、購入を支払いから外すために使う。
   Stream<Set<int>> watchCardPurchaseTxIdsIn(int year, int month);
 
+  /// その月に「買った」カード購入の未払金（取引IDをキーに引ける形）。
+  /// 行のバッジに「いつ払うか」を出すのに使う。
+  Stream<Map<int, PayableEntity>> watchPayablesPurchasedIn(int year, int month);
+
   /// 未払金を作る（購入取引は作成済みであること）。
   Future<int> add(PayableEntity payable);
 

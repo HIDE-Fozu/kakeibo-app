@@ -162,12 +162,20 @@ class DeletedTransactions extends Table {
 /// 現金・即時払いは「カード未選択」で表す（この表に行を作らない）。
 /// [payDay] はそのカードの引き落とし日（1..31・短い月は末日に丸め）で、
 /// 休業日は [businessDayRule] に従って営業日へ寄せる。
+/// [closingDay] は締め日（31=月末締め）。カード会社ごとに違う（楽天カードは
+/// 月末締め・翌27日払いだが、楽天市場の利用だけ27日締め）ので設定できるようにし、
+/// それでも合わないケースは未払金ごとに支払い月を上書きして直す。
 /// [annualRatePercent] は「あとから分割」にしたときの既定の実質年率。
 @DataClassName('PaymentCardRow')
 class PaymentCards extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   IntColumn get payDay => integer()();
+
+  /// 締め日 1..31（31=月末締め・既定）。締め日までの利用は翌月払い、
+  /// 締め日を過ぎた利用は翌々月払いになる。
+  IntColumn get closingDay =>
+      integer().withDefault(const Constant(31))();
   TextColumn get businessDayRule =>
       textEnum<BusinessDayRule>().withDefault(const Constant('next'))();
   RealColumn get annualRatePercent => real().withDefault(const Constant(0))();

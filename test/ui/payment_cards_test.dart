@@ -54,11 +54,12 @@ void main() {
     await tester.tap(find.byKey(const Key('payment-card-save')));
     await tester.pumpAndSettle();
 
-    // 一覧に出る。既定は毎月27日・翌営業日。
+    // 一覧に出る。既定は月末締め・毎月27日払い・翌営業日。
     expect(find.text('楽天カード'), findsOneWidget);
-    expect(find.text('毎月27日 / 翌営業日'), findsOneWidget);
+    expect(find.text('月末 / 毎月27日 / 翌営業日'), findsOneWidget);
     final saved = await c.read(paymentCardRepositoryProvider).all();
     expect(saved.single.payDay, 27);
+    expect(saved.single.closingDay, 31); // 既定=月末締め
     expect(saved.single.businessDayRule, BusinessDayRule.next);
     expect(saved.single.annualRatePercent, 0); // 空欄=無金利
   });

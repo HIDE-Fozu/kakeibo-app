@@ -9,6 +9,7 @@ import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/payable_builder.dart';
+import '../../../domain/services/payment_schedule.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
 import '../../../domain/services/recurring_schedule.dart';
 import '../../../l10n/app_localizations.dart';
@@ -1091,11 +1092,15 @@ class EntryFormController extends Notifier<EntryFormState?> {
       EntryFormState s, int transactionId, int amountMinor) async {
     final cardId = s.paymentCardId;
     if (cardId == null || s.type != TxnType.expense) return;
+    // 支払い月はカードの締め日で決まる（締め日を過ぎた利用は翌々月払い）。
+    final cards = await ref.read(paymentCardRepositoryProvider).all();
+    final card = cards.where((c) => c.id == cardId).firstOrNull;
     await ref.read(payableRepositoryProvider).add(buildSinglePayable(
           transactionId: transactionId,
           cardId: cardId,
           amountMinor: amountMinor,
           purchaseDate: s.date,
+          closingDay: card?.closingDay ?? kClosingDayMonthEnd,
         ));
   }
 

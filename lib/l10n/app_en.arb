@@ -379,6 +379,26 @@
   "summaryBasisTitle": "How the summary counts",
   "summaryBasisCashOption": "Paid (count on the billing date)",
   "summaryBasisAccrualOption": "Spent (count on the purchase date)",
+  "paymentCardClosingDayLabel": "Closing day",
+  "closingDayMonthEnd": "End of month",
+  "closingDayNth": "Day {day}",
+  "@closingDayNth": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "payableBadgeNextMonth": "Next mo.",
+  "payableBadgeMonthAfterNext": "In 2 mo.",
+  "payableBadgeMonth": "{month}/",
+  "@payableBadgeMonth": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      }
+    }
+  },
   "payableDetailTitle": "Unpaid item",
   "payableCardLabel": "Card",
   "payableCountLabel": "Number of payments",
@@ -407,7 +427,6 @@
       }
     }
   },
-  "payableBadge": "Unpaid",
   "cardPaymentRowLabel": "{card} billing",
   "@cardPaymentRowLabel": {
     "placeholders": {

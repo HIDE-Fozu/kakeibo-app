@@ -7,7 +7,7 @@ import '../money/civil_date.dart';
 import 'installment_calc.dart';
 import 'payment_schedule.dart';
 
-/// 一括払いの未払金を作る。支払い月は既定（月末締め・翌月払い）だが、
+/// 一括払いの未払金を作る。支払い月はカードの締め日から決まるが、
 /// [paymentYm] を渡せば「これは9月分じゃなく10月分」と上書きできる。
 PayableEntity buildSinglePayable({
   int? id,
@@ -15,9 +15,11 @@ PayableEntity buildSinglePayable({
   required int cardId,
   required int amountMinor,
   required CivilDate purchaseDate,
+  int closingDay = kClosingDayMonthEnd,
   int? paymentYm,
 }) {
-  final ym = paymentYm ?? defaultPaymentYm(purchaseDate);
+  final ym =
+      paymentYm ?? defaultPaymentYm(purchaseDate, closingDay: closingDay);
   return PayableEntity(
     id: id,
     transactionId: transactionId,
@@ -80,6 +82,47 @@ PayableEntity shiftPaymentYm(PayableEntity p, int newStartYm) {
     ],
   );
 }
+
+/// 「未払」バッジに何を出すか。状態（未払）ではなく**いつ払うか**を示す
+/// （ユーザー要望 2026-08-27）。分割なら回数、一括なら購入月からの距離。
+sealed class PayableBadge {
+  const PayableBadge();
+}
+
+/// 分割払い（N回）。
+class PayableBadgeTimes extends PayableBadge {
+  final int count;
+  const PayableBadgeTimes(this.count);
+}
+
+/// 購入月の翌月に払う。
+class PayableBadgeNextMonth extends PayableBadge {
+  const PayableBadgeNextMonth();
+}
+
+/// 購入月の翌々月に払う。
+class PayableBadgeMonthAfterNext extends PayableBadge {
+  const PayableBadgeMonthAfterNext();
+}
+
+/// それ以外（もっと先/過去にずらした）は月そのもので示す。
+class PayableBadgeMonth extends PayableBadge {
+  final int month; // 1..12
+  const PayableBadgeMonth(this.month);
+}
+
+PayableBadge payableBadgeOf(PayableEntity p, CivilDate purchaseDate) {
+  if (p.installmentCount > 1) return PayableBadgeTimes(p.installmentCount);
+  final ym = p.schedule.first.ym;
+  return switch (monthsBetweenYm(ymOfPurchase(purchaseDate), ym)) {
+    1 => const PayableBadgeNextMonth(),
+    2 => const PayableBadgeMonthAfterNext(),
+    _ => PayableBadgeMonth(ym % 100),
+  };
+}
+
+/// 購入日の YYYYMM。
+int ymOfPurchase(CivilDate d) => d.year * 100 + d.month;
 
 /// その月にこの未払金からいくら引き落とされるか（無ければ0）。
 int amountDueIn(PayableEntity p, int ym) {

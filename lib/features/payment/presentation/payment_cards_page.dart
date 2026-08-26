@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
-import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
+import '../../../domain/services/payment_schedule.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// 支払い区分（カード）の一覧と編集。
@@ -52,6 +52,9 @@ class PaymentCardsPage extends ConsumerWidget {
                     leading: const Icon(Icons.credit_card),
                     title: Text(c.name),
                     subtitle: Text([
+                      c.closingDay >= kClosingDayMonthEnd
+                          ? l.closingDayMonthEnd
+                          : l.closingDayNth(c.closingDay),
                       l.paymentCardBillingDaySummary(c.payDay),
                       _ruleLabel(l, c.businessDayRule),
                     ].join(' / ')),
@@ -96,6 +99,8 @@ class _PaymentCardEditPageState extends ConsumerState<PaymentCardEditPage> {
           : _fmtRate(widget.card!.annualRatePercent));
   // カードの引き落としは27日が多い（楽天・エポス等）。
   late int _payDay = widget.card?.payDay ?? 27;
+  // 既定は月末締め（楽天・エポス等はこれ。27日締め等はカードごとに選ぶ）。
+  late int _closingDay = widget.card?.closingDay ?? kClosingDayMonthEnd;
   late BusinessDayRule _rule =
       widget.card?.businessDayRule ?? BusinessDayRule.next;
 
@@ -171,6 +176,30 @@ class _PaymentCardEditPageState extends ConsumerState<PaymentCardEditPage> {
             const SizedBox(height: 16),
             InputDecorator(
               decoration: InputDecoration(
+                labelText: l.paymentCardClosingDayLabel,
+                border: const OutlineInputBorder(),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  key: const Key('payment-card-closing'),
+                  isExpanded: true,
+                  value: _closingDay,
+                  items: [
+                    DropdownMenuItem(
+                        value: kClosingDayMonthEnd,
+                        child: Text(l.closingDayMonthEnd)),
+                    for (var d = 1; d <= 30; d++)
+                      DropdownMenuItem(
+                          value: d, child: Text(l.closingDayNth(d))),
+                  ],
+                  onChanged: (v) =>
+                      setState(() => _closingDay = v ?? _closingDay),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            InputDecorator(
+              decoration: InputDecoration(
                 labelText: l.paymentCardBusinessDayLabel,
                 border: const OutlineInputBorder(),
               ),
@@ -220,6 +249,7 @@ class _PaymentCardEditPageState extends ConsumerState<PaymentCardEditPage> {
       id: widget.card?.id,
       name: _name.text.trim(),
       payDay: _payDay,
+      closingDay: _closingDay,
       businessDayRule: _rule,
       annualRatePercent: _ratePercent ?? 0,
       sortOrder: widget.card?.sortOrder ?? 0,

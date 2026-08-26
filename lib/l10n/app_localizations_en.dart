@@ -571,6 +571,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Spent (count on the purchase date)';
 
   @override
+  String get paymentCardClosingDayLabel => 'Closing day';
+
+  @override
+  String get closingDayMonthEnd => 'End of month';
+
+  @override
+  String closingDayNth(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get payableBadgeNextMonth => 'Next mo.';
+
+  @override
+  String get payableBadgeMonthAfterNext => 'In 2 mo.';
+
+  @override
+  String payableBadgeMonth(int month) {
+    return '$month/';
+  }
+
+  @override
   String get payableDetailTitle => 'Unpaid item';
 
   @override
@@ -606,9 +628,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String payableYmFormat(int year, int month) {
     return '$month/$year';
   }
-
-  @override
-  String get payableBadge => 'Unpaid';
 
   @override
   String cardPaymentRowLabel(String card) {

@@ -87,7 +87,7 @@ void main() {
     // 7/10 の日別リスト
     c.read(selectedDayProvider.notifier).select(const CivilDate(2026, 7, 10));
     await tester.pumpAndSettle();
-    expect(find.text('未払'), findsOneWidget);
+    expect(find.text('翌月'), findsOneWidget); // いつ払うかを出す
     expect(find.text('楽天カード 引き落とし'), findsNothing);
 
     // 8/27（引き落とし日）へ移動
