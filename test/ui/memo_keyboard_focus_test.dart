@@ -40,4 +40,46 @@ void main() {
         reason: 'メモの State が作り直されている（ツリー上の位置が変わった）');
     expect(nodeAfter?.hasFocus, isTrue, reason: 'キーボードが閉じてしまう');
   });
+
+  /// FB 2026-08-27「メモからカレンダーに戻ったときホワイトアウトしてる時間が
+  /// 長すぎる。カレンダーが表示されるのを待つ体感が悪い」。
+  ///
+  /// 原因は背景を落とす覆いをキーボードにも連動させていたこと。カードはもう
+  /// 通常位置に戻っているのに、キーボードが閉じ切るまで（実機で数百ms）
+  /// カレンダーが白く飛んだままになっていた。
+  /// 覆い（＝タップして戻る面）は浮いている間ずっと要るが、**落とす**のは
+  /// 自分でドラッグして広げたときだけにする。
+  testWidgets('キーボードで浮いているだけのときはカレンダーを白く落とさない',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+    await tester.tap(find.byKey(const Key('day-tab-memo')));
+    await tester.pumpAndSettle();
+
+    /// 覆いの中に「落とす」ColoredBox があるか。
+    bool dimmed() => find
+        .descendant(
+          of: find.byKey(const Key('day-sheet-scrim')),
+          matching: find.byType(ColoredBox),
+        )
+        .evaluate()
+        .isNotEmpty;
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    // 覆いはある（背景タップで戻れる）が、落としてはいない
+    expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget,
+        reason: '背景タップで戻る面は要る');
+    expect(dimmed(), isFalse, reason: 'カレンダーが白く飛ぶ');
+
+    // 自分でドラッグして広げたときは従来どおり落とす
+    await tester.drag(
+        find.byKey(const Key('day-sheet-drag')), const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(dimmed(), isTrue, reason: '広げたときは落として戻り先を示す');
+  });
 }

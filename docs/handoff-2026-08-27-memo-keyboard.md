@@ -6,8 +6,8 @@
 ## 🎯 現在地
 
 - ブランチ **`feature/paper-design`**・**未push**。
-- **685テスト緑（skip 0）/ analyze 0**。
-- 実機 TI10B1 = 2.4.0(50)。**この修正はまだ実機に入っていない**（配備が最優先）。
+- **686テスト緑（skip 0）/ analyze 0**。
+- 実機 TI10B1 = 2.4.0(51) を配備済み（キーボード修正入り）。ホワイトアウト修正は **2.4.0(52)** が未配備。
 - 2.3.0(47) は App Store 審査中。本セッション分は 47 に入っていない。
 
 ---
@@ -69,6 +69,23 @@
   `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false`
   → Simulator 再起動）。出ていないと `KB_INSETS=0` でテスト自体が
   「無意味」として落ちるようにしてある。
+
+### 追加FB: メモ→カレンダー復帰の「ホワイトアウト」（2026-08-27・修正済み）
+
+実機2.4.0(51)で確認: キーボード修正で**キーボードが出たままになった結果**、
+今まで到達できなかった「キーボードを閉じてカレンダーに戻る」局面が露出した。
+カードはもう通常位置に戻っているのに、覆い（スクリム）が
+`raise > 0 || keyboard` に連動していたため、キーボードが閉じ切る（insets=0）
+まで**カレンダーが 0.72 alpha の紙色で白く飛んだまま**待たされていた。
+
+直し: 覆いは浮いている間ずっと出す（背景タップで戻る面が要る）が、**落とす
+のは自分でドラッグして広げたときだけ**にした（`dimmed = raise > 0`）。
+入力中もカレンダーはくっきり見える＝ボトムシートと同じ見え方。
+
+- コマ送り実測（`integration_test/memo_return_probe_test.dart`）: t=100ms の
+  コマで、修正前はカレンダーが白飛び／修正後はくっきり。
+- 回帰テスト: `test/ui/memo_keyboard_focus_test.dart` の2件目。
+  旧挙動（`dimmed = raise > 0 || keyboard`）で落ちることを確認済み。
 
 ### 見た目が変わっていないことの確認
 
@@ -143,7 +160,7 @@
 
 ## 動かし方
 
-- テスト: `flutter test`（685件・skip 0）
+- テスト: `flutter test`（686件・skip 0）
 - スクショ: `flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/memo_shots_test.dart -d <sim-id>`
   → `build/qa_screens/<日付>/`

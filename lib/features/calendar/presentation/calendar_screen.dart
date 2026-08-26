@@ -68,8 +68,14 @@ class CalendarScreen extends ConsumerWidget {
         final bodyHeight = keyboard
             ? outer.maxHeight
             : math.max(outer.maxHeight, _kMinBodyHeight);
-        // カードが通常位置より上に浮いている状態（背景を落として戻り先を示す）。
+        // カードが通常位置より上に浮いている状態（背景タップで戻れる）。
         final lifted = raise > 0 || keyboard;
+        // 背景を落とすのは**自分でドラッグして広げたとき**だけ。キーボードで
+        // 浮いている間も落とすと、閉じるアニメーションが終わるまでカレンダーが
+        // 白く飛んだままになり「カレンダーが出るのを待たされる」
+        //（FB 2026-08-27「ホワイトアウトしてる時間が長すぎる」）。
+        // 覆い自体（＝タップして戻る面）は浮いている間ずっと要る。
+        final dimmed = raise > 0;
         final backdrop = Column(
         children: [
           const BackupBanner(),
@@ -174,9 +180,10 @@ class CalendarScreen extends ConsumerWidget {
               ),
             ),
             // ②浮いている間だけ効く覆い。背景（カレンダー側）をタップすると
-            // 閉じてカレンダーに戻る。うっすら落として「カードが上に乗って
-            // いる」ことを見せる（落とさないとタブ行の隙間からセルの数字が
-            // 透けて雑然とする）。通常位置では中身を空にして素通しにする。
+            // 閉じてカレンダーに戻る。ドラッグで大きく広げたときだけうっすら
+            // 落として「カードが上に乗っている」ことを見せる。キーボードで
+            // 浮いているだけのときは落とさない（上の dimmed の理由）。
+            // 通常位置では中身を空にして素通しにする。
             Positioned.fill(
               child: lifted
                   ? GestureDetector(
@@ -188,9 +195,9 @@ class CalendarScreen extends ConsumerWidget {
                         FocusManager.instance.primaryFocus?.unfocus();
                         ref.read(daySheetRaiseProvider.notifier).reset();
                       },
-                      child: ColoredBox(
-                        color: kPaper.withValues(alpha: 0.72),
-                      ),
+                      child: dimmed
+                          ? ColoredBox(color: kPaper.withValues(alpha: 0.72))
+                          : const SizedBox.expand(),
                     )
                   : const SizedBox.shrink(),
             ),
