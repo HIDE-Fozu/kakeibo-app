@@ -542,6 +542,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPaymentModeSubtitle => '将刷卡消费记为未付款，并在扣款日汇总';
 
   @override
+  String get summaryPaymentLabel => '支付';
+
+  @override
+  String get summaryBasisTitle => '顶部汇总的计算方式';
+
+  @override
+  String get summaryBasisCashOption => '支付（按扣款日计算）';
+
+  @override
+  String get summaryBasisAccrualOption => '支出（按消费日计算）';
+
+  @override
+  String get payableBadge => '未付';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return '$card 扣款';
+  }
+
+  @override
   String get paymentCash => '现金';
 
   @override

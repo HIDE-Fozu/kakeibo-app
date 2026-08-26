@@ -375,6 +375,19 @@
   "budgetRemainingLabel": "Budget left",
   "settingsPaymentModeTitle": "Payment methods",
   "settingsPaymentModeSubtitle": "Track card purchases as unpaid and group them on the billing date",
+  "summaryPaymentLabel": "Paid",
+  "summaryBasisTitle": "How the summary counts",
+  "summaryBasisCashOption": "Paid (count on the billing date)",
+  "summaryBasisAccrualOption": "Spent (count on the purchase date)",
+  "payableBadge": "Unpaid",
+  "cardPaymentRowLabel": "{card} billing",
+  "@cardPaymentRowLabel": {
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
   "paymentCash": "Cash",
   "entryPaymentPickerTitle": "Payment method",
   "paymentCardsTitle": "Manage cards",

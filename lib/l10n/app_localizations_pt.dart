@@ -564,6 +564,26 @@ class AppLocalizationsPt extends AppLocalizations {
       'Registrar compras no cartão como pendentes e agrupá-las na cobrança';
 
   @override
+  String get summaryPaymentLabel => 'Pago';
+
+  @override
+  String get summaryBasisTitle => 'Como o resumo conta';
+
+  @override
+  String get summaryBasisCashOption => 'Pago (na data da cobrança)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Gasto (na data da compra)';
+
+  @override
+  String get payableBadge => 'Pendente';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return 'Cobrança $card';
+  }
+
+  @override
   String get paymentCash => 'Dinheiro';
 
   @override

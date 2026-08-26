@@ -559,6 +559,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track card purchases as unpaid and group them on the billing date';
 
   @override
+  String get summaryPaymentLabel => 'Paid';
+
+  @override
+  String get summaryBasisTitle => 'How the summary counts';
+
+  @override
+  String get summaryBasisCashOption => 'Paid (count on the billing date)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Spent (count on the purchase date)';
+
+  @override
+  String get payableBadge => 'Unpaid';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return '$card billing';
+  }
+
+  @override
   String get paymentCash => 'Cash';
 
   @override

@@ -543,6 +543,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsPaymentModeSubtitle => 'カード払いを「未払金」として扱い、引き落とし日にまとめます';
 
   @override
+  String get summaryPaymentLabel => '支払い';
+
+  @override
+  String get summaryBasisTitle => '上部サマリの数え方';
+
+  @override
+  String get summaryBasisCashOption => '支払い（引き落とし日で数える）';
+
+  @override
+  String get summaryBasisAccrualOption => '支出（買った日で数える）';
+
+  @override
+  String get payableBadge => '未払';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return '$card 引き落とし';
+  }
+
+  @override
   String get paymentCash => '現金';
 
   @override

@@ -565,6 +565,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Registrar las compras con tarjeta como pendientes y agruparlas en el cargo';
 
   @override
+  String get summaryPaymentLabel => 'Pagado';
+
+  @override
+  String get summaryBasisTitle => 'Cómo cuenta el resumen';
+
+  @override
+  String get summaryBasisCashOption => 'Pagado (en la fecha de cargo)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Gastado (en la fecha de compra)';
+
+  @override
+  String get payableBadge => 'Pendiente';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return 'Cargo de $card';
+  }
+
+  @override
   String get paymentCash => 'Efectivo';
 
   @override

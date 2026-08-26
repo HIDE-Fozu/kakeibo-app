@@ -545,6 +545,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsPaymentModeSubtitle => '카드 결제를 미지급금으로 기록하고 결제일에 합산합니다';
 
   @override
+  String get summaryPaymentLabel => '지출액';
+
+  @override
+  String get summaryBasisTitle => '상단 요약 계산 방식';
+
+  @override
+  String get summaryBasisCashOption => '지출액(결제일 기준)';
+
+  @override
+  String get summaryBasisAccrualOption => '지출(구매일 기준)';
+
+  @override
+  String get payableBadge => '미지급';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return '$card 결제';
+  }
+
+  @override
   String get paymentCash => '현금';
 
   @override

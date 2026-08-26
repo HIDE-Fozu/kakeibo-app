@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/entities.dart';
 import '../../domain/repositories.dart';
+import '../../domain/money/civil_date.dart';
 import '../../domain/services/payment_schedule.dart';
 import '../db/database.dart';
 
@@ -111,6 +112,23 @@ class DriftPayableRepository implements PayableRepository {
             _toEntity(r.readTable(_db.payables),
                 await _scheduleOf(r.readTable(_db.payables).id)),
         ]);
+  }
+
+  @override
+  Stream<Set<int>> watchCardPurchaseTxIdsIn(int year, int month) {
+    // 「その月に買ったカード購入」＝未払金がある取引。購入日は取引側にあるので結合する。
+    final startIso = CivilDate.firstOfMonthIso(year, month);
+    final endIso = CivilDate.firstOfNextMonthIso(year, month);
+    return _db
+        .customSelect(
+          'SELECT p.transaction_id AS tx FROM payables p '
+          'JOIN transactions t ON t.id = p.transaction_id '
+          'WHERE t.date >= ? AND t.date < ?',
+          variables: [Variable.withString(startIso), Variable.withString(endIso)],
+          readsFrom: {_db.payables, _db.transactions},
+        )
+        .watch()
+        .map((rows) => {for (final r in rows) r.read<int>('tx')});
   }
 
   @override

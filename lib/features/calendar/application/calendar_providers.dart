@@ -7,6 +7,8 @@ import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../domain/services/recurring_schedule.dart';
 import '../../chores/application/chore_providers.dart';
+import '../../payment/application/payment_providers.dart';
+import '../../settings/application/settings_controller.dart';
 
 class SelectedDay extends AutoDisposeNotifier<CivilDate> {
   @override
@@ -70,11 +72,23 @@ final monthToDateSummaryProvider = Provider.autoDispose
   final (year, month) = key;
   final today = ref.watch(choreTodayProvider);
   final bounded = year == today.year && month == today.month;
+  // 現金主義（支払い区分モードON＋設定ON）のときだけ、カード購入を支出から
+  // 外し、代わりにその月のカード引き落としを足す。二重計上を避けるため
+  // 「購入か引き落としのどちらか一方」しか数えない。
+  final cashBasis = ref.watch(appSettingsProvider).summaryUsesCashBasis;
+  final cardTxIds = cashBasis
+      ? ref.watch(cardPurchaseTxIdsOnMonthProvider(key))
+      : const <int>{};
+  final cardPayments =
+      cashBasis ? ref.watch(cardPaymentsToDateProvider(key)) : 0;
   return ref.watch(monthTransactionsProvider(key)).whenData((txs) {
     var income = 0;
     var expense = 0;
     for (final t in txs) {
       if (bounded && t.date.isAfter(today)) continue;
+      if (cashBasis && t.id != null && cardTxIds.contains(t.id)) {
+        continue; // カードで買った分は引き落とし日に数える
+      }
       switch (t.type) {
         case TxnType.income:
           income += t.amountYen;
@@ -82,7 +96,7 @@ final monthToDateSummaryProvider = Provider.autoDispose
           expense += t.amountYen;
       }
     }
-    return MonthlySummary(income: income, expense: expense);
+    return MonthlySummary(income: income, expense: expense + cardPayments);
   });
 });
 

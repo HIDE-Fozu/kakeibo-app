@@ -590,6 +590,11 @@ class _SummaryCard extends ConsumerWidget {
     final budget = settings.budgetEnabled && settings.monthlyBudgetMinor > 0
         ? settings.monthlyBudgetMinor
         : null;
+    // 現金主義なら見出しは「支払い」（引き落とし日で数えている、の意）。
+    // 歯車は支払い区分モードON のときだけ出す（切り替える意味があるのはそのときだけ）。
+    final cashBasis = settings.summaryUsesCashBasis;
+    final expenseLabel =
+        cashBasis ? l.summaryPaymentLabel : l.summaryExpenseLabel;
 
     Widget col(String label, String value, Color valueColor) => Expanded(
           child: Column(
@@ -616,7 +621,7 @@ class _SummaryCard extends ConsumerWidget {
 
     Widget vLine() => Container(width: 0.6, height: 40, color: kLine);
 
-    return Container(
+    final card = Container(
       key: const Key('month-summary-card'),
       margin: const EdgeInsets.fromLTRB(12, 2, 12, 6),
       decoration: BoxDecoration(
@@ -631,7 +636,7 @@ class _SummaryCard extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 14),
             child: Row(
               children: [
-                col(l.summaryExpenseLabel, mf.format(summary.expense),
+                col(expenseLabel, mf.format(summary.expense),
                     colors.expense),
                 vLine(),
                 col(l.summaryIncomeLabel, mf.format(summary.income),
@@ -672,6 +677,65 @@ class _SummaryCard extends ConsumerWidget {
         ],
       ),
     );
+    if (!settings.paymentModeEnabled) return card;
+    // 数え方（買った日 / 引き落とし日）の切り替え。設定画面まで行かずに
+    // ここで変えられるようにする（見ている数字のすぐ横が一番わかりやすい）。
+    return Stack(
+      children: [
+        card,
+        Positioned(
+          top: 4,
+          right: 16,
+          child: InkWell(
+            key: const Key('summary-basis-gear'),
+            customBorder: const CircleBorder(),
+            onTap: () => _pickSummaryBasis(context, ref, cashBasis),
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(Icons.settings, size: 16, color: kMuted),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickSummaryBasis(
+      BuildContext context, WidgetRef ref, bool cashBasis) async {
+    final l = AppLocalizations.of(context);
+    final picked = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(l.summaryBasisTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+            // RadioListTile の onChanged は非推奨（RadioGroup へ移行中）。
+            // 選んだ瞬間に閉じるだけなので ListTile ＋チェックで足りる。
+            ListTile(
+              key: const Key('summary-basis-cash'),
+              leading: Icon(cashBasis ? Icons.check : null, size: 20),
+              title: Text(l.summaryBasisCashOption),
+              selected: cashBasis,
+              onTap: () => Navigator.pop(ctx, true),
+            ),
+            ListTile(
+              key: const Key('summary-basis-accrual'),
+              leading: Icon(cashBasis ? null : Icons.check, size: 20),
+              title: Text(l.summaryBasisAccrualOption),
+              selected: !cashBasis,
+              onTap: () => Navigator.pop(ctx, false),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null) return;
+    await ref.read(appSettingsProvider.notifier).setSummaryBasisCash(picked);
   }
 
   /// 3カラムの下に積むラベル＋金額の行（予算の残り・見込み収支で共用）。

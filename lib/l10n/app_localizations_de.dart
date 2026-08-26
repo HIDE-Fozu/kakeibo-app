@@ -565,6 +565,26 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kartenkäufe als offen führen und am Abbuchungstag bündeln';
 
   @override
+  String get summaryPaymentLabel => 'Gezahlt';
+
+  @override
+  String get summaryBasisTitle => 'Wie die Übersicht zählt';
+
+  @override
+  String get summaryBasisCashOption => 'Gezahlt (am Abbuchungstag)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Ausgegeben (am Kaufdatum)';
+
+  @override
+  String get payableBadge => 'Offen';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return '$card Abbuchung';
+  }
+
+  @override
   String get paymentCash => 'Bar';
 
   @override

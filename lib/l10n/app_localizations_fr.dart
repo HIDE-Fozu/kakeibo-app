@@ -569,6 +569,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Suivre les achats par carte comme impayés et les regrouper au prélèvement';
 
   @override
+  String get summaryPaymentLabel => 'Payé';
+
+  @override
+  String get summaryBasisTitle => 'Mode de calcul du récapitulatif';
+
+  @override
+  String get summaryBasisCashOption => 'Payé (au jour du prélèvement)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Dépensé (au jour de l’achat)';
+
+  @override
+  String get payableBadge => 'Impayé';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return 'Prélèvement $card';
+  }
+
+  @override
   String get paymentCash => 'Espèces';
 
   @override

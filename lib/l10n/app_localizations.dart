@@ -1090,6 +1090,42 @@ abstract class AppLocalizations {
   /// **'Track card purchases as unpaid and group them on the billing date'**
   String get settingsPaymentModeSubtitle;
 
+  /// No description provided for @summaryPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get summaryPaymentLabel;
+
+  /// No description provided for @summaryBasisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How the summary counts'**
+  String get summaryBasisTitle;
+
+  /// No description provided for @summaryBasisCashOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid (count on the billing date)'**
+  String get summaryBasisCashOption;
+
+  /// No description provided for @summaryBasisAccrualOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent (count on the purchase date)'**
+  String get summaryBasisAccrualOption;
+
+  /// No description provided for @payableBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get payableBadge;
+
+  /// No description provided for @cardPaymentRowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{card} billing'**
+  String cardPaymentRowLabel(String card);
+
   /// No description provided for @paymentCash.
   ///
   /// In en, this message translates to:

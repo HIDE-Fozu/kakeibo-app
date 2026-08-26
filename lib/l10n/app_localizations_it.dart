@@ -566,6 +566,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registra gli acquisti con carta come da pagare e raggruppali all’addebito';
 
   @override
+  String get summaryPaymentLabel => 'Pagato';
+
+  @override
+  String get summaryBasisTitle => 'Come conta il riepilogo';
+
+  @override
+  String get summaryBasisCashOption => 'Pagato (alla data di addebito)';
+
+  @override
+  String get summaryBasisAccrualOption => 'Speso (alla data di acquisto)';
+
+  @override
+  String get payableBadge => 'Da pagare';
+
+  @override
+  String cardPaymentRowLabel(String card) {
+    return 'Addebito $card';
+  }
+
+  @override
   String get paymentCash => 'Contanti';
 
   @override

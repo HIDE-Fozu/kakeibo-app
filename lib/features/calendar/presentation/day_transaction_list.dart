@@ -14,6 +14,7 @@ import '../../entry/application/entry_form_controller.dart';
 import '../../entry/presentation/entry_screen.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import '../application/calendar_providers.dart';
+import '../../payment/application/payment_providers.dart';
 
 /// 一覧の表示ラベル: 「店舗名 - 詳細メモ」。片方だけならその片方。両方空はnull。
 String? txDisplayLabel(TransactionEntity tx) {
@@ -41,10 +42,12 @@ class DayTransactionList extends ConsumerWidget {
         .watch(monthGhostsProvider((day.year, day.month)))
         .where((g) => g.date == day)
         .toList();
+    // その日のカード引き落とし（取引ではなく未払金からの導出）。
+    final cardPayments = ref.watch(cardPaymentsOnDayProvider(day));
     // 空判定は取引・予定の2レーンが空のとき
     //（家事の行は「つきいち」タブへ移設・FB 2026-08-20・calendar_screen）。2026-08-20 モック: 日付は日付タブが示すので文言から
     // 外し、支出/収入の追加ボタンをカード内に置く（開くのはFABと同じ入力画面）。
-    if (txs.isEmpty && dayGhosts.isEmpty) {
+    if (txs.isEmpty && dayGhosts.isEmpty && cardPayments.isEmpty) {
       // 2026-08-20 モック: 日付は日付タブが示すので文言から外し、支出/収入の
       // 追加ボタンを置く。6週ある月はカードが〜90pxしかないため、高さに応じて
       // 2段構え（広い月=アイコン付き中央寄せ / 狭い月=文言＋ボタンのみ）。
@@ -135,7 +138,29 @@ class DayTransactionList extends ConsumerWidget {
           else
             _groupCard(context, ref, byId, grouped[unit]!),
         for (final g in dayGhosts) _ghostTile(context, ref, byId, g),
+        for (final p in cardPayments) _cardPaymentTile(context, ref, p),
       ],
+    );
+  }
+
+  /// カードの引き落とし行。取引ではないので削除も編集もできない
+  /// （中身を変えたいのは購入の側＝未払金なので、そちらから直す）。
+  Widget _cardPaymentTile(
+      BuildContext context, WidgetRef ref, CardPaymentLine line) {
+    final l = AppLocalizations.of(context);
+    final mf = ref.watch(moneyFormatterProvider);
+    return ListTile(
+      key: ValueKey('card-payment-${line.card.id}'),
+      leading: const Icon(Icons.credit_card),
+      title: Text(l.cardPaymentRowLabel(line.card.name)),
+      trailing: Text(
+        mf.format(line.amountMinor),
+        style: TextStyle(
+          color: context.kakeiboColors.expense,
+          fontWeight: FontWeight.w600,
+          fontFeatures: kTabularFigures,
+        ),
+      ),
     );
   }
 
@@ -268,6 +293,8 @@ class DayTransactionList extends ConsumerWidget {
       Map<int, CategoryEntity> byId, TransactionEntity tx,
       {bool dense = false}) {
     final l = AppLocalizations.of(context);
+    final cardPurchaseIds =
+        ref.watch(cardPurchaseTxIdsOnMonthProvider((day.year, day.month)));
     final mf = ref.watch(moneyFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final cat = byId[tx.categoryId];
@@ -298,15 +325,39 @@ class DayTransactionList extends ConsumerWidget {
         subtitle: !dense && txDisplayLabel(tx) != null
             ? Text(txDisplayLabel(tx)!)
             : null,
-        trailing: Text(
-          mf.signed(tx.type, tx.amountYen),
-          style: TextStyle(
-            color: tx.type == TxnType.expense
-                ? context.kakeiboColors.expense
-                : context.kakeiboColors.income,
-            fontWeight: FontWeight.w600,
-            fontFeatures: kTabularFigures,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // カードで買った分は「未払」。現金が動くのは引き落とし日。
+            if (tx.id != null && cardPurchaseIds.contains(tx.id))
+              Padding(
+                key: ValueKey('payable-badge-${tx.id}'),
+                padding: const EdgeInsets.only(right: 6),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: scheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    l.payableBadge,
+                    style: TextStyle(
+                        fontSize: 10, color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ),
+            Text(
+              mf.signed(tx.type, tx.amountYen),
+              style: TextStyle(
+                color: tx.type == TxnType.expense
+                    ? context.kakeiboColors.expense
+                    : context.kakeiboColors.income,
+                fontWeight: FontWeight.w600,
+                fontFeatures: kTabularFigures,
+              ),
+            ),
+          ],
         ),
         onTap: () {
           ref.read(entryFormControllerProvider.notifier).startEdit(tx);
