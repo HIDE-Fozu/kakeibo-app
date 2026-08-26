@@ -54,14 +54,13 @@ class CalendarScreen extends ConsumerWidget {
       // 最低高を確保して不足分はスクロールに逃がす。通常時は
       // maxHeight >= _kMinBodyHeight なので見た目・挙動とも従来どおり。
       child: LayoutBuilder(builder: (context, outer) {
-        final squeezed = outer.maxHeight < _kMinBodyHeight;
-        final bodyHeight = math.max(outer.maxHeight, _kMinBodyHeight);
-        return SingleChildScrollView(
-          physics: squeezed ? null : const NeverScrollableScrollPhysics(),
-          child: SizedBox(
-            height: bodyHeight,
-            child: Stack(children: [
-            Column(
+        // せり上げ中（メモを書いている間）はキーボードで縦が縮んでも
+        // スクロールに逃がさない。カードがキーボードのすぐ上に収まり、
+        // 背後のカレンダーは切り取って敷くだけにする（タップで戻る面）。
+        final squeezed = !expanded && outer.maxHeight < _kMinBodyHeight;
+        final bodyHeight =
+            expanded ? outer.maxHeight : math.max(outer.maxHeight, _kMinBodyHeight);
+        final backdrop = Column(
         children: [
           const BackupBanner(),
           _MonthHeader(year: year, month: month),
@@ -129,7 +128,23 @@ class CalendarScreen extends ConsumerWidget {
                 : _DaySection(day: selected),
           ),
         ],
-            ),
+            );
+        return SingleChildScrollView(
+          physics: squeezed ? null : const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            height: bodyHeight,
+            child: Stack(children: [
+            // 背景は本来の高さで組んでから切り取る（縦が足りなくても溢れない）。
+            expanded
+                ? ClipRect(
+                    child: OverflowBox(
+                      alignment: Alignment.topCenter,
+                      minHeight: 0,
+                      maxHeight: math.max(outer.maxHeight, _kMinBodyHeight),
+                      child: backdrop,
+                    ),
+                  )
+                : backdrop,
             if (expanded) ...[
               // 背景（カレンダー側）をタップすると閉じてカレンダーに戻る。
               // うっすら落として「カードが上に乗っている」ことを見せる
@@ -168,14 +183,16 @@ class CalendarScreen extends ConsumerWidget {
   }
 }
 
-/// せり上げたときの日別カードの高さ。上に最低 [_kMinBackdropHeight] は残して
-/// 「背景をタップして戻る」面を確保する。
-double _expandedSheetHeight(double bodyHeight) => math.max(
-      240,
-      math.min(bodyHeight * 0.62, bodyHeight - _kMinBackdropHeight),
-    );
+/// せり上げたときの日別カードの高さ。上には「背景をタップして戻る」面を残すが、
+/// キーボードで縦が縮んでいるときは書く面を優先して残しを薄くする。
+double _expandedSheetHeight(double bodyHeight) {
+  final tight = bodyHeight < 520; // キーボードが出ている等
+  final preferred = bodyHeight * (tight ? 0.78 : 0.62);
+  final maxBySheet = bodyHeight - (tight ? 120 : _kMinBackdropHeight);
+  return math.max(200, math.min(preferred, maxBySheet));
+}
 
-/// せり上げ中に上へ残す最小の高さ（サマリ＋カレンダー数行ぶん）。
+/// せり上げ中に上へ残したい高さ（サマリ＋カレンダー数行ぶん）。
 const _kMinBackdropHeight = 300.0;
 
 /// カレンダー画面が成立する最低の本体高さ。これ未満（キーボード表示中など）は

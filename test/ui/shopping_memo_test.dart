@@ -8,7 +8,7 @@ import '../support/test_app.dart';
 void main() {
   /// 日別カードの高さ（せり上がっているかの判定に使う）。
   double sheetHeight(WidgetTester tester) => tester
-      .getSize(find.byKey(const Key('shopping-memo-pad')).hitTestable())
+      .getSize(find.byKey(const Key('shopping-memo-field')).hitTestable())
       .height;
 
 
@@ -20,18 +20,11 @@ void main() {
 
     await tester.tap(find.byKey(const Key('day-tab-memo')));
     await tester.pumpAndSettle();
-    // タブ内は表示専用（空はヒント文言）。タップで編集シートが開く。
-    await tester.tap(find.byKey(const Key('shopping-memo-pad')));
-    await tester.pumpAndSettle();
+    // その場で直接書ける（別ページへは飛ばない・FB 2026-08-27）
     await tester.enterText(
         find.byKey(const Key('shopping-memo-field')), '牛乳\nトイレットペーパー');
     await tester.pumpAndSettle();
     expect(h.prefs.getString('shoppingMemo'), '牛乳\nトイレットペーパー');
-
-    // 完了で閉じるとタブ内に内容が見える
-    await tester.tap(find.byKey(const Key('shopping-memo-done')));
-    await tester.pumpAndSettle();
-    expect(find.text('牛乳\nトイレットペーパー'), findsOneWidget);
 
     // 日付タブへ移って戻っても内容が残る（保存済みを再表示）
     await tester.tap(find.byKey(const Key('day-tab-label')));
@@ -39,6 +32,27 @@ void main() {
     await tester.tap(find.byKey(const Key('day-tab-memo')));
     await tester.pumpAndSettle();
     expect(find.text('牛乳\nトイレットペーパー'), findsOneWidget);
+  });
+
+  testWidgets('メモは別ページに飛ばず、その場で書ける', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+
+    await tester.tap(find.byKey(const Key('day-tab-memo')));
+    await tester.pumpAndSettle();
+
+    // カレンダー画面のまま。下タブも消えない（＝別ルートへ遷移していない）
+    expect(find.text('カレンダー'), findsOneWidget);
+    expect(find.byKey(const Key('day-tab-memo')), findsOneWidget);
+    // 入力欄がその場にあり、すぐ書ける
+    expect(find.byKey(const Key('shopping-memo-field')), findsOneWidget);
+    await tester.enterText(
+        find.byKey(const Key('shopping-memo-field')), 'たまご');
+    await tester.pumpAndSettle();
+    expect(h.prefs.getString('shoppingMemo'), 'たまご');
+    expect(find.byKey(const Key('day-tab-memo')), findsOneWidget);
   });
 
   testWidgets('メモを開くとカードがせり上がり、背景タップで戻る', (tester) async {

@@ -37,17 +37,17 @@ void main() {
     await t.tap(find.byKey(const Key('day-tab-memo')));
     await settle(t);
 
-    // 2) 編集ページ＋入力
-    await t.tap(find.byKey(const Key('shopping-memo-pad')));
+    // 2) その場で入力（別ページへ飛ばない）。キーボードを出したまま撮る。
+    await t.tap(find.byKey(const Key('shopping-memo-field')));
     await settle(t);
     await t.enterText(find.byKey(const Key('shopping-memo-field')),
         '牛乳\nトイレットペーパー\nたまご');
-    await settle(t);
-    await shot(t, 'memo_2_editor');
+    await t.pumpAndSettle(const Duration(milliseconds: 600));
+    await shot(t, 'memo_2_typing');
 
-    // 3) 完了で閉じた後のタブ表示（せり上がったまま）
-    await t.tap(find.byKey(const Key('shopping-memo-done')));
-    await settle(t);
+    // 3) キーボードを閉じた状態
+    FocusManager.instance.primaryFocus?.unfocus();
+    await t.pumpAndSettle(const Duration(milliseconds: 600));
     await shot(t, 'memo_3_filled');
 
     // 4) 背景（カレンダー）をタップすると元に戻る
