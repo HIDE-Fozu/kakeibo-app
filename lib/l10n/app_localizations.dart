@@ -1114,6 +1114,72 @@ abstract class AppLocalizations {
   /// **'Spent (count on the purchase date)'**
   String get summaryBasisAccrualOption;
 
+  /// No description provided for @payableDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid item'**
+  String get payableDetailTitle;
+
+  /// No description provided for @payableCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get payableCardLabel;
+
+  /// No description provided for @payableCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of payments'**
+  String get payableCountLabel;
+
+  /// No description provided for @payableStartYmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First payment month'**
+  String get payableStartYmLabel;
+
+  /// No description provided for @payableOnceOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get payableOnceOption;
+
+  /// No description provided for @payableTimesOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String payableTimesOption(int count);
+
+  /// No description provided for @payableTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total to pay'**
+  String get payableTotalLabel;
+
+  /// No description provided for @payableFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'of which fees'**
+  String get payableFeeLabel;
+
+  /// No description provided for @payableScheduleHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get payableScheduleHeading;
+
+  /// No description provided for @payableMakeImmediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop tracking as unpaid'**
+  String get payableMakeImmediate;
+
+  /// No description provided for @payableYmFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{month}/{year}'**
+  String payableYmFormat(int year, int month);
+
   /// No description provided for @payableBadge.
   ///
   /// In en, this message translates to:

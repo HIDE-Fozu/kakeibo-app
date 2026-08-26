@@ -557,6 +557,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get summaryBasisAccrualOption => '지출(구매일 기준)';
 
   @override
+  String get payableDetailTitle => '미지급금';
+
+  @override
+  String get payableCardLabel => '카드';
+
+  @override
+  String get payableCountLabel => '결제 횟수';
+
+  @override
+  String get payableStartYmLabel => '첫 결제 월';
+
+  @override
+  String get payableOnceOption => '일시불';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count회';
+  }
+
+  @override
+  String get payableTotalLabel => '총 결제액';
+
+  @override
+  String get payableFeeLabel => '이 중 수수료';
+
+  @override
+  String get payableScheduleHeading => '결제 일정';
+
+  @override
+  String get payableMakeImmediate => '미지급 처리를 해제';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$year년 $month월';
+  }
+
+  @override
   String get payableBadge => '미지급';
 
   @override

@@ -571,6 +571,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Spent (count on the purchase date)';
 
   @override
+  String get payableDetailTitle => 'Unpaid item';
+
+  @override
+  String get payableCardLabel => 'Card';
+
+  @override
+  String get payableCountLabel => 'Number of payments';
+
+  @override
+  String get payableStartYmLabel => 'First payment month';
+
+  @override
+  String get payableOnceOption => 'Once';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count times';
+  }
+
+  @override
+  String get payableTotalLabel => 'Total to pay';
+
+  @override
+  String get payableFeeLabel => 'of which fees';
+
+  @override
+  String get payableScheduleHeading => 'Payment schedule';
+
+  @override
+  String get payableMakeImmediate => 'Stop tracking as unpaid';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
   String get payableBadge => 'Unpaid';
 
   @override

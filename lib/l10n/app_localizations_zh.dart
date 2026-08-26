@@ -554,6 +554,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get summaryBasisAccrualOption => '支出（按消费日计算）';
 
   @override
+  String get payableDetailTitle => '未付款项';
+
+  @override
+  String get payableCardLabel => '卡片';
+
+  @override
+  String get payableCountLabel => '付款次数';
+
+  @override
+  String get payableStartYmLabel => '首次付款月份';
+
+  @override
+  String get payableOnceOption => '一次性';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count次';
+  }
+
+  @override
+  String get payableTotalLabel => '应付总额';
+
+  @override
+  String get payableFeeLabel => '其中手续费';
+
+  @override
+  String get payableScheduleHeading => '付款计划';
+
+  @override
+  String get payableMakeImmediate => '取消未付款，改为即时支付';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$year年$month月';
+  }
+
+  @override
   String get payableBadge => '未付';
 
   @override

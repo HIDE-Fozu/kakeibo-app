@@ -555,6 +555,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get summaryBasisAccrualOption => '支出（買った日で数える）';
 
   @override
+  String get payableDetailTitle => '未払金';
+
+  @override
+  String get payableCardLabel => 'カード';
+
+  @override
+  String get payableCountLabel => '支払い回数';
+
+  @override
+  String get payableStartYmLabel => '支払い開始月';
+
+  @override
+  String get payableOnceOption => '1回（一括）';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count回';
+  }
+
+  @override
+  String get payableTotalLabel => '支払い総額';
+
+  @override
+  String get payableFeeLabel => 'うち手数料';
+
+  @override
+  String get payableScheduleHeading => '支払い予定';
+
+  @override
+  String get payableMakeImmediate => '未払金をやめて即時払いにする';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$year年$month月';
+  }
+
+  @override
   String get payableBadge => '未払';
 
   @override

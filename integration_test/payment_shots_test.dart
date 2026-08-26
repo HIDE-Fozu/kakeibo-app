@@ -95,16 +95,39 @@ void main() {
     await settle(t);
     await shot(t, 'payment_3_billing_day');
 
-    // 4) 設定のカード管理
+    // 4) 未払金の詳細（あとから分割）
+    c.read(currentMonthProvider.notifier).set(today.year, today.month);
+    c.read(selectedDayProvider.notifier).select(buyDay);
+    await settle(t);
+    await t.tap(find.byKey(ValueKey('payable-badge-$txId')));
+    await settle(t);
+    await shot(t, 'payment_6_payable_once');
+    // 回数を3回へ（メニューは遅延生成なので出るまでスクロール）
+    await t.tap(find.byKey(const Key('payable-count')), warnIfMissed: false);
+    await settle(t);
+    for (var i = 0; i < 20 && find.text('3回').evaluate().isEmpty; i++) {
+      await t.drag(find.byType(Scrollable).last, const Offset(0, -120));
+      await t.pump();
+    }
+    await t.ensureVisible(find.text('3回').last);
+    await settle(t);
+    await t.tap(find.text('3回').last, warnIfMissed: false);
+    await settle(t);
+    await shot(t, 'payment_7_payable_split');
+    // pageBack は Cupertino の戻るボタン前提なので、Material の戻るを押す。
+    await t.tap(find.byType(BackButton));
+    await settle(t);
+
+    // 5) 設定のカード管理
     await t.tap(find.text('設定'));
     await settle(t);
     await t.scrollUntilVisible(find.byKey(const Key('payment-cards-tile')), 200,
         scrollable: find.byType(Scrollable).first);
-    await shot(t, 'payment_4_settings');
+    await shot(t, 'payment_8_settings');
     await t.tap(find.byKey(const Key('payment-cards-tile')));
     await settle(t);
     await t.tap(find.byKey(const Key('payment-card-1')));
     await settle(t);
-    await shot(t, 'payment_5_card_edit');
+    await shot(t, 'payment_9_card_edit');
   });
 }

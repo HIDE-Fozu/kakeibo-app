@@ -577,6 +577,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Ausgegeben (am Kaufdatum)';
 
   @override
+  String get payableDetailTitle => 'Offener Posten';
+
+  @override
+  String get payableCardLabel => 'Karte';
+
+  @override
+  String get payableCountLabel => 'Anzahl der Zahlungen';
+
+  @override
+  String get payableStartYmLabel => 'Erster Zahlungsmonat';
+
+  @override
+  String get payableOnceOption => 'Einmalig';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count×';
+  }
+
+  @override
+  String get payableTotalLabel => 'Gesamtbetrag';
+
+  @override
+  String get payableFeeLabel => 'davon Gebühren';
+
+  @override
+  String get payableScheduleHeading => 'Zahlungsplan';
+
+  @override
+  String get payableMakeImmediate => 'Nicht mehr als offen führen';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
   String get payableBadge => 'Offen';
 
   @override

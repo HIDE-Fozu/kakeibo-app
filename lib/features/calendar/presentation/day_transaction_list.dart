@@ -15,6 +15,7 @@ import '../../entry/presentation/entry_screen.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import '../application/calendar_providers.dart';
 import '../../payment/application/payment_providers.dart';
+import '../../payment/presentation/payable_detail_page.dart';
 
 /// 一覧の表示ラベル: 「店舗名 - 詳細メモ」。片方だけならその片方。両方空はnull。
 String? txDisplayLabel(TransactionEntity tx) {
@@ -140,6 +141,22 @@ class DayTransactionList extends ConsumerWidget {
         for (final g in dayGhosts) _ghostTile(context, ref, byId, g),
         for (final p in cardPayments) _cardPaymentTile(context, ref, p),
       ],
+    );
+  }
+
+  /// 「未払」バッジから未払金の詳細（あとから分割）へ。
+  /// 取引の編集（金額・カテゴリ）は行タップ側のまま変えない。
+  Future<void> _openPayable(
+      BuildContext context, WidgetRef ref, TransactionEntity tx) async {
+    final payable =
+        await ref.read(payableRepositoryProvider).forTransaction(tx.id!);
+    if (payable == null || !context.mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            PayableDetailPage(transaction: tx, payable: payable),
+      ),
     );
   }
 
@@ -329,21 +346,26 @@ class DayTransactionList extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // カードで買った分は「未払」。現金が動くのは引き落とし日。
+            // タップで「あとから分割」（回数・開始月の変更）へ。
             if (tx.id != null && cardPurchaseIds.contains(tx.id))
               Padding(
-                key: ValueKey('payable-badge-${tx.id}'),
                 padding: const EdgeInsets.only(right: 6),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: scheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    l.payableBadge,
-                    style: TextStyle(
-                        fontSize: 10, color: scheme.onSurfaceVariant),
+                child: InkWell(
+                  key: ValueKey('payable-badge-${tx.id}'),
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => _openPayable(context, ref, tx),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: scheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      l.payableBadge,
+                      style: TextStyle(
+                          fontSize: 10, color: scheme.onSurfaceVariant),
+                    ),
                   ),
                 ),
               ),

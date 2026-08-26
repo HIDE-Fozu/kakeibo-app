@@ -578,6 +578,43 @@ class AppLocalizationsIt extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Speso (alla data di acquisto)';
 
   @override
+  String get payableDetailTitle => 'Voce da pagare';
+
+  @override
+  String get payableCardLabel => 'Carta';
+
+  @override
+  String get payableCountLabel => 'Numero di pagamenti';
+
+  @override
+  String get payableStartYmLabel => 'Mese del primo pagamento';
+
+  @override
+  String get payableOnceOption => 'Unica soluzione';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count volte';
+  }
+
+  @override
+  String get payableTotalLabel => 'Totale da pagare';
+
+  @override
+  String get payableFeeLabel => 'di cui commissioni';
+
+  @override
+  String get payableScheduleHeading => 'Piano dei pagamenti';
+
+  @override
+  String get payableMakeImmediate => 'Non tracciare più come da pagare';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
   String get payableBadge => 'Da pagare';
 
   @override

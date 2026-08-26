@@ -581,6 +581,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Dépensé (au jour de l’achat)';
 
   @override
+  String get payableDetailTitle => 'Impayé';
+
+  @override
+  String get payableCardLabel => 'Carte';
+
+  @override
+  String get payableCountLabel => 'Nombre de paiements';
+
+  @override
+  String get payableStartYmLabel => 'Mois du premier paiement';
+
+  @override
+  String get payableOnceOption => 'En une fois';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count fois';
+  }
+
+  @override
+  String get payableTotalLabel => 'Total à payer';
+
+  @override
+  String get payableFeeLabel => 'dont frais';
+
+  @override
+  String get payableScheduleHeading => 'Échéancier';
+
+  @override
+  String get payableMakeImmediate => 'Ne plus suivre comme impayé';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
   String get payableBadge => 'Impayé';
 
   @override

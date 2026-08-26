@@ -577,6 +577,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String get summaryBasisAccrualOption => 'Gastado (en la fecha de compra)';
 
   @override
+  String get payableDetailTitle => 'Pendiente';
+
+  @override
+  String get payableCardLabel => 'Tarjeta';
+
+  @override
+  String get payableCountLabel => 'Número de pagos';
+
+  @override
+  String get payableStartYmLabel => 'Mes del primer pago';
+
+  @override
+  String get payableOnceOption => 'Un solo pago';
+
+  @override
+  String payableTimesOption(int count) {
+    return '$count veces';
+  }
+
+  @override
+  String get payableTotalLabel => 'Total a pagar';
+
+  @override
+  String get payableFeeLabel => 'de los cuales comisiones';
+
+  @override
+  String get payableScheduleHeading => 'Calendario de pagos';
+
+  @override
+  String get payableMakeImmediate => 'Dejar de marcar como pendiente';
+
+  @override
+  String payableYmFormat(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
   String get payableBadge => 'Pendiente';
 
   @override

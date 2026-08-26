@@ -379,6 +379,34 @@
   "summaryBasisTitle": "How the summary counts",
   "summaryBasisCashOption": "Paid (count on the billing date)",
   "summaryBasisAccrualOption": "Spent (count on the purchase date)",
+  "payableDetailTitle": "Unpaid item",
+  "payableCardLabel": "Card",
+  "payableCountLabel": "Number of payments",
+  "payableStartYmLabel": "First payment month",
+  "payableOnceOption": "Once",
+  "payableTimesOption": "{count} times",
+  "@payableTimesOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "payableTotalLabel": "Total to pay",
+  "payableFeeLabel": "of which fees",
+  "payableScheduleHeading": "Payment schedule",
+  "payableMakeImmediate": "Stop tracking as unpaid",
+  "payableYmFormat": "{month}/{year}",
+  "@payableYmFormat": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
   "payableBadge": "Unpaid",
   "cardPaymentRowLabel": "{card} billing",
   "@cardPaymentRowLabel": {
