@@ -1,63 +1,84 @@
-# 引き継ぎ 2026-08-27 — ★メモのキーボードが落ちる（原因特定済み・未修正）
+# 引き継ぎ 2026-08-27 — メモのキーボード不具合（★修正済み）
 
 前の正典: docs/handoff-2026-08-27-payment-mode.md（支払い区分モードの全体像）。
-本書が新しい正典。**次セッションはここの「最優先」から始める。**
+本書が新しい正典。
 
 ## 🎯 現在地
 
-- ブランチ **`feature/paper-design`**・HEAD = 3317bef ＋本書。**未push**。
-- **684テスト緑（skip 1 = 下記の再現テスト）/ analyze 0**。
-- 実機 TI10B1 = **2.4.0(50)**。この不具合を含んだ状態で入っている。
+- ブランチ **`feature/paper-design`**・**未push**。
+- **685テスト緑（skip 0）/ analyze 0**。
+- 実機 TI10B1 = 2.4.0(50)。**この修正はまだ実機に入っていない**（配備が最優先）。
 - 2.3.0(47) は App Store 審査中。本セッション分は 47 に入っていない。
 
 ---
 
-## ★最優先: メモを書こうとするとキーボードがすぐ引っ込む
+## ✅ 解決: メモを書こうとするとキーボードがすぐ引っ込む
 
 ユーザー報告:「キーボードがすぐ戻っていくけど。メモ入力しようとすると。」
 
-### 原因（**特定済み・推測ではない**）
+### 原因
 
-キーボードが出て縦が縮むと、`calendar_screen.dart` の `tight` / `overlay` が
-切り替わり、`_DaySection` が **Column のスロットから Stack のオーバーレイへ
-ツリー上の別の場所に移動する**。Flutter は位置が変われば State を作り直すので、
+キーボードが出て縦が縮むと `calendar_screen.dart` のレイアウトが切り替わり、
+`_DaySection` が Column のスロットから Stack のオーバーレイへ**ツリー上の別の
+場所へ移動していた**。Flutter は位置で State を同一視するので
 `_ShoppingMemoPadState` が破棄され → `FocusNode` も作り直され → フォーカスが
 外れ → キーボードが閉じる。
 
-再現テストで裏取り済み（`test/ui/memo_keyboard_focus_test.dart`・現在 `skip: true`）:
+シミュレータ（本物のキーボード）での裏取り:
 
-```
-FOCUS_BEFORE=true
-FOCUS_AFTER=false
-SAME_FOCUSNODE=false   ← State が作り直されている
-SAME_ELEMENT=false     ← ツリー上の位置が変わっている
-```
+| | 修正前 | 修正後 |
+|---|---|---|
+| viewInsets.bottom | **0.0**（＝一瞬で引っ込んだ） | **336.0** |
+| 同じ FocusNode か | false | **true** |
+| フォーカス継続 | false | **true** |
 
-### 直し方の方針
+### 直した内容（`calendar_screen.dart`）
 
-1. **`_DaySection` をツリー上の1か所だけに置く。** 具体的には常に Stack の
-   オーバーレイに置き、Column の `Expanded` は**高さを測るためだけの空の
-   スロット**にする（`_DaySheetSlot(child: SizedBox.expand())`）。
-   位置が変わらなければ State は保たれ、フォーカスも落ちない。
-   - 初回フレームは `daySheetBaseHeightProvider` がまだ null なので、
-     カードを描けるのは2フレーム目から。1フレームの空白は許容範囲だが、
-     気になるなら測定前のフォールバック高さを用意する。
-2. **キーボードの検出を `outer.maxHeight < 640` からやめる。**
-   小さい端末では常に true になり、キーボードが無くても切り取りモードに
-   入ってしまう。`MediaQueryData.fromView(View.of(context)).viewInsets.bottom > 0`
-   なら Scaffold に食われる前の生の値が取れる。
-3. **キーボードが出ている間は基準高さを測り直さない**（`daySheetBaseHeightProvider`
-   が縮んだ値で上書きされて基準がずれる）。
-4. 直したら `memo_keyboard_focus_test.dart` の `skip: true` を外す。これが
-   合格すれば直っている。
+1. **カードの置き場所を Stack の1か所に固定した。** Column 側の `Expanded` は
+   **高さを測るためだけの空きスロット**（`SizedBox.expand()`）にし、カード本体は
+   常に Stack のオーバーレイが描く。通常位置では測った基準の高さそのままなので
+   スロットにぴったり重なり、**見た目は従来と1ピクセルも変わらない**（下記の
+   スクショ突き合わせで確認済み）。
+   - 基準を測れるまでの初回フレームだけはスロット側に出す。
+2. **Stack の子を「背景 / 覆い / カード」の3枠に固定した。** 枠を条件で出し
+   入れすると子の番号がずれ、それだけでも State が作り直される。覆いは浮いて
+   いないとき中身を空（`SizedBox.shrink()`）にして枠だけ残す。
+   背景の `ClipRect`+`OverflowBox` も常時同じ形にした（通常時は素通し）。
+3. **キーボードの検出を `outer.maxHeight < 640` からやめた。**
+   小さい端末では常に true になり、キーボードが無くてもカレンダーが暗いまま
+   だった。`MediaQueryData.fromView(View.of(context)).viewInsets.bottom > 0` で
+   Scaffold(resizeToAvoidBottomInset) に食われる前の生の値を読む。
+   LayoutBuilder の中で読むのは、body が縮むと必ず呼び直されるから。
+4. **キーボードが出ている間は基準高さを測り直さない**（`_DaySheetSlot.measure`）。
+   縮んだ値で基準が上書きされると、書いている最中にカードが縮む。
 
-### 触るファイル
+### 回帰テスト
 
-- `lib/features/calendar/presentation/calendar_screen.dart`
-  （`tight` / `overlay` / `_DaySheetSlot` / Stack の組み立て）
-- `lib/features/calendar/application/calendar_providers.dart`
-  （`daySheetRaiseProvider` / `daySheetBaseHeightProvider`）
-- `lib/features/memo/presentation/shopping_memo_pad.dart`（触らなくても直るはず）
+- `test/ui/memo_keyboard_focus_test.dart` — **skip を外した**。
+  viewInsets を偽装してフォーカスと FocusNode の同一性を見る。
+  修正前のコードで走らせると落ちることを確認済み（＝空振りしない番人）。
+- `integration_test/memo_keyboard_accept_test.dart`（新規）— シミュレータ/実機で
+  **本物のキーボード**を出して同じことを確かめる。単体テストでは偽装しか
+  できないので、こちらが最終的な受入。
+  ```
+  flutter drive --driver=test_driver/integration_test.dart \
+    --target=integration_test/memo_keyboard_accept_test.dart -d <device>
+  ```
+  ⚠️ シミュレータで走らせるときは**ソフトウェアキーボードを出す設定**が要る
+  （I/O > Keyboard > Connect Hardware Keyboard を切る。CLI なら
+  `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false`
+  → Simulator 再起動）。出ていないと `KB_INSETS=0` でテスト自体が
+  「無意味」として落ちるようにしてある。
+
+### 見た目が変わっていないことの確認
+
+`memo_shots_test` / `design_shots_test` を修正前後で撮って突き合わせ:
+
+- `design_1_calendar` `design_1b_chores_tab` `design_2_empty_day`
+  `design_3_income_entry` `memo_1_one_line` `memo_5_dragged_chores`
+  `memo_6_back` … **バイト単位で一致**
+- 差が出たのは `memo_2_tap_to_type` `memo_3_typed` `memo_4_dragged_up` だけ＝
+  いずれも**キーボードが出ている状態**（修正前は落ちていたので出ていなかった）。
 
 ---
 
@@ -111,7 +132,8 @@ SAME_ELEMENT=false     ← ツリー上の位置が変わっている
 
 ## 積み残し
 
-1. ★メモのキーボード不具合（上記）
+1. ★**実機配備**（この修正も、メモ・予算・支払い区分も、実機で1つも確認できて
+   いない。実機には 8/23 の版しか入っていない）
 2. 実機配備の方式（Xcode / TestFlight）をユーザーと決める
 3. 審査結果（2.3.0(47)）→ 通過なら main マージ / push 承認
 4. 支払い区分の実機受入 → FB反映
@@ -121,7 +143,7 @@ SAME_ELEMENT=false     ← ツリー上の位置が変わっている
 
 ## 動かし方
 
-- テスト: `flutter test`（684件・skip 1）
+- テスト: `flutter test`（685件・skip 0）
 - スクショ: `flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/memo_shots_test.dart -d <sim-id>`
   → `build/qa_screens/<日付>/`

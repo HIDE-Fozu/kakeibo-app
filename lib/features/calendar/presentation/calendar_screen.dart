@@ -52,17 +52,24 @@ class CalendarScreen extends ConsumerWidget {
 
 
     return SafeArea(
-      // キーボード（メモ編集ページの遷移中など）で縦が潰れても崩れないよう、
-      // 最低高を確保して不足分はスクロールに逃がす。通常時は
-      // maxHeight >= _kMinBodyHeight なので見た目・挙動とも従来どおり。
+      // 縦が潰れても崩れないよう、最低高を確保して不足分はスクロールに逃がす。
+      // 通常時は maxHeight >= _kMinBodyHeight なので見た目・挙動は従来どおり。
       child: LayoutBuilder(builder: (context, outer) {
-        // 縦が足りない＝キーボードが出ている。このときスクロールに逃がすと
-        // カレンダーごと画面が動いて書きにくいので、広げているときと同じく
-        // カードをキーボードのすぐ上に固定し、背後は切り取って敷くだけにする。
-        final tight = outer.maxHeight < _kMinBodyHeight;
-        final overlay = baseHeight != null && (raise > 0 || tight);
-        final bodyHeight =
-            overlay ? outer.maxHeight : math.max(outer.maxHeight, _kMinBodyHeight);
+        // キーボードが出ているか。Scaffold(resizeToAvoidBottomInset) が body の
+        // MediaQuery から viewInsets を抜くので、View から生の値を読む。
+        // 「縦が足りない＝キーボード」で代用してはいけない: 小さい端末では
+        // 常に true になり、キーボードが無くてもカレンダーが暗いままになる。
+        // LayoutBuilder の中で読むのは、キーボードで body が縮むと必ずここが
+        // 呼び直されるから（画面が縮まないケースでは判定も要らない）。
+        final keyboard =
+            MediaQueryData.fromView(View.of(context)).viewInsets.bottom > 0;
+        // キーボードが出たらスクロールに逃がさず（カレンダーごと動いて書き
+        // にくい）、カードをキーボードのすぐ上に固定し、背後は切り取って敷く。
+        final bodyHeight = keyboard
+            ? outer.maxHeight
+            : math.max(outer.maxHeight, _kMinBodyHeight);
+        // カードが通常位置より上に浮いている状態（背景を落として戻り先を示す）。
+        final lifted = raise > 0 || keyboard;
         final backdrop = Column(
         children: [
           const BackupBanner(),
@@ -124,64 +131,84 @@ class CalendarScreen extends ConsumerWidget {
           // 意味は日別リストの「予定」バッジで伝わるので凡例からは外した。
           if (choreMarks.isNotEmpty)
             _CalendarLegend(hasChores: choreMarks.isNotEmpty),
-          // 広げている間はここを空けて、下のオーバーレイに描かせる。
-          // 場所は空けたまま測り続けるので、基準の高さは変わらない。
+          // ここはカードの**高さを測るためだけ**の空きスロット。場所は空けた
+          // まま測り続けるので、カードを浮かせても基準の高さは変わらない。
+          // カード本体は下のオーバーレイが常に描く（基準を測れるまでの初回
+          // フレームだけここに出す）。
           Expanded(
             child: _DaySheetSlot(
-              child: overlay
-                  ? const SizedBox.expand()
-                  : _DaySection(day: selected),
+              // キーボードで縦が縮んでいる間は測り直さない。縮んだ値で基準が
+              // 上書きされると、書いている最中にカードが縮む。
+              measure: !keyboard,
+              child: baseHeight == null
+                  ? _DaySection(day: selected)
+                  : const SizedBox.expand(),
             ),
           ),
         ],
             );
+        // ★Stack の子は「背景 / 覆い / カード」の3枠に固定してある。枠を状態
+        // ごとに出し入れすると後ろの子の番号がずれ、Flutter はツリー上の位置で
+        // State を同一視するので、カードの State ごと作り直されてフォーカスが
+        // 落ちる（＝メモを書こうとするとキーボードが一瞬で引っ込む・2026-08-27）。
+        // カード枠だけは基準の高さを測るまで無い＝初回フレームのみ2枠。以後は
+        // どの状態でも3枠のまま動かさないこと。
         return SingleChildScrollView(
-          // 逃がし先のスクロールは、オーバーレイに切り替えられないとき
-          //（基準の高さをまだ測れていない初回）だけの保険。
-          physics: (tight && !overlay)
+          // 逃がし先のスクロールは、本来の高さが画面に入りきらないときだけ
+          //（小さい端末）。キーボード時はオーバーレイ側で受けるので使わない。
+          physics: bodyHeight > outer.maxHeight
               ? null
               : const NeverScrollableScrollPhysics(),
           child: SizedBox(
             height: bodyHeight,
             child: Stack(children: [
-            // 背景は本来の高さで組んでから切り取る（縦が足りなくても溢れない）。
-            overlay
-                ? ClipRect(
-                    child: OverflowBox(
-                      alignment: Alignment.topCenter,
-                      minHeight: 0,
-                      maxHeight: math.max(outer.maxHeight, _kMinBodyHeight),
-                      child: backdrop,
-                    ),
-                  )
-                : backdrop,
-            if (overlay) ...[
-              // 背景（カレンダー側）をタップすると閉じてカレンダーに戻る。
-              // うっすら落として「カードが上に乗っている」ことを見せる
-              //（落とさないとタブ行の隙間からセルの数字が透けて雑然とする）。
-              Positioned.fill(
-                child: GestureDetector(
-                  key: const Key('day-sheet-scrim'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    // 先にフォーカスを外す。残したままだとキーボードだけが
-                    // 出っぱなしで、カードが縮んで書けなくなる。
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    ref.read(daySheetRaiseProvider.notifier).reset();
-                  },
-                  child: ColoredBox(
-                    color: kPaper.withValues(alpha: 0.72),
-                  ),
-                ),
+            // ①背景。本来の高さで組んでから切り取る（縦が足りなくても溢れない）。
+            // 切り取りが要らないときも同じ形のまま置く（形が変わるとカレンダー
+            // ごと作り直される）。通常時は OverflowBox も ClipRect も素通し。
+            ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topCenter,
+                minHeight: 0,
+                maxHeight: math.max(outer.maxHeight, _kMinBodyHeight),
+                child: backdrop,
               ),
-              // せり上がった日別カード。カレンダーが2行ぶんは見えるように残し、
-              // そこが「戻る」ためのタップ面になる。
+            ),
+            // ②浮いている間だけ効く覆い。背景（カレンダー側）をタップすると
+            // 閉じてカレンダーに戻る。うっすら落として「カードが上に乗って
+            // いる」ことを見せる（落とさないとタブ行の隙間からセルの数字が
+            // 透けて雑然とする）。通常位置では中身を空にして素通しにする。
+            Positioned.fill(
+              child: lifted
+                  ? GestureDetector(
+                      key: const Key('day-sheet-scrim'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        // 先にフォーカスを外す。残したままだとキーボードだけ
+                        // が出っぱなしで、カードが縮んで書けなくなる。
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        ref.read(daySheetRaiseProvider.notifier).reset();
+                      },
+                      child: ColoredBox(
+                        color: kPaper.withValues(alpha: 0.72),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            // ③日別カード。**ここが唯一の置き場所**（上のスロットは高さを測る
+            // ためだけの空箱）。浮いていないときは測った基準の高さそのままで、
+            // スロットにぴったり重なる＝見た目は通常位置と同じ。
+            // 浮いているときはカレンダーが2行ぶん見えるように残し、そこが
+            // 「戻る」ためのタップ面になる。
+            if (baseHeight != null)
               Positioned(
+                key: const Key('day-sheet-card'),
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: math.min(baseHeight + raise,
-                    bodyHeight - (tight ? 60 : _kMinBackdropHeight)),
+                height: lifted
+                    ? math.min(baseHeight + raise,
+                        bodyHeight - (keyboard ? 60 : _kMinBackdropHeight))
+                    : baseHeight,
                 // タブ行の帯は透明なので、紙色で塞がないと後ろのセルの数字が
                 // タブの隙間から覗いて雑然とする。
                 child: ColoredBox(
@@ -189,7 +216,6 @@ class CalendarScreen extends ConsumerWidget {
                   child: _DaySection(day: selected),
                 ),
               ),
-            ],
           ]),
           ),
         );
@@ -208,15 +234,19 @@ const _kMinBackdropHeight = 150.0;
 
 /// 通常位置での日別カードの高さを測って覚えるだけの入れ物。
 /// レイアウト結果からしか分からないので、描画後に一度だけ書き戻す。
+///
+/// [measure] が false の間は測らない。キーボードで縦が縮んでいるときの値を
+/// 覚えてしまうと、基準がずれて書いている最中にカードが縮む（2026-08-27）。
 class _DaySheetSlot extends ConsumerWidget {
   final Widget child;
-  const _DaySheetSlot({required this.child});
+  final bool measure;
+  const _DaySheetSlot({required this.measure, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
       LayoutBuilder(builder: (context, box) {
         final h = box.maxHeight;
-        if (h.isFinite && h > 0) {
+        if (measure && h.isFinite && h > 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(daySheetBaseHeightProvider.notifier).set(h);
           });

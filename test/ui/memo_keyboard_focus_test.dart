@@ -3,19 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/test_app.dart';
 
-/// ★既知の不具合の再現テスト（2026-08-27・未修正）
+/// メモを書こうとするとキーボードがすぐ引っ込む不具合の回帰テスト
+///（2026-08-27 修正済み）。
 ///
-/// メモを書こうとするとキーボードがすぐ引っ込む。
+/// 原因: キーボードで縦が縮むと calendar_screen のレイアウトが切り替わり、
+/// `_DaySection` が Column のスロットから Stack のオーバーレイへ**ツリー上の
+/// 別の場所に移動していた**。位置が変わると State は作り直されるので
+/// `_ShoppingMemoPadState` が破棄され、FocusNode も作り直されてフォーカスが
+/// 外れる＝キーボードが閉じる。
 ///
-/// 原因はここで特定済み: キーボードが出て縦が縮むと calendar_screen の
-/// `tight`/`overlay` が切り替わり、`_DaySection` が Column のスロットから
-/// Stack のオーバーレイへ**ツリー上の別の場所に移動する**。位置が変わると
-/// State は作り直されるので `_ShoppingMemoPadState` が破棄され、FocusNode も
-/// 作り直されてフォーカスが外れる＝キーボードが閉じる。
-/// （このテストを一度 skip なしで走らせると SAME_FOCUSNODE=false になる）
-///
-/// 直し方の方針は docs/handoff-2026-08-27-memo-keyboard.md を参照。
-/// 修正したら skip を外すこと。
+/// 直しかた: カードの置き場所を Stack の1か所に固定し、Column 側は高さを
+/// 測るためだけの空きスロットにした。Stack の子の枠数も変えない。
 void main() {
   testWidgets('キーボードが出てもメモのフォーカスは外れない', (tester) async {
     setPhoneSurface(tester);
@@ -41,7 +39,5 @@ void main() {
     expect(identical(nodeBefore, nodeAfter), isTrue,
         reason: 'メモの State が作り直されている（ツリー上の位置が変わった）');
     expect(nodeAfter?.hasFocus, isTrue, reason: 'キーボードが閉じてしまう');
-    // 未修正: キーボードでフォーカスが落ちる（2026-08-27）。
-    // 直したら skip を外す（testWidgets の skip は bool のみ）。
-  }, skip: true);
+  });
 }
