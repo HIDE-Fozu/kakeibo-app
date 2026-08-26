@@ -81,3 +81,17 @@
 - スクショ: `flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/payment_shots_test.dart -d <sim-id>`
 - 実機: `flutter run --release -d 00008140-00180D0911C2801C`（TI10B1・ワイヤレス）
+
+## ⚠️ 2026-08-27 の実機配備でデータを消した（要記録）
+
+`flutter install -d <ios-device> --release` は、同じ bundle id のアプリが
+既に入っていると **「Uninstalling old version...」で先に消してから入れる**。
+iOSではアンインストール＝データコンテナごと削除なので、**端末のアプリ内
+データは全部消えた**（アプリ内の自動バックアップも同じコンテナなので道連れ）。
+
+- 配備自体は成功: TI10B1 に 2.3.0(47)・schema v12 の新ビルドが入って起動済み。
+- 生き残るのは、共有シートで **アプリの外**（Files / Drive 等）へ書き出した
+  バックアップだけ。端末の Finder/iCloud バックアップからの復元も理屈上は可能。
+- **次から**: iOS実機へ配備する前に必ずユーザーにバックアップを書き出させ、
+  データが消え得ることを明示して同意を取る。保持したいなら Xcode から Run するか
+  TestFlight 配信にする。
