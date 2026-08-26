@@ -117,17 +117,32 @@ final dayTransactionsProvider = Provider.autoDispose
 );
 
 /// カレンダーセル用: 日別の支出合計（支出のみ、月streamからの派生）。
+///
+/// 現金主義のときは上部サマリと同じ定義に揃える: カードで買った日には
+/// 金額を出さず（まだ現金は出ていない）、引き落とし日にカードの合計を出す。
+/// セルと上部サマリで数字が食い違うと「計算が間違っている」に見えるため
+/// （FB 2026-08-21）、定義は必ず一致させる。
 final dayExpenseTotalsProvider = Provider.autoDispose
-    .family<AsyncValue<Map<CivilDate, int>>, (int, int)>(
-  (ref, key) => ref.watch(monthTransactionsProvider(key)).whenData((txs) {
+    .family<AsyncValue<Map<CivilDate, int>>, (int, int)>((ref, key) {
+  final cashBasis = ref.watch(appSettingsProvider).summaryUsesCashBasis;
+  final cardTxIds =
+      cashBasis ? ref.watch(cardPurchaseTxIdsOnMonthProvider(key)) : const <int>{};
+  final cardLines = cashBasis
+      ? ref.watch(cardPaymentsProvider(key))
+      : const <CardPaymentLine>[];
+  return ref.watch(monthTransactionsProvider(key)).whenData((txs) {
     final map = <CivilDate, int>{};
     for (final t in txs) {
       if (t.type != TxnType.expense) continue;
+      if (cashBasis && t.id != null && cardTxIds.contains(t.id)) continue;
       map[t.date] = (map[t.date] ?? 0) + t.amountYen;
     }
+    for (final line in cardLines) {
+      map[line.date] = (map[line.date] ?? 0) + line.amountMinor;
+    }
     return map;
-  }),
-);
+  });
+});
 
 /// カレンダーセル用: 日別の収入合計（収入のみ、月streamからの派生）。
 /// セルは支出だけの仕様だったが、モック（+27万の緑）に合わせて収入も出す
@@ -173,19 +188,40 @@ final dayGhostTotalsProvider =
   return map;
 });
 
-/// 見込み収支（月全体の起票済み差引 + 月末までの未起票予定）。過去月は null（非表示）。
-/// 入力は monthSummaryProvider（月全体）: 分割払いの将来回など起票済みの
-/// 未来分はここに含まれ、未起票の固定費・収入はゴースト側から足される。
+/// 見込みの土台になる「月全体の差引」（today打ち切りなし）。
+/// 現金主義ならカード購入を外し、その月の引き落としを入れる（上部サマリと同じ定義）。
+final monthNetWholeProvider =
+    Provider.autoDispose.family<int?, (int, int)>((ref, key) {
+  final cashBasis = ref.watch(appSettingsProvider).summaryUsesCashBasis;
+  if (!cashBasis) return ref.watch(monthSummaryProvider(key)).valueOrNull?.net;
+  final txs = ref.watch(monthTransactionsProvider(key)).valueOrNull;
+  if (txs == null) return null;
+  final cardTxIds = ref.watch(cardPurchaseTxIdsOnMonthProvider(key));
+  var net = 0;
+  for (final t in txs) {
+    if (t.id != null && cardTxIds.contains(t.id)) continue;
+    net += t.type == TxnType.income ? t.amountYen : -t.amountYen;
+  }
+  for (final line in ref.watch(cardPaymentsProvider(key))) {
+    net -= line.amountMinor;
+  }
+  return net;
+});
+
+/// 見込み収支（月全体の差引 + 月末までの未起票予定）。過去月は null（非表示）。
+/// 月全体なので、分割払いの将来回など起票済みの未来分もここには含まれ、
+/// 未起票の固定費・収入はゴースト側から足される。
+/// 現金主義のときはカードの引き落としベース（monthNetWholeProvider）に揃える。
 final monthForecastProvider = Provider.autoDispose.family<
     ({int forecast, CivilDate anchor, bool anchorIsMonthEnd})?,
     (int, int)>((ref, key) {
-  final summary = ref.watch(monthSummaryProvider(key)).valueOrNull;
-  if (summary == null) return null; // 読込中は出さない（ちらつき防止）
+  final net = ref.watch(monthNetWholeProvider(key));
+  if (net == null) return null; // 読込中は出さない（ちらつき防止）
   final rules = ref.watch(recurringRulesProvider).valueOrNull ?? const [];
   return monthForecast(
     year: key.$1,
     month: key.$2,
-    actualNet: summary.net,
+    actualNet: net,
     rules: rules,
     today: ref.watch(choreTodayProvider),
     anchorDay: 0, // 常に月末（基準日切り替えは「不要」FB 2026-08-20で撤去）

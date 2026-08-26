@@ -178,6 +178,74 @@ void main() {
     expect(await expenseOf(2026, 11), 0);
   });
 
+  group('セル・見込みが上部サマリと同じ定義になっている（数字が食い違わない）', () {
+    Future<Map<CivilDate, int>> cellsOf(int year, int month) async {
+      final sub = c.listen(dayExpenseTotalsProvider((year, month)), (_, _) {});
+      addTearDown(sub.close);
+      await pumpEventQueue();
+      return sub.read().requireValue;
+    }
+
+    Future<int?> forecastOf(int year, int month) async {
+      final sub = c.listen(monthForecastProvider((year, month)), (_, _) {});
+      addTearDown(sub.close);
+      await pumpEventQueue();
+      return sub.read()?.forecast;
+    }
+
+    test('現金主義: セルは購入日に出ず、引き落とし日に出る', () async {
+      await setUpWith(prefs: prefsWith(mode: true));
+      await buyOnCard(32000);
+      await addCash(800);
+
+      final july = await cellsOf(2026, 7);
+      expect(july[const CivilDate(2026, 7, 10)], isNull); // カードで買った日
+      expect(july[const CivilDate(2026, 7, 12)], 800); // 現金はそのまま
+
+      final aug = await cellsOf(2026, 8);
+      expect(aug[const CivilDate(2026, 8, 27)], 32000); // 引き落とし日
+    });
+
+    test('発生主義: セルは従来どおり購入日に出る', () async {
+      await setUpWith(prefs: prefsWith(mode: true, cash: false));
+      await buyOnCard(32000);
+
+      final july = await cellsOf(2026, 7);
+      expect(july[const CivilDate(2026, 7, 10)], 32000);
+      expect(await cellsOf(2026, 8), isEmpty);
+    });
+
+    test('現金主義: 見込みも購入ではなく引き落としで数える', () async {
+      await setUpWith(prefs: prefsWith(mode: true));
+      await buyOnCard(32000);
+      await addCash(800);
+
+      // 7月は現金800だけ出ていく見込み（カードは8月）
+      expect(await forecastOf(2026, 7), -800);
+      expect(await forecastOf(2026, 8), -32000);
+    });
+
+    test('発生主義: 見込みは従来どおり購入月に乗る', () async {
+      await setUpWith(prefs: prefsWith(mode: true, cash: false));
+      await buyOnCard(32000);
+      await addCash(800);
+
+      expect(await forecastOf(2026, 7), -32800);
+      expect(await forecastOf(2026, 8), 0);
+    });
+
+    test('現金主義: 上部サマリ・セル・見込みの3つが同じ数字を指す', () async {
+      await setUpWith(prefs: prefsWith(mode: true));
+      await buyOnCard(32000);
+
+      // 8月（未来月・today打ち切りなし）は全部 32,000 で揃う
+      expect(await expenseOf(2026, 8), 32000);
+      expect((await cellsOf(2026, 8)).values.fold<int>(0, (a, b) => a + b),
+          32000);
+      expect(await forecastOf(2026, 8), -32000);
+    });
+  });
+
   test('モードOFFなら引き落とし行そのものが出ない', () async {
     await setUpWith(prefs: prefsWith(mode: false));
     await buyOnCard(3000);
