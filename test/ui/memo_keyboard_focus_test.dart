@@ -42,14 +42,14 @@ void main() {
   });
 
   /// FB 2026-08-27「メモからカレンダーに戻ったときホワイトアウトしてる時間が
-  /// 長すぎる。カレンダーが表示されるのを待つ体感が悪い」。
+  /// 長すぎる」→「メモ開いてる時はスクリム入れよう。解除の動作を早めて」。
   ///
-  /// 原因は背景を落とす覆いをキーボードにも連動させていたこと。カードはもう
-  /// 通常位置に戻っているのに、キーボードが閉じ切るまで（実機で数百ms）
-  /// カレンダーが白く飛んだままになっていた。
-  /// 覆い（＝タップして戻る面）は浮いている間ずっと要るが、**落とす**のは
-  /// 自分でドラッグして広げたときだけにする。
-  testWidgets('キーボードで浮いているだけのときはカレンダーを白く落とさない',
+  /// スクリムは編集中に出す。問題は**解除の遅さ**だった。落とす条件を
+  /// キーボードの `viewInsets` に紐づけていたので、0 になるのは閉じる
+  /// アニメーションが終わった後＝カードはもう通常位置に戻っているのに
+  /// カレンダーだけ白いまま待たされていた。
+  /// フォーカスに紐づければ `unfocus()` と同じフレームで晴れる。
+  testWidgets('メモ編集中はスクリムを出し、解除はキーボードを待たない',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -67,19 +67,24 @@ void main() {
         .evaluate()
         .isNotEmpty;
 
+    await tester.tap(find.byKey(const Key('shopping-memo-pad')));
+    await tester.pumpAndSettle();
     tester.view.viewInsets = const FakeViewPadding(bottom: 900);
     addTearDown(tester.view.resetViewInsets);
     await tester.pumpAndSettle();
 
-    // 覆いはある（背景タップで戻れる）が、落としてはいない
-    expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget,
-        reason: '背景タップで戻る面は要る');
-    expect(dimmed(), isFalse, reason: 'カレンダーが白く飛ぶ');
+    // 編集中はスクリムが出ている
+    expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget);
+    expect(dimmed(), isTrue, reason: 'メモ編集中はスクリムを出す');
 
-    // 自分でドラッグして広げたときは従来どおり落とす
-    await tester.drag(
-        find.byKey(const Key('day-sheet-drag')), const Offset(0, -200));
-    await tester.pumpAndSettle();
-    expect(dimmed(), isTrue, reason: '広げたときは落として戻り先を示す');
+    // 背景をタップして戻る。**キーボードはまだ閉じ切っていない**
+    //（viewInsets はそのまま）状態で、落としはもう晴れていること。
+    await tester.tapAt(const Offset(200, 200));
+    await tester.pump();
+    expect(MediaQueryData.fromView(tester.view).viewInsets.bottom,
+        greaterThan(0),
+        reason: 'キーボードが閉じ切る前を再現していない＝この検証は無意味');
+    expect(dimmed(), isFalse,
+        reason: 'キーボードが閉じ切るまでカレンダーが白いまま待たされる');
   });
 }

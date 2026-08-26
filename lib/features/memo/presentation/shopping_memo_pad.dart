@@ -23,7 +23,21 @@ class _ShoppingMemoPadState extends ConsumerState<ShoppingMemoPad> {
   final _focus = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_syncFocused);
+  }
+
+  /// 編集中かどうかを外（カレンダー）へ知らせる。背景を落とす判断に使う。
+  /// dispose では立てっぱなしのままにする（ライフサイクル中に provider を
+  /// 触るのは Riverpod が禁じているため）。メモタブを離れたときは
+  /// カレンダー側がタブで見分けるので、残っていても害はない。
+  void _syncFocused() =>
+      ref.read(shoppingMemoFocusedProvider.notifier).set(_focus.hasFocus);
+
+  @override
   void dispose() {
+    _focus.removeListener(_syncFocused);
     _focus.dispose();
     _text.dispose();
     super.dispose();

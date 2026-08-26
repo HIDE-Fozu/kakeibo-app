@@ -20,6 +20,7 @@ import '../../settings/application/settings_controller.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
+import '../../memo/application/shopping_memo_controller.dart';
 import '../../memo/presentation/shopping_memo_pad.dart';
 
 class CalendarScreen extends ConsumerWidget {
@@ -49,6 +50,11 @@ class CalendarScreen extends ConsumerWidget {
     // 0 なら通常位置。基準の高さは描画後に実測して覚える。
     final raise = ref.watch(daySheetRaiseProvider);
     final baseHeight = ref.watch(daySheetBaseHeightProvider);
+    // メモを編集中か。背景を落とす判断はキーボードの insets ではなくこれで
+    // 見る（下の dimmed の理由）。メモタブを離れたらフラグの立ち残りは無視する
+    //（フラグを畳むのは widget の dispose になり、そこで provider は触れない）。
+    final memoEditing = ref.watch(shoppingMemoFocusedProvider) &&
+        ref.watch(dayTabProvider) == DayTab.memo;
 
 
     return SafeArea(
@@ -70,12 +76,15 @@ class CalendarScreen extends ConsumerWidget {
             : math.max(outer.maxHeight, _kMinBodyHeight);
         // カードが通常位置より上に浮いている状態（背景タップで戻れる）。
         final lifted = raise > 0 || keyboard;
-        // 背景を落とすのは**自分でドラッグして広げたとき**だけ。キーボードで
-        // 浮いている間も落とすと、閉じるアニメーションが終わるまでカレンダーが
-        // 白く飛んだままになり「カレンダーが出るのを待たされる」
-        //（FB 2026-08-27「ホワイトアウトしてる時間が長すぎる」）。
-        // 覆い自体（＝タップして戻る面）は浮いている間ずっと要る。
-        final dimmed = raise > 0;
+        // 背景を落とすのは「広げたとき」と「メモを編集中」。
+        // ★キーボードの insets では判断しないこと。insets が 0 になるのは
+        // 閉じるアニメーションが**終わった後**なので、落としの解除が必ず
+        // アニメーション分だけ遅れ、カードはもう通常位置に戻っているのに
+        // カレンダーだけ白く飛んだまま待たされる
+        //（FB 2026-08-27「ホワイトアウトしてる時間が長すぎる」→「スクリムは
+        // 入れたまま解除を早めて」）。フォーカスなら背景をタップした
+        // `unfocus()` と同じフレームで false になる＝即座に晴れる。
+        final dimmed = raise > 0 || memoEditing;
         final backdrop = Column(
         children: [
           const BackupBanner(),
@@ -180,9 +189,8 @@ class CalendarScreen extends ConsumerWidget {
               ),
             ),
             // ②浮いている間だけ効く覆い。背景（カレンダー側）をタップすると
-            // 閉じてカレンダーに戻る。ドラッグで大きく広げたときだけうっすら
-            // 落として「カードが上に乗っている」ことを見せる。キーボードで
-            // 浮いているだけのときは落とさない（上の dimmed の理由）。
+            // 閉じてカレンダーに戻る。広げたとき／メモを編集中はうっすら
+            // 落として「カードが上に乗っている」ことを見せる。
             // 通常位置では中身を空にして素通しにする。
             Positioned.fill(
               child: lifted
