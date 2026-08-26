@@ -4481,6 +4481,1395 @@ class DeletedTransactionsCompanion
   }
 }
 
+class $PaymentCardsTable extends PaymentCards
+    with TableInfo<$PaymentCardsTable, PaymentCardRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaymentCardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payDayMeta = const VerificationMeta('payDay');
+  @override
+  late final GeneratedColumn<int> payDay = GeneratedColumn<int>(
+    'pay_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<BusinessDayRule, String>
+  businessDayRule =
+      GeneratedColumn<String>(
+        'business_day_rule',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('next'),
+      ).withConverter<BusinessDayRule>(
+        $PaymentCardsTable.$converterbusinessDayRule,
+      );
+  static const VerificationMeta _annualRatePercentMeta = const VerificationMeta(
+    'annualRatePercent',
+  );
+  @override
+  late final GeneratedColumn<double> annualRatePercent =
+      GeneratedColumn<double>(
+        'annual_rate_percent',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    payDay,
+    businessDayRule,
+    annualRatePercent,
+    sortOrder,
+    isArchived,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payment_cards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaymentCardRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('pay_day')) {
+      context.handle(
+        _payDayMeta,
+        payDay.isAcceptableOrUnknown(data['pay_day']!, _payDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payDayMeta);
+    }
+    if (data.containsKey('annual_rate_percent')) {
+      context.handle(
+        _annualRatePercentMeta,
+        annualRatePercent.isAcceptableOrUnknown(
+          data['annual_rate_percent']!,
+          _annualRatePercentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PaymentCardRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaymentCardRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      payDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pay_day'],
+      )!,
+      businessDayRule: $PaymentCardsTable.$converterbusinessDayRule.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}business_day_rule'],
+        )!,
+      ),
+      annualRatePercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}annual_rate_percent'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PaymentCardsTable createAlias(String alias) {
+    return $PaymentCardsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<BusinessDayRule, String, String>
+  $converterbusinessDayRule = const EnumNameConverter<BusinessDayRule>(
+    BusinessDayRule.values,
+  );
+}
+
+class PaymentCardRow extends DataClass implements Insertable<PaymentCardRow> {
+  final int id;
+  final String name;
+  final int payDay;
+  final BusinessDayRule businessDayRule;
+  final double annualRatePercent;
+  final int sortOrder;
+  final bool isArchived;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PaymentCardRow({
+    required this.id,
+    required this.name,
+    required this.payDay,
+    required this.businessDayRule,
+    required this.annualRatePercent,
+    required this.sortOrder,
+    required this.isArchived,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['pay_day'] = Variable<int>(payDay);
+    {
+      map['business_day_rule'] = Variable<String>(
+        $PaymentCardsTable.$converterbusinessDayRule.toSql(businessDayRule),
+      );
+    }
+    map['annual_rate_percent'] = Variable<double>(annualRatePercent);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['is_archived'] = Variable<bool>(isArchived);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PaymentCardsCompanion toCompanion(bool nullToAbsent) {
+    return PaymentCardsCompanion(
+      id: Value(id),
+      name: Value(name),
+      payDay: Value(payDay),
+      businessDayRule: Value(businessDayRule),
+      annualRatePercent: Value(annualRatePercent),
+      sortOrder: Value(sortOrder),
+      isArchived: Value(isArchived),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PaymentCardRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaymentCardRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      payDay: serializer.fromJson<int>(json['payDay']),
+      businessDayRule: $PaymentCardsTable.$converterbusinessDayRule.fromJson(
+        serializer.fromJson<String>(json['businessDayRule']),
+      ),
+      annualRatePercent: serializer.fromJson<double>(json['annualRatePercent']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'payDay': serializer.toJson<int>(payDay),
+      'businessDayRule': serializer.toJson<String>(
+        $PaymentCardsTable.$converterbusinessDayRule.toJson(businessDayRule),
+      ),
+      'annualRatePercent': serializer.toJson<double>(annualRatePercent),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'isArchived': serializer.toJson<bool>(isArchived),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PaymentCardRow copyWith({
+    int? id,
+    String? name,
+    int? payDay,
+    BusinessDayRule? businessDayRule,
+    double? annualRatePercent,
+    int? sortOrder,
+    bool? isArchived,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PaymentCardRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    payDay: payDay ?? this.payDay,
+    businessDayRule: businessDayRule ?? this.businessDayRule,
+    annualRatePercent: annualRatePercent ?? this.annualRatePercent,
+    sortOrder: sortOrder ?? this.sortOrder,
+    isArchived: isArchived ?? this.isArchived,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PaymentCardRow copyWithCompanion(PaymentCardsCompanion data) {
+    return PaymentCardRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      payDay: data.payDay.present ? data.payDay.value : this.payDay,
+      businessDayRule: data.businessDayRule.present
+          ? data.businessDayRule.value
+          : this.businessDayRule,
+      annualRatePercent: data.annualRatePercent.present
+          ? data.annualRatePercent.value
+          : this.annualRatePercent,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentCardRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('payDay: $payDay, ')
+          ..write('businessDayRule: $businessDayRule, ')
+          ..write('annualRatePercent: $annualRatePercent, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    payDay,
+    businessDayRule,
+    annualRatePercent,
+    sortOrder,
+    isArchived,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaymentCardRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.payDay == this.payDay &&
+          other.businessDayRule == this.businessDayRule &&
+          other.annualRatePercent == this.annualRatePercent &&
+          other.sortOrder == this.sortOrder &&
+          other.isArchived == this.isArchived &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PaymentCardsCompanion extends UpdateCompanion<PaymentCardRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> payDay;
+  final Value<BusinessDayRule> businessDayRule;
+  final Value<double> annualRatePercent;
+  final Value<int> sortOrder;
+  final Value<bool> isArchived;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const PaymentCardsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.payDay = const Value.absent(),
+    this.businessDayRule = const Value.absent(),
+    this.annualRatePercent = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  PaymentCardsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required int payDay,
+    this.businessDayRule = const Value.absent(),
+    this.annualRatePercent = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name),
+       payDay = Value(payDay);
+  static Insertable<PaymentCardRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? payDay,
+    Expression<String>? businessDayRule,
+    Expression<double>? annualRatePercent,
+    Expression<int>? sortOrder,
+    Expression<bool>? isArchived,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (payDay != null) 'pay_day': payDay,
+      if (businessDayRule != null) 'business_day_rule': businessDayRule,
+      if (annualRatePercent != null) 'annual_rate_percent': annualRatePercent,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (isArchived != null) 'is_archived': isArchived,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  PaymentCardsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? payDay,
+    Value<BusinessDayRule>? businessDayRule,
+    Value<double>? annualRatePercent,
+    Value<int>? sortOrder,
+    Value<bool>? isArchived,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return PaymentCardsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      payDay: payDay ?? this.payDay,
+      businessDayRule: businessDayRule ?? this.businessDayRule,
+      annualRatePercent: annualRatePercent ?? this.annualRatePercent,
+      sortOrder: sortOrder ?? this.sortOrder,
+      isArchived: isArchived ?? this.isArchived,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (payDay.present) {
+      map['pay_day'] = Variable<int>(payDay.value);
+    }
+    if (businessDayRule.present) {
+      map['business_day_rule'] = Variable<String>(
+        $PaymentCardsTable.$converterbusinessDayRule.toSql(
+          businessDayRule.value,
+        ),
+      );
+    }
+    if (annualRatePercent.present) {
+      map['annual_rate_percent'] = Variable<double>(annualRatePercent.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentCardsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('payDay: $payDay, ')
+          ..write('businessDayRule: $businessDayRule, ')
+          ..write('annualRatePercent: $annualRatePercent, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PayablesTable extends Payables
+    with TableInfo<$PayablesTable, PayableRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PayablesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<int> transactionId = GeneratedColumn<int>(
+    'transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES transactions (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _cardIdMeta = const VerificationMeta('cardId');
+  @override
+  late final GeneratedColumn<int> cardId = GeneratedColumn<int>(
+    'card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES payment_cards (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _installmentCountMeta = const VerificationMeta(
+    'installmentCount',
+  );
+  @override
+  late final GeneratedColumn<int> installmentCount = GeneratedColumn<int>(
+    'installment_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _annualRatePercentMeta = const VerificationMeta(
+    'annualRatePercent',
+  );
+  @override
+  late final GeneratedColumn<double> annualRatePercent =
+      GeneratedColumn<double>(
+        'annual_rate_percent',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
+  static const VerificationMeta _totalMinorMeta = const VerificationMeta(
+    'totalMinor',
+  );
+  @override
+  late final GeneratedColumn<int> totalMinor = GeneratedColumn<int>(
+    'total_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transactionId,
+    cardId,
+    installmentCount,
+    annualRatePercent,
+    totalMinor,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payables';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PayableRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('card_id')) {
+      context.handle(
+        _cardIdMeta,
+        cardId.isAcceptableOrUnknown(data['card_id']!, _cardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cardIdMeta);
+    }
+    if (data.containsKey('installment_count')) {
+      context.handle(
+        _installmentCountMeta,
+        installmentCount.isAcceptableOrUnknown(
+          data['installment_count']!,
+          _installmentCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('annual_rate_percent')) {
+      context.handle(
+        _annualRatePercentMeta,
+        annualRatePercent.isAcceptableOrUnknown(
+          data['annual_rate_percent']!,
+          _annualRatePercentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_minor')) {
+      context.handle(
+        _totalMinorMeta,
+        totalMinor.isAcceptableOrUnknown(data['total_minor']!, _totalMinorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalMinorMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {transactionId},
+  ];
+  @override
+  PayableRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PayableRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      transactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}transaction_id'],
+      )!,
+      cardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_id'],
+      )!,
+      installmentCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}installment_count'],
+      )!,
+      annualRatePercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}annual_rate_percent'],
+      )!,
+      totalMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_minor'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PayablesTable createAlias(String alias) {
+    return $PayablesTable(attachedDatabase, alias);
+  }
+}
+
+class PayableRow extends DataClass implements Insertable<PayableRow> {
+  final int id;
+  final int transactionId;
+  final int cardId;
+  final int installmentCount;
+  final double annualRatePercent;
+  final int totalMinor;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PayableRow({
+    required this.id,
+    required this.transactionId,
+    required this.cardId,
+    required this.installmentCount,
+    required this.annualRatePercent,
+    required this.totalMinor,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['transaction_id'] = Variable<int>(transactionId);
+    map['card_id'] = Variable<int>(cardId);
+    map['installment_count'] = Variable<int>(installmentCount);
+    map['annual_rate_percent'] = Variable<double>(annualRatePercent);
+    map['total_minor'] = Variable<int>(totalMinor);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PayablesCompanion toCompanion(bool nullToAbsent) {
+    return PayablesCompanion(
+      id: Value(id),
+      transactionId: Value(transactionId),
+      cardId: Value(cardId),
+      installmentCount: Value(installmentCount),
+      annualRatePercent: Value(annualRatePercent),
+      totalMinor: Value(totalMinor),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PayableRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PayableRow(
+      id: serializer.fromJson<int>(json['id']),
+      transactionId: serializer.fromJson<int>(json['transactionId']),
+      cardId: serializer.fromJson<int>(json['cardId']),
+      installmentCount: serializer.fromJson<int>(json['installmentCount']),
+      annualRatePercent: serializer.fromJson<double>(json['annualRatePercent']),
+      totalMinor: serializer.fromJson<int>(json['totalMinor']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'transactionId': serializer.toJson<int>(transactionId),
+      'cardId': serializer.toJson<int>(cardId),
+      'installmentCount': serializer.toJson<int>(installmentCount),
+      'annualRatePercent': serializer.toJson<double>(annualRatePercent),
+      'totalMinor': serializer.toJson<int>(totalMinor),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PayableRow copyWith({
+    int? id,
+    int? transactionId,
+    int? cardId,
+    int? installmentCount,
+    double? annualRatePercent,
+    int? totalMinor,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PayableRow(
+    id: id ?? this.id,
+    transactionId: transactionId ?? this.transactionId,
+    cardId: cardId ?? this.cardId,
+    installmentCount: installmentCount ?? this.installmentCount,
+    annualRatePercent: annualRatePercent ?? this.annualRatePercent,
+    totalMinor: totalMinor ?? this.totalMinor,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PayableRow copyWithCompanion(PayablesCompanion data) {
+    return PayableRow(
+      id: data.id.present ? data.id.value : this.id,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
+      cardId: data.cardId.present ? data.cardId.value : this.cardId,
+      installmentCount: data.installmentCount.present
+          ? data.installmentCount.value
+          : this.installmentCount,
+      annualRatePercent: data.annualRatePercent.present
+          ? data.annualRatePercent.value
+          : this.annualRatePercent,
+      totalMinor: data.totalMinor.present
+          ? data.totalMinor.value
+          : this.totalMinor,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PayableRow(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('cardId: $cardId, ')
+          ..write('installmentCount: $installmentCount, ')
+          ..write('annualRatePercent: $annualRatePercent, ')
+          ..write('totalMinor: $totalMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transactionId,
+    cardId,
+    installmentCount,
+    annualRatePercent,
+    totalMinor,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PayableRow &&
+          other.id == this.id &&
+          other.transactionId == this.transactionId &&
+          other.cardId == this.cardId &&
+          other.installmentCount == this.installmentCount &&
+          other.annualRatePercent == this.annualRatePercent &&
+          other.totalMinor == this.totalMinor &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PayablesCompanion extends UpdateCompanion<PayableRow> {
+  final Value<int> id;
+  final Value<int> transactionId;
+  final Value<int> cardId;
+  final Value<int> installmentCount;
+  final Value<double> annualRatePercent;
+  final Value<int> totalMinor;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const PayablesCompanion({
+    this.id = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.cardId = const Value.absent(),
+    this.installmentCount = const Value.absent(),
+    this.annualRatePercent = const Value.absent(),
+    this.totalMinor = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  PayablesCompanion.insert({
+    this.id = const Value.absent(),
+    required int transactionId,
+    required int cardId,
+    this.installmentCount = const Value.absent(),
+    this.annualRatePercent = const Value.absent(),
+    required int totalMinor,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : transactionId = Value(transactionId),
+       cardId = Value(cardId),
+       totalMinor = Value(totalMinor);
+  static Insertable<PayableRow> custom({
+    Expression<int>? id,
+    Expression<int>? transactionId,
+    Expression<int>? cardId,
+    Expression<int>? installmentCount,
+    Expression<double>? annualRatePercent,
+    Expression<int>? totalMinor,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (cardId != null) 'card_id': cardId,
+      if (installmentCount != null) 'installment_count': installmentCount,
+      if (annualRatePercent != null) 'annual_rate_percent': annualRatePercent,
+      if (totalMinor != null) 'total_minor': totalMinor,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  PayablesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? transactionId,
+    Value<int>? cardId,
+    Value<int>? installmentCount,
+    Value<double>? annualRatePercent,
+    Value<int>? totalMinor,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return PayablesCompanion(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      cardId: cardId ?? this.cardId,
+      installmentCount: installmentCount ?? this.installmentCount,
+      annualRatePercent: annualRatePercent ?? this.annualRatePercent,
+      totalMinor: totalMinor ?? this.totalMinor,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<int>(transactionId.value);
+    }
+    if (cardId.present) {
+      map['card_id'] = Variable<int>(cardId.value);
+    }
+    if (installmentCount.present) {
+      map['installment_count'] = Variable<int>(installmentCount.value);
+    }
+    if (annualRatePercent.present) {
+      map['annual_rate_percent'] = Variable<double>(annualRatePercent.value);
+    }
+    if (totalMinor.present) {
+      map['total_minor'] = Variable<int>(totalMinor.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PayablesCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('cardId: $cardId, ')
+          ..write('installmentCount: $installmentCount, ')
+          ..write('annualRatePercent: $annualRatePercent, ')
+          ..write('totalMinor: $totalMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PayableSchedulesTable extends PayableSchedules
+    with TableInfo<$PayableSchedulesTable, PayableScheduleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PayableSchedulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _payableIdMeta = const VerificationMeta(
+    'payableId',
+  );
+  @override
+  late final GeneratedColumn<int> payableId = GeneratedColumn<int>(
+    'payable_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES payables (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _ymMeta = const VerificationMeta('ym');
+  @override
+  late final GeneratedColumn<int> ym = GeneratedColumn<int>(
+    'ym',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, payableId, ym, amountMinor];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payable_schedules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PayableScheduleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('payable_id')) {
+      context.handle(
+        _payableIdMeta,
+        payableId.isAcceptableOrUnknown(data['payable_id']!, _payableIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payableIdMeta);
+    }
+    if (data.containsKey('ym')) {
+      context.handle(_ymMeta, ym.isAcceptableOrUnknown(data['ym']!, _ymMeta));
+    } else if (isInserting) {
+      context.missing(_ymMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {payableId, ym},
+  ];
+  @override
+  PayableScheduleRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PayableScheduleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      payableId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}payable_id'],
+      )!,
+      ym: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ym'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+    );
+  }
+
+  @override
+  $PayableSchedulesTable createAlias(String alias) {
+    return $PayableSchedulesTable(attachedDatabase, alias);
+  }
+}
+
+class PayableScheduleRow extends DataClass
+    implements Insertable<PayableScheduleRow> {
+  final int id;
+  final int payableId;
+  final int ym;
+  final int amountMinor;
+  const PayableScheduleRow({
+    required this.id,
+    required this.payableId,
+    required this.ym,
+    required this.amountMinor,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['payable_id'] = Variable<int>(payableId);
+    map['ym'] = Variable<int>(ym);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    return map;
+  }
+
+  PayableSchedulesCompanion toCompanion(bool nullToAbsent) {
+    return PayableSchedulesCompanion(
+      id: Value(id),
+      payableId: Value(payableId),
+      ym: Value(ym),
+      amountMinor: Value(amountMinor),
+    );
+  }
+
+  factory PayableScheduleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PayableScheduleRow(
+      id: serializer.fromJson<int>(json['id']),
+      payableId: serializer.fromJson<int>(json['payableId']),
+      ym: serializer.fromJson<int>(json['ym']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'payableId': serializer.toJson<int>(payableId),
+      'ym': serializer.toJson<int>(ym),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+    };
+  }
+
+  PayableScheduleRow copyWith({
+    int? id,
+    int? payableId,
+    int? ym,
+    int? amountMinor,
+  }) => PayableScheduleRow(
+    id: id ?? this.id,
+    payableId: payableId ?? this.payableId,
+    ym: ym ?? this.ym,
+    amountMinor: amountMinor ?? this.amountMinor,
+  );
+  PayableScheduleRow copyWithCompanion(PayableSchedulesCompanion data) {
+    return PayableScheduleRow(
+      id: data.id.present ? data.id.value : this.id,
+      payableId: data.payableId.present ? data.payableId.value : this.payableId,
+      ym: data.ym.present ? data.ym.value : this.ym,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PayableScheduleRow(')
+          ..write('id: $id, ')
+          ..write('payableId: $payableId, ')
+          ..write('ym: $ym, ')
+          ..write('amountMinor: $amountMinor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, payableId, ym, amountMinor);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PayableScheduleRow &&
+          other.id == this.id &&
+          other.payableId == this.payableId &&
+          other.ym == this.ym &&
+          other.amountMinor == this.amountMinor);
+}
+
+class PayableSchedulesCompanion extends UpdateCompanion<PayableScheduleRow> {
+  final Value<int> id;
+  final Value<int> payableId;
+  final Value<int> ym;
+  final Value<int> amountMinor;
+  const PayableSchedulesCompanion({
+    this.id = const Value.absent(),
+    this.payableId = const Value.absent(),
+    this.ym = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+  });
+  PayableSchedulesCompanion.insert({
+    this.id = const Value.absent(),
+    required int payableId,
+    required int ym,
+    required int amountMinor,
+  }) : payableId = Value(payableId),
+       ym = Value(ym),
+       amountMinor = Value(amountMinor);
+  static Insertable<PayableScheduleRow> custom({
+    Expression<int>? id,
+    Expression<int>? payableId,
+    Expression<int>? ym,
+    Expression<int>? amountMinor,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (payableId != null) 'payable_id': payableId,
+      if (ym != null) 'ym': ym,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+    });
+  }
+
+  PayableSchedulesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? payableId,
+    Value<int>? ym,
+    Value<int>? amountMinor,
+  }) {
+    return PayableSchedulesCompanion(
+      id: id ?? this.id,
+      payableId: payableId ?? this.payableId,
+      ym: ym ?? this.ym,
+      amountMinor: amountMinor ?? this.amountMinor,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (payableId.present) {
+      map['payable_id'] = Variable<int>(payableId.value);
+    }
+    if (ym.present) {
+      map['ym'] = Variable<int>(ym.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PayableSchedulesCompanion(')
+          ..write('id: $id, ')
+          ..write('payableId: $payableId, ')
+          ..write('ym: $ym, ')
+          ..write('amountMinor: $amountMinor')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4494,6 +5883,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChoreRecordsTable choreRecords = $ChoreRecordsTable(this);
   late final $DeletedTransactionsTable deletedTransactions =
       $DeletedTransactionsTable(this);
+  late final $PaymentCardsTable paymentCards = $PaymentCardsTable(this);
+  late final $PayablesTable payables = $PayablesTable(this);
+  late final $PayableSchedulesTable payableSchedules = $PayableSchedulesTable(
+    this,
+  );
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -4514,6 +5908,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     choreTasks,
     choreRecords,
     deletedTransactions,
+    paymentCards,
+    payables,
+    payableSchedules,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4530,6 +5927,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('chore_records', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'transactions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('payables', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'payables',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('payable_schedules', kind: UpdateKind.delete)],
     ),
   ]);
   @override
@@ -5807,6 +7218,24 @@ final class $$TransactionsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$PayablesTable, List<PayableRow>>
+  _payablesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.payables,
+    aliasName: 'transactions__id__payables__transaction_id',
+  );
+
+  $$PayablesTableProcessedTableManager get payablesRefs {
+    final manager = $$PayablesTableTableManager(
+      $_db,
+      $_db.payables,
+    ).filter((f) => f.transactionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_payablesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$TransactionsTableFilterComposer
@@ -5926,6 +7355,31 @@ class $$TransactionsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> payablesRefs(
+    Expression<bool> Function($$PayablesTableFilterComposer f) f,
+  ) {
+    final $$PayablesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.transactionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableFilterComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -6140,6 +7594,31 @@ class $$TransactionsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> payablesRefs<T extends Object>(
+    Expression<T> Function($$PayablesTableAnnotationComposer a) f,
+  ) {
+    final $$PayablesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.transactionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TransactionsTableTableManager
@@ -6155,7 +7634,11 @@ class $$TransactionsTableTableManager
           $$TransactionsTableUpdateCompanionBuilder,
           (TransactionRow, $$TransactionsTableReferences),
           TransactionRow,
-          PrefetchHooks Function({bool categoryId, bool installmentPlanId})
+          PrefetchHooks Function({
+            bool categoryId,
+            bool installmentPlanId,
+            bool payablesRefs,
+          })
         > {
   $$TransactionsTableTableManager(_$AppDatabase db, $TransactionsTable table)
     : super(
@@ -6241,10 +7724,14 @@ class $$TransactionsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({categoryId = false, installmentPlanId = false}) {
+              ({
+                categoryId = false,
+                installmentPlanId = false,
+                payablesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [],
+                  explicitlyWatchedTables: [if (payablesRefs) db.payables],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -6295,7 +7782,29 @@ class $$TransactionsTableTableManager
                         return state;
                       },
                   getPrefetchedDataCallback: (items) async {
-                    return [];
+                    return [
+                      if (payablesRefs)
+                        await $_getPrefetchedData<
+                          TransactionRow,
+                          $TransactionsTable,
+                          PayableRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TransactionsTableReferences
+                              ._payablesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TransactionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).payablesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.transactionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
                 );
               },
@@ -6315,7 +7824,11 @@ typedef $$TransactionsTableProcessedTableManager =
       $$TransactionsTableUpdateCompanionBuilder,
       (TransactionRow, $$TransactionsTableReferences),
       TransactionRow,
-      PrefetchHooks Function({bool categoryId, bool installmentPlanId})
+      PrefetchHooks Function({
+        bool categoryId,
+        bool installmentPlanId,
+        bool payablesRefs,
+      })
     >;
 typedef $$RecurringRulesTableCreateCompanionBuilder =
     RecurringRulesCompanion Function({
@@ -7863,6 +9376,1259 @@ typedef $$DeletedTransactionsTableProcessedTableManager =
       DeletedTransactionRow,
       PrefetchHooks Function()
     >;
+typedef $$PaymentCardsTableCreateCompanionBuilder =
+    PaymentCardsCompanion Function({
+      Value<int> id,
+      required String name,
+      required int payDay,
+      Value<BusinessDayRule> businessDayRule,
+      Value<double> annualRatePercent,
+      Value<int> sortOrder,
+      Value<bool> isArchived,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$PaymentCardsTableUpdateCompanionBuilder =
+    PaymentCardsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int> payDay,
+      Value<BusinessDayRule> businessDayRule,
+      Value<double> annualRatePercent,
+      Value<int> sortOrder,
+      Value<bool> isArchived,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$PaymentCardsTableReferences
+    extends BaseReferences<_$AppDatabase, $PaymentCardsTable, PaymentCardRow> {
+  $$PaymentCardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$PayablesTable, List<PayableRow>>
+  _payablesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.payables,
+    aliasName: 'payment_cards__id__payables__card_id',
+  );
+
+  $$PayablesTableProcessedTableManager get payablesRefs {
+    final manager = $$PayablesTableTableManager(
+      $_db,
+      $_db.payables,
+    ).filter((f) => f.cardId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_payablesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$PaymentCardsTableFilterComposer
+    extends Composer<_$AppDatabase, $PaymentCardsTable> {
+  $$PaymentCardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get payDay => $composableBuilder(
+    column: $table.payDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<BusinessDayRule, BusinessDayRule, String>
+  get businessDayRule => $composableBuilder(
+    column: $table.businessDayRule,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> payablesRefs(
+    Expression<bool> Function($$PayablesTableFilterComposer f) f,
+  ) {
+    final $$PayablesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.cardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableFilterComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PaymentCardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PaymentCardsTable> {
+  $$PaymentCardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get payDay => $composableBuilder(
+    column: $table.payDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get businessDayRule => $composableBuilder(
+    column: $table.businessDayRule,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PaymentCardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PaymentCardsTable> {
+  $$PaymentCardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get payDay =>
+      $composableBuilder(column: $table.payDay, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<BusinessDayRule, String>
+  get businessDayRule => $composableBuilder(
+    column: $table.businessDayRule,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> payablesRefs<T extends Object>(
+    Expression<T> Function($$PayablesTableAnnotationComposer a) f,
+  ) {
+    final $$PayablesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.cardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PaymentCardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PaymentCardsTable,
+          PaymentCardRow,
+          $$PaymentCardsTableFilterComposer,
+          $$PaymentCardsTableOrderingComposer,
+          $$PaymentCardsTableAnnotationComposer,
+          $$PaymentCardsTableCreateCompanionBuilder,
+          $$PaymentCardsTableUpdateCompanionBuilder,
+          (PaymentCardRow, $$PaymentCardsTableReferences),
+          PaymentCardRow,
+          PrefetchHooks Function({bool payablesRefs})
+        > {
+  $$PaymentCardsTableTableManager(_$AppDatabase db, $PaymentCardsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PaymentCardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PaymentCardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PaymentCardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> payDay = const Value.absent(),
+                Value<BusinessDayRule> businessDayRule = const Value.absent(),
+                Value<double> annualRatePercent = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PaymentCardsCompanion(
+                id: id,
+                name: name,
+                payDay: payDay,
+                businessDayRule: businessDayRule,
+                annualRatePercent: annualRatePercent,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required int payDay,
+                Value<BusinessDayRule> businessDayRule = const Value.absent(),
+                Value<double> annualRatePercent = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PaymentCardsCompanion.insert(
+                id: id,
+                name: name,
+                payDay: payDay,
+                businessDayRule: businessDayRule,
+                annualRatePercent: annualRatePercent,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PaymentCardsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({payablesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (payablesRefs) db.payables],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (payablesRefs)
+                    await $_getPrefetchedData<
+                      PaymentCardRow,
+                      $PaymentCardsTable,
+                      PayableRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$PaymentCardsTableReferences
+                          ._payablesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$PaymentCardsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).payablesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.cardId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PaymentCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PaymentCardsTable,
+      PaymentCardRow,
+      $$PaymentCardsTableFilterComposer,
+      $$PaymentCardsTableOrderingComposer,
+      $$PaymentCardsTableAnnotationComposer,
+      $$PaymentCardsTableCreateCompanionBuilder,
+      $$PaymentCardsTableUpdateCompanionBuilder,
+      (PaymentCardRow, $$PaymentCardsTableReferences),
+      PaymentCardRow,
+      PrefetchHooks Function({bool payablesRefs})
+    >;
+typedef $$PayablesTableCreateCompanionBuilder =
+    PayablesCompanion Function({
+      Value<int> id,
+      required int transactionId,
+      required int cardId,
+      Value<int> installmentCount,
+      Value<double> annualRatePercent,
+      required int totalMinor,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$PayablesTableUpdateCompanionBuilder =
+    PayablesCompanion Function({
+      Value<int> id,
+      Value<int> transactionId,
+      Value<int> cardId,
+      Value<int> installmentCount,
+      Value<double> annualRatePercent,
+      Value<int> totalMinor,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$PayablesTableReferences
+    extends BaseReferences<_$AppDatabase, $PayablesTable, PayableRow> {
+  $$PayablesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TransactionsTable _transactionIdTable(_$AppDatabase db) =>
+      db.transactions.createAlias('payables__transaction_id__transactions__id');
+
+  $$TransactionsTableProcessedTableManager get transactionId {
+    final $_column = $_itemColumn<int>('transaction_id')!;
+
+    final manager = $$TransactionsTableTableManager(
+      $_db,
+      $_db.transactions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PaymentCardsTable _cardIdTable(_$AppDatabase db) =>
+      db.paymentCards.createAlias('payables__card_id__payment_cards__id');
+
+  $$PaymentCardsTableProcessedTableManager get cardId {
+    final $_column = $_itemColumn<int>('card_id')!;
+
+    final manager = $$PaymentCardsTableTableManager(
+      $_db,
+      $_db.paymentCards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$PayableSchedulesTable, List<PayableScheduleRow>>
+  _payableSchedulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.payableSchedules,
+    aliasName: 'payables__id__payable_schedules__payable_id',
+  );
+
+  $$PayableSchedulesTableProcessedTableManager get payableSchedulesRefs {
+    final manager = $$PayableSchedulesTableTableManager(
+      $_db,
+      $_db.payableSchedules,
+    ).filter((f) => f.payableId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _payableSchedulesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$PayablesTableFilterComposer
+    extends Composer<_$AppDatabase, $PayablesTable> {
+  $$PayablesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get installmentCount => $composableBuilder(
+    column: $table.installmentCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalMinor => $composableBuilder(
+    column: $table.totalMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TransactionsTableFilterComposer get transactionId {
+    final $$TransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PaymentCardsTableFilterComposer get cardId {
+    final $$PaymentCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cardId,
+      referencedTable: $db.paymentCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PaymentCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.paymentCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> payableSchedulesRefs(
+    Expression<bool> Function($$PayableSchedulesTableFilterComposer f) f,
+  ) {
+    final $$PayableSchedulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payableSchedules,
+      getReferencedColumn: (t) => t.payableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayableSchedulesTableFilterComposer(
+            $db: $db,
+            $table: $db.payableSchedules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PayablesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PayablesTable> {
+  $$PayablesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get installmentCount => $composableBuilder(
+    column: $table.installmentCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalMinor => $composableBuilder(
+    column: $table.totalMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TransactionsTableOrderingComposer get transactionId {
+    final $$TransactionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PaymentCardsTableOrderingComposer get cardId {
+    final $$PaymentCardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cardId,
+      referencedTable: $db.paymentCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PaymentCardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.paymentCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PayablesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PayablesTable> {
+  $$PayablesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get installmentCount => $composableBuilder(
+    column: $table.installmentCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get annualRatePercent => $composableBuilder(
+    column: $table.annualRatePercent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalMinor => $composableBuilder(
+    column: $table.totalMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$TransactionsTableAnnotationComposer get transactionId {
+    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PaymentCardsTableAnnotationComposer get cardId {
+    final $$PaymentCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cardId,
+      referencedTable: $db.paymentCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PaymentCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.paymentCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> payableSchedulesRefs<T extends Object>(
+    Expression<T> Function($$PayableSchedulesTableAnnotationComposer a) f,
+  ) {
+    final $$PayableSchedulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.payableSchedules,
+      getReferencedColumn: (t) => t.payableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayableSchedulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.payableSchedules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PayablesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PayablesTable,
+          PayableRow,
+          $$PayablesTableFilterComposer,
+          $$PayablesTableOrderingComposer,
+          $$PayablesTableAnnotationComposer,
+          $$PayablesTableCreateCompanionBuilder,
+          $$PayablesTableUpdateCompanionBuilder,
+          (PayableRow, $$PayablesTableReferences),
+          PayableRow,
+          PrefetchHooks Function({
+            bool transactionId,
+            bool cardId,
+            bool payableSchedulesRefs,
+          })
+        > {
+  $$PayablesTableTableManager(_$AppDatabase db, $PayablesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PayablesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PayablesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PayablesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> transactionId = const Value.absent(),
+                Value<int> cardId = const Value.absent(),
+                Value<int> installmentCount = const Value.absent(),
+                Value<double> annualRatePercent = const Value.absent(),
+                Value<int> totalMinor = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PayablesCompanion(
+                id: id,
+                transactionId: transactionId,
+                cardId: cardId,
+                installmentCount: installmentCount,
+                annualRatePercent: annualRatePercent,
+                totalMinor: totalMinor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int transactionId,
+                required int cardId,
+                Value<int> installmentCount = const Value.absent(),
+                Value<double> annualRatePercent = const Value.absent(),
+                required int totalMinor,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PayablesCompanion.insert(
+                id: id,
+                transactionId: transactionId,
+                cardId: cardId,
+                installmentCount: installmentCount,
+                annualRatePercent: annualRatePercent,
+                totalMinor: totalMinor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PayablesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                transactionId = false,
+                cardId = false,
+                payableSchedulesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (payableSchedulesRefs) db.payableSchedules,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (transactionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.transactionId,
+                                    referencedTable: $$PayablesTableReferences
+                                        ._transactionIdTable(db),
+                                    referencedColumn: $$PayablesTableReferences
+                                        ._transactionIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (cardId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.cardId,
+                                    referencedTable: $$PayablesTableReferences
+                                        ._cardIdTable(db),
+                                    referencedColumn: $$PayablesTableReferences
+                                        ._cardIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (payableSchedulesRefs)
+                        await $_getPrefetchedData<
+                          PayableRow,
+                          $PayablesTable,
+                          PayableScheduleRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PayablesTableReferences
+                              ._payableSchedulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PayablesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).payableSchedulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.payableId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$PayablesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PayablesTable,
+      PayableRow,
+      $$PayablesTableFilterComposer,
+      $$PayablesTableOrderingComposer,
+      $$PayablesTableAnnotationComposer,
+      $$PayablesTableCreateCompanionBuilder,
+      $$PayablesTableUpdateCompanionBuilder,
+      (PayableRow, $$PayablesTableReferences),
+      PayableRow,
+      PrefetchHooks Function({
+        bool transactionId,
+        bool cardId,
+        bool payableSchedulesRefs,
+      })
+    >;
+typedef $$PayableSchedulesTableCreateCompanionBuilder =
+    PayableSchedulesCompanion Function({
+      Value<int> id,
+      required int payableId,
+      required int ym,
+      required int amountMinor,
+    });
+typedef $$PayableSchedulesTableUpdateCompanionBuilder =
+    PayableSchedulesCompanion Function({
+      Value<int> id,
+      Value<int> payableId,
+      Value<int> ym,
+      Value<int> amountMinor,
+    });
+
+final class $$PayableSchedulesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $PayableSchedulesTable,
+          PayableScheduleRow
+        > {
+  $$PayableSchedulesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $PayablesTable _payableIdTable(_$AppDatabase db) =>
+      db.payables.createAlias('payable_schedules__payable_id__payables__id');
+
+  $$PayablesTableProcessedTableManager get payableId {
+    final $_column = $_itemColumn<int>('payable_id')!;
+
+    final manager = $$PayablesTableTableManager(
+      $_db,
+      $_db.payables,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_payableIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PayableSchedulesTableFilterComposer
+    extends Composer<_$AppDatabase, $PayableSchedulesTable> {
+  $$PayableSchedulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get ym => $composableBuilder(
+    column: $table.ym,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PayablesTableFilterComposer get payableId {
+    final $$PayablesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payableId,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableFilterComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PayableSchedulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PayableSchedulesTable> {
+  $$PayableSchedulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get ym => $composableBuilder(
+    column: $table.ym,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PayablesTableOrderingComposer get payableId {
+    final $$PayablesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payableId,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableOrderingComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PayableSchedulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PayableSchedulesTable> {
+  $$PayableSchedulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get ym =>
+      $composableBuilder(column: $table.ym, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  $$PayablesTableAnnotationComposer get payableId {
+    final $$PayablesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payableId,
+      referencedTable: $db.payables,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PayablesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.payables,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PayableSchedulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PayableSchedulesTable,
+          PayableScheduleRow,
+          $$PayableSchedulesTableFilterComposer,
+          $$PayableSchedulesTableOrderingComposer,
+          $$PayableSchedulesTableAnnotationComposer,
+          $$PayableSchedulesTableCreateCompanionBuilder,
+          $$PayableSchedulesTableUpdateCompanionBuilder,
+          (PayableScheduleRow, $$PayableSchedulesTableReferences),
+          PayableScheduleRow,
+          PrefetchHooks Function({bool payableId})
+        > {
+  $$PayableSchedulesTableTableManager(
+    _$AppDatabase db,
+    $PayableSchedulesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PayableSchedulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PayableSchedulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PayableSchedulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> payableId = const Value.absent(),
+                Value<int> ym = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+              }) => PayableSchedulesCompanion(
+                id: id,
+                payableId: payableId,
+                ym: ym,
+                amountMinor: amountMinor,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int payableId,
+                required int ym,
+                required int amountMinor,
+              }) => PayableSchedulesCompanion.insert(
+                id: id,
+                payableId: payableId,
+                ym: ym,
+                amountMinor: amountMinor,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PayableSchedulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({payableId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (payableId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.payableId,
+                                referencedTable:
+                                    $$PayableSchedulesTableReferences
+                                        ._payableIdTable(db),
+                                referencedColumn:
+                                    $$PayableSchedulesTableReferences
+                                        ._payableIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PayableSchedulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PayableSchedulesTable,
+      PayableScheduleRow,
+      $$PayableSchedulesTableFilterComposer,
+      $$PayableSchedulesTableOrderingComposer,
+      $$PayableSchedulesTableAnnotationComposer,
+      $$PayableSchedulesTableCreateCompanionBuilder,
+      $$PayableSchedulesTableUpdateCompanionBuilder,
+      (PayableScheduleRow, $$PayableSchedulesTableReferences),
+      PayableScheduleRow,
+      PrefetchHooks Function({bool payableId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7881,4 +10647,10 @@ class $AppDatabaseManager {
       $$ChoreRecordsTableTableManager(_db, _db.choreRecords);
   $$DeletedTransactionsTableTableManager get deletedTransactions =>
       $$DeletedTransactionsTableTableManager(_db, _db.deletedTransactions);
+  $$PaymentCardsTableTableManager get paymentCards =>
+      $$PaymentCardsTableTableManager(_db, _db.paymentCards);
+  $$PayablesTableTableManager get payables =>
+      $$PayablesTableTableManager(_db, _db.payables);
+  $$PayableSchedulesTableTableManager get payableSchedules =>
+      $$PayableSchedulesTableTableManager(_db, _db.payableSchedules);
 }

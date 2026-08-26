@@ -1,6 +1,7 @@
 import '../db/enums.dart';
 import '../settings/installment_cards.dart';
 import '../../domain/money/civil_date.dart';
+import '../../domain/services/payment_schedule.dart' show PayableInstallment;
 
 /// バックアップ関連の例外の基底。message は人間向け（UI表示は後続フェーズ）。
 abstract class BackupException implements Exception {
@@ -216,6 +217,54 @@ class BackupBudget {
   const BackupBudget({required this.enabled, required this.amountMinor});
 }
 
+/// 行と1:1のバックアップ用カード（支払い区分・formatVersion 10で追加）。
+class BackupPaymentCard {
+  final int id;
+  final String name;
+  final int payDay;
+  final BusinessDayRule businessDayRule;
+  final double annualRatePercent;
+  final int sortOrder;
+  final bool isArchived;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const BackupPaymentCard({
+    required this.id,
+    required this.name,
+    required this.payDay,
+    required this.businessDayRule,
+    required this.annualRatePercent,
+    required this.sortOrder,
+    required this.isArchived,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
+/// 未払金（formatVersion 10で追加）。支払い予定を入れ子で持つ。
+class BackupPayable {
+  final int id;
+  final int transactionId;
+  final int cardId;
+  final int installmentCount;
+  final double annualRatePercent;
+  final int totalMinor;
+  final List<PayableInstallment> schedule;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const BackupPayable({
+    required this.id,
+    required this.transactionId,
+    required this.cardId,
+    required this.installmentCount,
+    required this.annualRatePercent,
+    required this.totalMinor,
+    required this.schedule,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
 class BackupPayload {
   final int formatVersion;
   final DateTime? exportedAt;
@@ -244,6 +293,12 @@ class BackupPayload {
   /// 毎月の予算（formatVersion 9で追加。SharedPreferences由来）。
   /// null = 未収録（v8以前）。復元時は端末の予算設定を変更しない。
   final BackupBudget? budget;
+
+  /// 支払い区分のカードと未払金（formatVersion 10で追加。DBの表）。
+  /// prefs由来のものと違い、旧バックアップは**空**で復元する（復元は置換なので、
+  /// 収録が無い＝カードも未払金も無い状態が正しい）。
+  final List<BackupPaymentCard> paymentCards;
+  final List<BackupPayable> payables;
   const BackupPayload({
     required this.formatVersion,
     required this.exportedAt,
@@ -256,5 +311,7 @@ class BackupPayload {
     this.installmentCards,
     this.shoppingMemo,
     this.budget,
+    this.paymentCards = const [],
+    this.payables = const [],
   });
 }

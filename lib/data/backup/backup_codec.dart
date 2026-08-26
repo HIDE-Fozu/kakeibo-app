@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'backup_data.dart';
 import '../settings/installment_cards.dart';
+import '../../domain/services/payment_schedule.dart';
 import '../db/enums.dart';
 import '../../domain/money/civil_date.dart';
 import '../../domain/services/chore_schedule.dart'
@@ -24,7 +25,10 @@ class BackupCodec {
   ///     （買い物メモ）・budget（毎月の予算）を追加。いずれも
   ///     SharedPreferences由来。キー欠落＝「未収録」(null) として復元時に
   ///     端末側を変更しないため、v8→v9 のマイグレーションでは補完しない。
-  static const int formatVersion = 9;
+  /// v10: paymentCards（支払い区分のカード）と payables（未払金＋支払い予定）
+  ///     を追加。DBの表なので prefs 由来のものと違い、旧バックアップは
+  ///     **空**で復元する（復元は置換＝収録が無い＝その機能を使っていない）。
+  static const int formatVersion = 10;
 
   const BackupCodec();
 
@@ -110,6 +114,37 @@ class BackupCodec {
             'lastGeneratedYm': r.lastGeneratedYm,
             'createdAt': r.createdAt.toUtc().toIso8601String(),
             'updatedAt': r.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'paymentCards': [
+        for (final c in p.paymentCards)
+          {
+            'id': c.id,
+            'name': c.name,
+            'payDay': c.payDay,
+            'businessDayRule': c.businessDayRule.name,
+            'annualRatePercent': c.annualRatePercent,
+            'sortOrder': c.sortOrder,
+            'isArchived': c.isArchived,
+            'createdAt': c.createdAt.toUtc().toIso8601String(),
+            'updatedAt': c.updatedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'payables': [
+        for (final pa in p.payables)
+          {
+            'id': pa.id,
+            'transactionId': pa.transactionId,
+            'cardId': pa.cardId,
+            'installmentCount': pa.installmentCount,
+            'annualRatePercent': pa.annualRatePercent,
+            'totalMinor': pa.totalMinor,
+            'schedule': [
+              for (final s in pa.schedule)
+                {'ym': s.ym, 'amountMinor': s.amountMinor},
+            ],
+            'createdAt': pa.createdAt.toUtc().toIso8601String(),
+            'updatedAt': pa.updatedAt.toUtc().toIso8601String(),
           },
       ],
       'choreTasks': [
@@ -491,6 +526,115 @@ class BackupCodec {
       }
     }
 
+    // --- paymentCards / payables（v10） ---
+    final cardsListRaw = req<List<dynamic>>(root, 'paymentCards', 'root');
+    final paymentCards = <BackupPaymentCard>[];
+    final cardIds = <int>{};
+    for (final (i, raw) in cardsListRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('paymentCards[$i] がオブジェクトではありません');
+      }
+      final ctx = 'paymentCards[$i]';
+      final name = req<String>(raw, 'name', ctx);
+      if (name.isEmpty) throw BackupValidationError('$ctx.name が空です');
+      final payDay = req<int>(raw, 'payDay', ctx);
+      if (payDay < 1 || payDay > 31) {
+        throw BackupValidationError('$ctx.payDay が範囲外です: $payDay');
+      }
+      final rate = req<num>(raw, 'annualRatePercent', ctx).toDouble();
+      if (rate < 0) {
+        throw BackupValidationError('$ctx.annualRatePercent が負です: $rate');
+      }
+      final c = BackupPaymentCard(
+        id: req<int>(raw, 'id', ctx),
+        name: name,
+        payDay: payDay,
+        businessDayRule: enumByName(BusinessDayRule.values,
+            req<String>(raw, 'businessDayRule', ctx), '$ctx.businessDayRule'),
+        annualRatePercent: rate,
+        sortOrder: req<int>(raw, 'sortOrder', ctx),
+        isArchived: req<bool>(raw, 'isArchived', ctx),
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+        updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
+      );
+      if (!cardIds.add(c.id)) {
+        throw BackupValidationError('カードID ${c.id} が重複しています');
+      }
+      paymentCards.add(c);
+    }
+
+    final payablesRaw = req<List<dynamic>>(root, 'payables', 'root');
+    final payables = <BackupPayable>[];
+    final payableIds = <int>{};
+    final payableTxIds = <int>{};
+    for (final (i, raw) in payablesRaw.indexed) {
+      if (raw is! Map<String, dynamic>) {
+        throw BackupFormatError('payables[$i] がオブジェクトではありません');
+      }
+      final ctx = 'payables[$i]';
+      final count = req<int>(raw, 'installmentCount', ctx);
+      if (count < 1) {
+        throw BackupValidationError('$ctx.installmentCount が不正です: $count');
+      }
+      final total = req<int>(raw, 'totalMinor', ctx);
+      if (total < 0) {
+        throw BackupValidationError('$ctx.totalMinor が負です: $total');
+      }
+      final rate = req<num>(raw, 'annualRatePercent', ctx).toDouble();
+      if (rate < 0) {
+        throw BackupValidationError('$ctx.annualRatePercent が負です: $rate');
+      }
+      final schedRaw = req<List<dynamic>>(raw, 'schedule', ctx);
+      final schedule = <PayableInstallment>[];
+      for (final (j, sRaw) in schedRaw.indexed) {
+        if (sRaw is! Map<String, dynamic>) {
+          throw BackupFormatError('$ctx.schedule[$j] がオブジェクトではありません');
+        }
+        final sCtx = '$ctx.schedule[$j]';
+        final ym = req<int>(sRaw, 'ym', sCtx);
+        if (!validYm(ym)) {
+          throw BackupValidationError('$sCtx.ym が YYYYMM ではありません: $ym');
+        }
+        schedule.add(PayableInstallment(
+            ym: ym, amountMinor: req<int>(sRaw, 'amountMinor', sCtx)));
+      }
+      if (schedule.length != count) {
+        throw BackupValidationError(
+            '$ctx: 支払い回数 $count とスケジュール ${schedule.length} 件が一致しません');
+      }
+      // 合計＝総額は未払金の生命線。壊れたバックアップを復元させない。
+      final why = validateSchedule(schedule, expectedTotalMinor: total);
+      if (why != null) throw BackupValidationError('$ctx: $why');
+
+      final txId = req<int>(raw, 'transactionId', ctx);
+      if (!txIds.contains(txId)) {
+        throw BackupValidationError(
+            '$ctx.transactionId $txId が同梱取引に解決できません');
+      }
+      if (!payableTxIds.add(txId)) {
+        throw BackupValidationError('取引ID $txId に未払金が2件あります');
+      }
+      final cardId = req<int>(raw, 'cardId', ctx);
+      if (!cardIds.contains(cardId)) {
+        throw BackupValidationError('$ctx.cardId $cardId が同梱カードに解決できません');
+      }
+      final pa = BackupPayable(
+        id: req<int>(raw, 'id', ctx),
+        transactionId: txId,
+        cardId: cardId,
+        installmentCount: count,
+        annualRatePercent: rate,
+        totalMinor: total,
+        schedule: schedule,
+        createdAt: instant(req<String>(raw, 'createdAt', ctx), '$ctx.createdAt'),
+        updatedAt: instant(req<String>(raw, 'updatedAt', ctx), '$ctx.updatedAt'),
+      );
+      if (!payableIds.add(pa.id)) {
+        throw BackupValidationError('未払金ID ${pa.id} が重複しています');
+      }
+      payables.add(pa);
+    }
+
     // --- choreTasks / choreRecords（v5） ---
     final choreTasksRaw = req<List<dynamic>>(root, 'choreTasks', 'root');
     final choreTasks = <BackupChoreTask>[];
@@ -589,6 +733,8 @@ class BackupCodec {
       installmentCards: installmentCards,
       shoppingMemo: shoppingMemo,
       budget: budget,
+      paymentCards: paymentCards,
+      payables: payables,
     );
   }
 
@@ -617,12 +763,22 @@ class BackupCodec {
           // 目印に使うため、空リストで補完してはいけない（補完すると
           // 復元時に端末の登録カードを消してしまう）。
           break;
+        case 9:
+          m = _migrateV9toV10(m);
         default:
           throw BackupVersionError('formatVersion $v からの移行手順がありません');
       }
       v++;
     }
     return m;
+  }
+
+  /// v9→v10: paymentCards / payables を空で補完（旧バックアップに支払い区分は
+  /// 無い）。これらはDBの表なので、prefs由来のキーと違い空で正しい。
+  Map<String, dynamic> _migrateV9toV10(Map<String, dynamic> root) {
+    root.putIfAbsent('paymentCards', () => <dynamic>[]);
+    root.putIfAbsent('payables', () => <dynamic>[]);
+    return root;
   }
 
   /// v1→v2: categories に parentId を補完（v1は全て親＝null）。

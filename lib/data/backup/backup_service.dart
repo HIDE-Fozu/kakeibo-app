@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database.dart';
 import '../settings/budget_prefs.dart';
 import '../settings/installment_cards.dart';
+import '../../domain/services/payment_schedule.dart' show PayableInstallment;
 import '../settings/shopping_memo_prefs.dart';
 import 'auto_backup_store.dart';
 import 'backup_codec.dart';
@@ -42,6 +43,20 @@ class BackupService {
     final plans = await (_db.select(_db.installmentPlans)
           ..orderBy([(r) => OrderingTerm.asc(r.id)]))
         .get();
+    final cardRows = await (_db.select(_db.paymentCards)
+          ..orderBy([(r) => OrderingTerm.asc(r.id)]))
+        .get();
+    final payableRows = await (_db.select(_db.payables)
+          ..orderBy([(r) => OrderingTerm.asc(r.id)]))
+        .get();
+    final scheduleRows = await (_db.select(_db.payableSchedules)
+          ..orderBy([(r) => OrderingTerm.asc(r.ym)]))
+        .get();
+    final schedulesByPayable = <int, List<PayableInstallment>>{};
+    for (final r in scheduleRows) {
+      (schedulesByPayable[r.payableId] ??= [])
+          .add(PayableInstallment(ym: r.ym, amountMinor: r.amountMinor));
+    }
     final prefs = _prefs;
     return BackupPayload(
       formatVersion: BackupCodec.formatVersion,
@@ -105,6 +120,34 @@ class BackupService {
             cardName: pl.cardName,
             createdAt: pl.createdAt.toUtc(),
             updatedAt: pl.updatedAt.toUtc(),
+          ),
+      ],
+      paymentCards: [
+        for (final c in cardRows)
+          BackupPaymentCard(
+            id: c.id,
+            name: c.name,
+            payDay: c.payDay,
+            businessDayRule: c.businessDayRule,
+            annualRatePercent: c.annualRatePercent,
+            sortOrder: c.sortOrder,
+            isArchived: c.isArchived,
+            createdAt: c.createdAt.toUtc(),
+            updatedAt: c.updatedAt.toUtc(),
+          ),
+      ],
+      payables: [
+        for (final pa in payableRows)
+          BackupPayable(
+            id: pa.id,
+            transactionId: pa.transactionId,
+            cardId: pa.cardId,
+            installmentCount: pa.installmentCount,
+            annualRatePercent: pa.annualRatePercent,
+            totalMinor: pa.totalMinor,
+            schedule: schedulesByPayable[pa.id] ?? const [],
+            createdAt: pa.createdAt.toUtc(),
+            updatedAt: pa.updatedAt.toUtc(),
           ),
       ],
       recurringRules: [
@@ -209,6 +252,10 @@ class BackupService {
 
       // FK RESTRICT を回避する順序: 取引・定期ルール → カテゴリ の順に削除。
       // つきいちは記録 → タスク の順（カスケードに頼らず明示削除）。
+      // 未払金 → 予定 の順ではなく、参照している側から消す。
+      await _db.delete(_db.payableSchedules).go();
+      await _db.delete(_db.payables).go();
+      await _db.delete(_db.paymentCards).go();
       await _db.delete(_db.transactions).go();
       await _db.delete(_db.installmentPlans).go();
       await _db.delete(_db.recurringRules).go();
@@ -308,6 +355,47 @@ class BackupService {
             ),
           );
         }
+        for (final c in payload.paymentCards) {
+          b.insert(
+            _db.paymentCards,
+            PaymentCardsCompanion(
+              id: Value(c.id),
+              name: Value(c.name),
+              payDay: Value(c.payDay),
+              businessDayRule: Value(c.businessDayRule),
+              annualRatePercent: Value(c.annualRatePercent),
+              sortOrder: Value(c.sortOrder),
+              isArchived: Value(c.isArchived),
+              createdAt: Value(c.createdAt),
+              updatedAt: Value(c.updatedAt),
+            ),
+          );
+        }
+        for (final pa in payload.payables) {
+          b.insert(
+            _db.payables,
+            PayablesCompanion(
+              id: Value(pa.id),
+              transactionId: Value(pa.transactionId),
+              cardId: Value(pa.cardId),
+              installmentCount: Value(pa.installmentCount),
+              annualRatePercent: Value(pa.annualRatePercent),
+              totalMinor: Value(pa.totalMinor),
+              createdAt: Value(pa.createdAt),
+              updatedAt: Value(pa.updatedAt),
+            ),
+          );
+          for (final s in pa.schedule) {
+            b.insert(
+              _db.payableSchedules,
+              PayableSchedulesCompanion.insert(
+                payableId: pa.id,
+                ym: s.ym,
+                amountMinor: s.amountMinor,
+              ),
+            );
+          }
+        }
         for (final r in payload.choreRecords) {
           b.insert(
             _db.choreRecords,
@@ -329,7 +417,11 @@ class BackupService {
       final choreTaskCount = await _count(_db.choreTasks);
       final choreRecordCount = await _count(_db.choreRecords);
       final planCount = await _count(_db.installmentPlans);
-      if (catCount != payload.categories.length ||
+      final cardCount = await _count(_db.paymentCards);
+      final payableCount = await _count(_db.payables);
+      if (cardCount != payload.paymentCards.length ||
+          payableCount != payload.payables.length ||
+          catCount != payload.categories.length ||
           planCount != payload.installmentPlans.length ||
           txCount != payload.transactions.length ||
           ruleCount != payload.recurringRules.length ||
@@ -341,7 +433,9 @@ class BackupService {
             'rules=$ruleCount/${payload.recurringRules.length}, '
             'choreTasks=$choreTaskCount/${payload.choreTasks.length}, '
             'choreRecords=$choreRecordCount/${payload.choreRecords.length}, '
-            'installmentPlans=$planCount/${payload.installmentPlans.length}');
+            'installmentPlans=$planCount/${payload.installmentPlans.length}, '
+            'paymentCards=$cardCount/${payload.paymentCards.length}, '
+            'payables=$payableCount/${payload.payables.length}');
       }
     });
   }

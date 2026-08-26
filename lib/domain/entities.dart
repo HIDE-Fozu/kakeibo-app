@@ -1,4 +1,5 @@
 import 'money/civil_date.dart';
+import 'services/payment_schedule.dart' show PayableInstallment;
 import '../data/db/enums.dart';
 
 class TransactionEntity {
@@ -53,6 +54,68 @@ class InstallmentPlanEntity {
     required this.dayOfMonth,
     required this.startYm,
     this.cardName,
+  });
+}
+
+/// 支払い区分＝繰延払いの手段（カード等）。現金・即時払いはカード未選択で表す。
+class PaymentCardEntity {
+  final int? id;
+  final String name;
+  final int payDay; // 引き落とし日 1..31（短い月は末日に丸め）
+  final BusinessDayRule businessDayRule; // 休業日の寄せ方（既定=翌営業日）
+  final double annualRatePercent; // 「あとから分割」の既定の実質年率
+  final int sortOrder;
+  final bool isArchived;
+
+  const PaymentCardEntity({
+    this.id,
+    required this.name,
+    required this.payDay,
+    this.businessDayRule = BusinessDayRule.next,
+    this.annualRatePercent = 0,
+    this.sortOrder = 0,
+    this.isArchived = false,
+  });
+
+  PaymentCardEntity copyWith({
+    int? id,
+    String? name,
+    int? payDay,
+    BusinessDayRule? businessDayRule,
+    double? annualRatePercent,
+    int? sortOrder,
+    bool? isArchived,
+  }) =>
+      PaymentCardEntity(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        payDay: payDay ?? this.payDay,
+        businessDayRule: businessDayRule ?? this.businessDayRule,
+        annualRatePercent: annualRatePercent ?? this.annualRatePercent,
+        sortOrder: sortOrder ?? this.sortOrder,
+        isArchived: isArchived ?? this.isArchived,
+      );
+}
+
+/// 未払金（カードで買った1件）。購入取引と1:1で、支払い予定を持つ。
+/// 引き落とし自体は取引として起票しない（購入と二重計上になるため）。
+class PayableEntity {
+  final int? id;
+  final int transactionId; // 購入取引
+  final int cardId;
+  final int installmentCount; // 1=一括 / N=あとから分割
+  final double annualRatePercent;
+  final int totalMinor; // 元本＋手数料。schedule の合計と必ず一致する
+  final List<PayableInstallment> schedule; // 何月にいくら
+
+  const PayableEntity({
+    this.id,
+    required this.transactionId,
+    required this.cardId,
+    required this.totalMinor,
+    required this.schedule,
+    this.installmentCount = 1,
+    this.annualRatePercent = 0,
   });
 }
 

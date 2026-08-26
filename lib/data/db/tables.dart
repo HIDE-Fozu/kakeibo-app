@@ -156,3 +156,70 @@ class DeletedTransactions extends Table {
   IntColumn get installmentPlanId => integer().nullable()();
   DateTimeColumn get deletedAt => dateTime()();
 }
+
+/// 支払い区分＝繰延払いの手段（カード等）。v12で追加。
+///
+/// 現金・即時払いは「カード未選択」で表す（この表に行を作らない）。
+/// [payDay] はそのカードの引き落とし日（1..31・短い月は末日に丸め）で、
+/// 休業日は [businessDayRule] に従って営業日へ寄せる。
+/// [annualRatePercent] は「あとから分割」にしたときの既定の実質年率。
+@DataClassName('PaymentCardRow')
+class PaymentCards extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get payDay => integer()();
+  TextColumn get businessDayRule =>
+      textEnum<BusinessDayRule>().withDefault(const Constant('next'))();
+  RealColumn get annualRatePercent => real().withDefault(const Constant(0))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 未払金（カードで買った1件＝1オブジェクト）。購入取引と1:1。v12で追加。
+///
+/// 買った時点では現金が動かない負債で、カードの支払日にまとめて引き落とされる。
+/// 引き落とし自体は**取引として起票しない**（起票すると購入と二重計上になる）。
+/// 支払日の表示は payable_schedules から導出する（固定費のゴーストと同じ考え方）。
+///
+/// [installmentCount] 1=一括・N=あとから分割。[totalMinor] は元本＋手数料で、
+/// payable_schedules の合計と常に一致していなければならない（機械判定あり）。
+/// 削除・回数変更は「この未払金」というオブジェクト単位で行う。
+@DataClassName('PayableRow')
+class Payables extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get transactionId =>
+      integer().references(Transactions, #id, onDelete: KeyAction.cascade)();
+  IntColumn get cardId =>
+      integer().references(PaymentCards, #id, onDelete: KeyAction.restrict)();
+  IntColumn get installmentCount => integer().withDefault(const Constant(1))();
+  RealColumn get annualRatePercent => real().withDefault(const Constant(0))();
+  IntColumn get totalMinor => integer()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  // 購入取引ひとつに未払金はひとつ。
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {transactionId}
+      ];
+}
+
+/// 未払金の支払い予定（何月にいくら）。v12で追加。
+/// 一括なら1行、あとから分割ならN行。合計は必ず payables.total_minor と一致する
+/// （「この月は1万円・この月は2万円」と個別に触れるようにしたときの安全網）。
+@DataClassName('PayableScheduleRow')
+class PayableSchedules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get payableId =>
+      integer().references(Payables, #id, onDelete: KeyAction.cascade)();
+  IntColumn get ym => integer()(); // 支払い月 YYYYMM
+  IntColumn get amountMinor => integer()();
+
+  // 同じ未払金が同じ月に2行持つことはない。
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {payableId, ym}
+      ];
+}

@@ -17,6 +17,9 @@ part 'database.g.dart';
     ChoreRecords,
     InstallmentPlans,
     DeletedTransactions,
+    PaymentCards,
+    Payables,
+    PayableSchedules,
   ],
   daos: [CategoryDao, TransactionDao, RecurringRuleDao, ChoreDao],
 )
@@ -27,7 +30,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this.seedLocaleTag = 'ja'});
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -94,6 +97,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 11) {
             // v11: ごみ箱（最近削除した取引）。既存データは無関係。
             await m.createTable(deletedTransactions);
+          }
+          if (from < 12) {
+            // v12: 支払い区分（カード）と未払金。既存の取引は未払金を持たない
+            // ＝これまでどおり即時払い扱い。モードOFFなら何も起きない。
+            await m.createTable(paymentCards);
+            await m.createTable(payables);
+            await m.createTable(payableSchedules);
           }
         },
         beforeOpen: (details) async {

@@ -17,6 +17,7 @@ import '../data/repositories/drift_installment_plan_repository.dart';
 import '../data/repositories/drift_recurring_rule_repository.dart';
 import '../data/repositories/drift_transaction_repository.dart';
 import '../data/repositories/drift_trash_repository.dart';
+import '../data/repositories/drift_payment_repository.dart';
 import '../domain/entities.dart';
 import '../domain/money/civil_date.dart';
 import '../domain/repositories.dart';
@@ -128,6 +129,19 @@ final installmentPlanRepositoryProvider = Provider<InstallmentPlanRepository>(
 
 final installmentPlansProvider = StreamProvider<List<InstallmentPlanEntity>>(
   (ref) => ref.watch(installmentPlanRepositoryProvider).watchAll(),
+);
+
+/// 支払い区分（カード）と未払金（v12）。モードOFFなら誰も読まない。
+final paymentCardRepositoryProvider = Provider<PaymentCardRepository>(
+  (ref) => DriftPaymentCardRepository(ref.watch(appDatabaseProvider)),
+);
+
+final paymentCardsProvider = StreamProvider<List<PaymentCardEntity>>(
+  (ref) => ref.watch(paymentCardRepositoryProvider).watchAll(),
+);
+
+final payableRepositoryProvider = Provider<PayableRepository>(
+  (ref) => DriftPayableRepository(ref.watch(appDatabaseProvider)),
 );
 
 /// ごみ箱（最近削除した取引）。deletedAt・期限判定の時計はutcNow（テスト注入可）。

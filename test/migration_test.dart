@@ -69,7 +69,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11); // v1からでも現行(v11)まで一気に上がる
+    expect(v, 12); // v1からでも現行(v12)まで一気に上がる
     await db.close();
   });
 
@@ -128,7 +128,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -189,7 +189,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -262,7 +262,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -332,7 +332,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -421,7 +421,7 @@ CREATE TABLE "recurring_rules" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -504,7 +504,7 @@ CREATE TABLE "chore_records" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -576,7 +576,7 @@ CREATE TABLE "chore_records" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -649,7 +649,7 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
     await db.close();
   });
 
@@ -719,7 +719,90 @@ CREATE TABLE "transactions" (
         .customSelect('PRAGMA user_version')
         .getSingle()
         .then((r) => r.read<int>('user_version'));
-    expect(v, 11);
+    expect(v, 12);
+    await db.close();
+  });
+
+  test('schema v11 → v12: payment_cards / payables / payable_schedules が作られる',
+      () async {
+    final dir = Directory.systemTemp.createTempSync('kakeibo_migration_v12');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windowsのハンドル解放遅延。OSのクリーンアップに任せる。
+      }
+    });
+    final file = File('${dir.path}${Platform.pathSeparator}v11.db');
+
+    final raw = sqlite3.open(file.path);
+    raw.execute('''
+CREATE TABLE "categories" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "icon" TEXT NULL,
+  "sort_order" INTEGER NOT NULL DEFAULT 0,
+  "is_archived" INTEGER NOT NULL DEFAULT 0,
+  "is_system" INTEGER NOT NULL DEFAULT 0,
+  "slug" TEXT NULL,
+  "parent_id" INTEGER NULL REFERENCES "categories" ("id")
+);''');
+    raw.execute('''
+CREATE TABLE "transactions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "type" TEXT NOT NULL,
+  "amount" INTEGER NOT NULL,
+  "date" TEXT NOT NULL,
+  "category_id" INTEGER NOT NULL REFERENCES "categories" ("id") ON DELETE RESTRICT,
+  "payment_method" TEXT NULL,
+  "store_name" TEXT NULL,
+  "memo" TEXT NULL,
+  "source" TEXT NOT NULL,
+  "image_path" TEXT NULL,
+  "split_group_id" TEXT NULL,
+  "installment_plan_id" INTEGER NULL,
+  "created_at" TEXT NOT NULL,
+  "updated_at" TEXT NOT NULL
+);''');
+    raw.execute(
+        "INSERT INTO categories (id, name, type, sort_order, slug) VALUES (1,'食費','expense',0,'food')");
+    raw.execute(
+        "INSERT INTO transactions (type, amount, date, category_id, source, created_at, updated_at) "
+        "VALUES ('expense', 3000, '2026-08-10', 1, 'manual', "
+        "'2026-08-10T00:00:00.000Z', '2026-08-10T00:00:00.000Z')");
+    raw.execute('PRAGMA user_version = 11');
+    raw.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    // 既存の取引は無傷で、未払金を持たない＝これまでどおり即時払い扱い
+    final txs = await db.transactionDao.transactionsInMonth(2026, 8);
+    expect(txs.single.amount, 3000);
+    expect(await db.select(db.payables).get(), isEmpty);
+
+    // 新テーブルが使え、購入取引に未払金を紐づけられる
+    await db.customStatement(
+        "INSERT INTO payment_cards (name, pay_day, created_at, updated_at) "
+        "VALUES ('楽天カード', 27, '2026-08-26T00:00:00.000Z', '2026-08-26T00:00:00.000Z')");
+    await db.customStatement(
+        "INSERT INTO payables (transaction_id, card_id, total_minor, created_at, updated_at) "
+        "VALUES (${txs.single.id}, 1, 3000, '2026-08-26T00:00:00.000Z', '2026-08-26T00:00:00.000Z')");
+    await db.customStatement(
+        "INSERT INTO payable_schedules (payable_id, ym, amount_minor) VALUES (1, 202609, 3000)");
+
+    final card = await db.select(db.paymentCards).getSingle();
+    expect(card.name, '楽天カード');
+    expect(card.payDay, 27);
+    expect(card.businessDayRule, BusinessDayRule.next); // 既定=翌営業日
+    final sched = await db.select(db.payableSchedules).getSingle();
+    expect(sched.ym, 202609);
+    expect(sched.amountMinor, 3000);
+
+    final v = await db
+        .customSelect('PRAGMA user_version')
+        .getSingle()
+        .then((r) => r.read<int>('user_version'));
+    expect(v, 12);
     await db.close();
   });
 

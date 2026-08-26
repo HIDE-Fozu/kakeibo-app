@@ -79,6 +79,38 @@ abstract interface class InstallmentPlanRepository {
   Future<void> delete(int planId);
 }
 
+/// 支払い区分（カード）の登録・並び・アーカイブ。
+abstract interface class PaymentCardRepository {
+  Stream<List<PaymentCardEntity>> watchAll({bool includeArchived = false});
+  Future<List<PaymentCardEntity>> all({bool includeArchived = false});
+  Future<int> add(PaymentCardEntity card);
+  Future<void> update(PaymentCardEntity card);
+
+  /// アーカイブ（未払金から参照されていても消さずに隠す）。
+  Future<void> archive(int cardId, {bool archived = true});
+
+  /// 完全削除。未払金から参照されている場合は StateError（FK restrict）。
+  Future<void> delete(int cardId);
+}
+
+/// 未払金の読み書き。スケジュールの合計＝総額は書き込み時に必ず検証する。
+abstract interface class PayableRepository {
+  /// 指定した購入取引の未払金（無ければ null）。
+  Future<PayableEntity?> forTransaction(int transactionId);
+
+  /// 支払い月が ym の未払金一覧（その月の引き落とし内訳）。
+  Stream<List<PayableEntity>> watchForPaymentYm(int ym);
+
+  /// 未払金を作る（購入取引は作成済みであること）。
+  Future<int> add(PayableEntity payable);
+
+  /// 回数・率・スケジュールを差し替える（「あとから分割」「再分割」）。
+  Future<void> replace(PayableEntity payable);
+
+  /// 未払金だけ消す（購入取引は残る＝即時払いに戻す）。
+  Future<void> delete(int payableId);
+}
+
 abstract interface class ChoreRepository {
   Stream<List<ChoreTask>> watchTasks();
   Stream<List<ChoreRecord>> watchRecords();

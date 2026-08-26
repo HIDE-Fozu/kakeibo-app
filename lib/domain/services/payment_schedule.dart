@@ -9,21 +9,12 @@
 ///   前提の設計にしてある（この関数は既定値を出すだけ）。
 library;
 
+import '../../data/db/enums.dart' show BusinessDayRule;
 import '../money/civil_date.dart';
 import 'jp_holidays.dart';
 import 'recurring_schedule.dart' show daysInMonth, nextYm, ymOf;
 
-/// 支払日が休業日に当たったときの寄せ方。日本のカードは「翌営業日」が主流。
-enum BusinessDayRule {
-  /// 休業日でもその日のまま（自動振替でない支払い等）。
-  none,
-
-  /// 翌営業日へ送る（楽天カードなど大半のカード）。
-  next,
-
-  /// 前営業日へ戻す（一部のカード・口座振替）。
-  previous,
-}
+export '../../data/db/enums.dart' show BusinessDayRule;
 
 /// ym 月の payDay を暦日にする。短い月は末日に丸める（31日指定→2月は28/29日）。
 /// 営業日調整は行わない素の期日。

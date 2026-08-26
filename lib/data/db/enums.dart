@@ -9,6 +9,10 @@ enum PaymentMethod { cash, creditCard, eMoney, bankDraft, other }
 
 enum TxnSource { manual, receiptOcr, recurring }
 
+/// カードの支払日が休業日（土日祝）に当たったときの寄せ方（v12で追加）。
+/// next=翌営業日（日本のカードの主流）/ previous=前営業日 / none=調整しない。
+enum BusinessDayRule { none, next, previous }
+
 /// つきいちタスクの繰り返し方（v9で追加）。
 /// monthlyDay=毎月N日（dayOfMonth を使う）/ everyDays=N日ごと（intervalDays を使う）。
 enum ChoreRepeatUnit { monthlyDay, everyDays }
