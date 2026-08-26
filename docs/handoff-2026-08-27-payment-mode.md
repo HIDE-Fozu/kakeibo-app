@@ -98,6 +98,23 @@ iOSではアンインストール＝データコンテナごと削除なので�
 - 2回目の配備（メモのせり上げを入れた版）でも同じく「Uninstalling old version」
   が出た＝**この経路では毎回消える**。偶発ではない。
 
+### ★ `flutter install` は再ビルドしない（2026-08-27 に踏んだ）
+
+`flutter install` は `build/ios/iphoneos/Runner.app` の**既存の成果物を入れるだけ**。
+コードを直して install を繰り返しても、最初にビルドした古いバイナリが入り続ける。
+ユーザーに「実機に入ってないんじゃない？前と変わらない」と言われるまで、
+2回、入っていない物を「入れた」と報告してしまった。
+
+**配備の手順（必ずこの順で・検証まで含めて1セット）:**
+1. `flutter build ios --release`（`flutter run --release` でも可）
+2. `flutter install -d 00008140-00180D0911C2801C --release`
+3. **端末側で検証**: `xcrun devicectl device info apps --device <id> | grep kakeibo`
+   → 版数が上がっていること。判別できるよう**配備のたびに build number を上げる**。
+4. `xcrun devicectl device process launch --device <id> com.hidefozu.kakeibo`
+
+現在の実機 = **2.4.0(48)**（メモの直接入力・せり上げ・支払い区分まで全部入り）。
+pubspec も 2.4.0+48 に上げてある（2.3.0(47) は審査中なので次は2.4.0が妥当）。
+
 ## メモのせり上げ（FB 2026-08-27・ff02bf5）
 
 メモタブを押すと日別カードがカレンダーの上に乗る。背景タップで戻る。
