@@ -1078,6 +1078,108 @@ abstract class AppLocalizations {
   /// **'Budget left'**
   String get budgetRemainingLabel;
 
+  /// No description provided for @settingsPaymentModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment methods'**
+  String get settingsPaymentModeTitle;
+
+  /// No description provided for @settingsPaymentModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track card purchases as unpaid and group them on the billing date'**
+  String get settingsPaymentModeSubtitle;
+
+  /// No description provided for @paymentCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get paymentCash;
+
+  /// No description provided for @entryPaymentPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get entryPaymentPickerTitle;
+
+  /// No description provided for @paymentCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cards'**
+  String get paymentCardsTitle;
+
+  /// No description provided for @paymentCardsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards yet. Use + above to add a name and billing day.'**
+  String get paymentCardsEmptyMessage;
+
+  /// No description provided for @paymentCardAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add card'**
+  String get paymentCardAddTitle;
+
+  /// No description provided for @paymentCardEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit card'**
+  String get paymentCardEditTitle;
+
+  /// No description provided for @paymentCardNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get paymentCardNameLabel;
+
+  /// No description provided for @paymentCardPayDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing day'**
+  String get paymentCardPayDayLabel;
+
+  /// No description provided for @paymentCardRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'APR for later installments (%)'**
+  String get paymentCardRateLabel;
+
+  /// No description provided for @paymentCardBusinessDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'If the billing day is a non-business day'**
+  String get paymentCardBusinessDayLabel;
+
+  /// No description provided for @businessDayRuleNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next business day'**
+  String get businessDayRuleNext;
+
+  /// No description provided for @businessDayRulePrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous business day'**
+  String get businessDayRulePrevious;
+
+  /// No description provided for @businessDayRuleNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the date'**
+  String get businessDayRuleNone;
+
+  /// No description provided for @paymentCardInUseDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is used by unpaid items and cannot be deleted'**
+  String get paymentCardInUseDeleteError;
+
+  /// No description provided for @paymentCardBillingDaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} monthly'**
+  String paymentCardBillingDaySummary(int day);
+
   /// No description provided for @calendarReceiptFallbackLabel.
   ///
   /// In en, this message translates to:

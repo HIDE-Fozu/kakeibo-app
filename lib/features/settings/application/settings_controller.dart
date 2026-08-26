@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../data/settings/budget_prefs.dart';
 import '../../../data/settings/installment_cards.dart';
+import '../../../data/settings/payment_mode_prefs.dart';
 
 export '../../../data/settings/installment_cards.dart' show InstallmentCard;
 
@@ -37,6 +38,14 @@ class SettingsState {
 
   /// 予算額（最小単位）。未設定は0。
   final int monthlyBudgetMinor;
+
+  /// 支払い区分モード（2026-08-26要望）。オフなら未払金の仕組みは動かない。
+  final bool paymentModeEnabled;
+
+  /// 上部サマリの数え方。true=現金主義（引き落とし日・見出しは「支払い」）/
+  /// false=発生主義（買った日・見出しは「支出」）。
+  /// モードがオフのときは [summaryUsesCashBasis] が常に false を返す。
+  final bool summaryBasisCash;
   const SettingsState({
     required this.onboardingDone,
     required this.retainReceiptImages,
@@ -48,7 +57,13 @@ class SettingsState {
     this.installmentCards = const [],
     this.budgetEnabled = false,
     this.monthlyBudgetMinor = 0,
+    this.paymentModeEnabled = false,
+    this.summaryBasisCash = true,
   });
+
+  /// 実際に現金主義で数えるか。支払い区分モードがオフなら未払金が存在せず、
+  /// 「支払い」と呼ぶ意味もないので従来どおり（発生主義・見出しは「支出」）。
+  bool get summaryUsesCashBasis => paymentModeEnabled && summaryBasisCash;
 }
 
 /// SharedPreferences 由来のアプリ設定。書き込み後は invalidateSelf で再読込。
@@ -68,6 +83,9 @@ class AppSettings extends Notifier<SettingsState> {
   // 毎月の予算。キーは data/settings/budget_prefs.dart（バックアップと共用）。
   static const kBudgetEnabled = kBudgetEnabledPrefsKey;
   static const kMonthlyBudgetMinor = kMonthlyBudgetMinorPrefsKey;
+  // 支払い区分。キーは data/settings/payment_mode_prefs.dart（バックアップと共用）。
+  static const kPaymentModeEnabled = kPaymentModeEnabledPrefsKey;
+  static const kSummaryBasisCash = kSummaryBasisCashPrefsKey;
 
   @override
   SettingsState build() {
@@ -91,6 +109,8 @@ class AppSettings extends Notifier<SettingsState> {
           decodeInstallmentCardPrefs(p.getStringList(kInstallmentCards)),
       budgetEnabled: p.getBool(kBudgetEnabled) ?? false,
       monthlyBudgetMinor: p.getInt(kMonthlyBudgetMinor) ?? 0,
+      paymentModeEnabled: p.getBool(kPaymentModeEnabled) ?? false,
+      summaryBasisCash: p.getBool(kSummaryBasisCash) ?? true,
     );
   }
 
@@ -103,6 +123,18 @@ class AppSettings extends Notifier<SettingsState> {
     await ref
         .read(sharedPreferencesProvider)
         .setInt(kMonthlyBudgetMinor, minor);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setPaymentModeEnabled(bool value) async {
+    await ref
+        .read(sharedPreferencesProvider)
+        .setBool(kPaymentModeEnabled, value);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setSummaryBasisCash(bool value) async {
+    await ref.read(sharedPreferencesProvider).setBool(kSummaryBasisCash, value);
     ref.invalidateSelf();
   }
 

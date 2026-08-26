@@ -552,6 +552,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetRemainingLabel => 'Budget left';
 
   @override
+  String get settingsPaymentModeTitle => 'Payment methods';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Track card purchases as unpaid and group them on the billing date';
+
+  @override
+  String get paymentCash => 'Cash';
+
+  @override
+  String get entryPaymentPickerTitle => 'Payment method';
+
+  @override
+  String get paymentCardsTitle => 'Manage cards';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'No cards yet. Use + above to add a name and billing day.';
+
+  @override
+  String get paymentCardAddTitle => 'Add card';
+
+  @override
+  String get paymentCardEditTitle => 'Edit card';
+
+  @override
+  String get paymentCardNameLabel => 'Name';
+
+  @override
+  String get paymentCardPayDayLabel => 'Billing day';
+
+  @override
+  String get paymentCardRateLabel => 'APR for later installments (%)';
+
+  @override
+  String get paymentCardBusinessDayLabel =>
+      'If the billing day is a non-business day';
+
+  @override
+  String get businessDayRuleNext => 'Next business day';
+
+  @override
+  String get businessDayRulePrevious => 'Previous business day';
+
+  @override
+  String get businessDayRuleNone => 'Keep the date';
+
+  @override
+  String get paymentCardInUseDeleteError =>
+      'This card is used by unpaid items and cannot be deleted';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return 'Day $day monthly';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'Receipt';
 
   @override

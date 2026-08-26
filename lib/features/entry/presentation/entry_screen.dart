@@ -24,6 +24,7 @@ import 'receipt_review_panel.dart';
 import 'split_category_strip.dart';
 import 'split_entry_panel.dart';
 import 'subcategory_chips.dart';
+import '../../settings/application/settings_controller.dart';
 
 class EntryScreen extends ConsumerWidget {
   /// true=ボトムタブに埋め込み（Xで閉じず、保存後はカレンダーへ切替）。
@@ -40,6 +41,12 @@ class EntryScreen extends ConsumerWidget {
     final ctrl = ref.read(entryFormControllerProvider.notifier);
     final mf = ref.watch(moneyFormatterProvider);
     final currency = ref.watch(currencyProvider);
+    // 支払い区分（モードOFFなら選択UI自体を出さない＝従来どおり）。
+    final paymentMode = ref.watch(appSettingsProvider).paymentModeEnabled;
+    final cards = paymentMode
+        ? (ref.watch(paymentCardsProvider).valueOrNull ??
+            const <PaymentCardEntity>[])
+        : const <PaymentCardEntity>[];
 
     final title = switch (state.mode) {
       EntryMode.create => l.entryTitleCreate,
@@ -332,6 +339,42 @@ class EntryScreen extends ConsumerWidget {
                           alignment: WrapAlignment.spaceBetween,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
+                            // 支払い区分（モードON・支出・新規のときだけ）。
+                            // 押すと現金/登録カードから選ぶ。カード＝未払金になる。
+                            if (paymentMode &&
+                                state.type == TxnType.expense &&
+                                state.mode == EntryMode.create)
+                              TextButton.icon(
+                                key: const Key('entry-payment-btn'),
+                                onPressed: () =>
+                                    _pickPaymentCard(context, ref, cards),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  visualDensity: VisualDensity.compact,
+                                  backgroundColor: state.paymentCardId != null
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                  foregroundColor: state.paymentCardId != null
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : null,
+                                ),
+                                icon: Icon(
+                                    state.paymentCardId == null
+                                        ? Icons.payments_outlined
+                                        : Icons.credit_card,
+                                    size: 18),
+                                label: Text(
+                                  cards
+                                          .where((c) =>
+                                              c.id == state.paymentCardId)
+                                          .firstOrNull
+                                          ?.name ??
+                                      l.paymentCash,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             if (state.mode == EntryMode.create &&
                                 state.replacesTxIds == null)
                               TextButton.icon(
@@ -884,6 +927,44 @@ class EntryScreen extends ConsumerWidget {
 
 /// 1品目行のカテゴリ表示。内訳行のチップと同じ見た目に揃える（未選択は赤茶の枠）。
 /// 内訳行と違いタップ対象は下のグリッドなので、ここは表示専用。
+/// 支払い区分を選ぶボトムシート（現金＋登録カード）。
+Future<void> _pickPaymentCard(
+    BuildContext context, WidgetRef ref, List<PaymentCardEntity> cards) async {
+  final l = AppLocalizations.of(context);
+  final current = ref.read(entryFormControllerProvider)?.paymentCardId;
+  final picked = await showModalBottomSheet<int?>(
+    context: context,
+    showDragHandle: true,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            key: const Key('payment-pick-cash'),
+            leading: const Icon(Icons.payments_outlined),
+            title: Text(l.paymentCash),
+            selected: current == null,
+            // 「選ばない」を返すため、現金は sentinel の -1 で伝える。
+            onTap: () => Navigator.pop(ctx, -1),
+          ),
+          for (final c in cards)
+            ListTile(
+              key: Key('payment-pick-${c.id}'),
+              leading: const Icon(Icons.credit_card),
+              title: Text(c.name),
+              selected: current == c.id,
+              onTap: () => Navigator.pop(ctx, c.id),
+            ),
+        ],
+      ),
+    ),
+  );
+  if (picked == null) return; // シートを閉じただけ
+  ref
+      .read(entryFormControllerProvider.notifier)
+      .setPaymentCard(picked == -1 ? null : picked);
+}
+
 Widget _singleCatChip(BuildContext context, String? label, AppLocalizations l) {
   final scheme = Theme.of(context).colorScheme;
   return Container(

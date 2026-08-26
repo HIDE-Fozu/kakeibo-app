@@ -18,6 +18,7 @@ import '../application/backup_controller.dart';
 import '../application/settings_controller.dart';
 import '../../chores/presentation/chore_notification_settings_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
+import '../../payment/presentation/payment_cards_page.dart';
 import 'category_manage_page.dart';
 import 'theme_color_sheet.dart';
 import 'restore_picker_page.dart';
@@ -165,6 +166,29 @@ class SettingsScreen extends ConsumerWidget {
                           : CategoryOrderMode.recentlyUsed,
                     ),
           ),
+          const Divider(),
+          // 支払い区分（2026-08-26要望）。オンにするとカードで買った分が
+          // 未払金になり、カードの引き落とし日にまとめて出る。
+          SwitchListTile(
+            key: const Key('payment-mode-switch'),
+            secondary: const Icon(Icons.credit_card),
+            title: Text(l.settingsPaymentModeTitle),
+            subtitle: Text(l.settingsPaymentModeSubtitle),
+            value: settings.paymentModeEnabled,
+            onChanged: (v) =>
+                ref.read(appSettingsProvider.notifier).setPaymentModeEnabled(v),
+          ),
+          if (settings.paymentModeEnabled)
+            ListTile(
+              key: const Key('payment-cards-tile'),
+              contentPadding: const EdgeInsets.only(left: 72, right: 16),
+              title: Text(l.paymentCardsTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaymentCardsPage()),
+              ),
+            ),
           const Divider(),
           // 毎月の予算（毎月共通の1金額・2026-08-23要望）。オンのとき
           // カレンダー上部サマリに「予算の残り」行が出る。

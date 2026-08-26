@@ -539,6 +539,59 @@ class AppLocalizationsKo extends AppLocalizations {
   String get budgetRemainingLabel => '예산 잔액';
 
   @override
+  String get settingsPaymentModeTitle => '결제 수단';
+
+  @override
+  String get settingsPaymentModeSubtitle => '카드 결제를 미지급금으로 기록하고 결제일에 합산합니다';
+
+  @override
+  String get paymentCash => '현금';
+
+  @override
+  String get entryPaymentPickerTitle => '결제 수단';
+
+  @override
+  String get paymentCardsTitle => '카드 관리';
+
+  @override
+  String get paymentCardsEmptyMessage => '카드가 없습니다. 오른쪽 위 +로 이름과 결제일을 등록하세요.';
+
+  @override
+  String get paymentCardAddTitle => '카드 추가';
+
+  @override
+  String get paymentCardEditTitle => '카드 편집';
+
+  @override
+  String get paymentCardNameLabel => '이름';
+
+  @override
+  String get paymentCardPayDayLabel => '결제일';
+
+  @override
+  String get paymentCardRateLabel => '나중에 할부 시 연이율(%)';
+
+  @override
+  String get paymentCardBusinessDayLabel => '결제일이 휴무일인 경우';
+
+  @override
+  String get businessDayRuleNext => '다음 영업일';
+
+  @override
+  String get businessDayRulePrevious => '이전 영업일';
+
+  @override
+  String get businessDayRuleNone => '그대로';
+
+  @override
+  String get paymentCardInUseDeleteError => '미지급 항목에서 사용 중이라 삭제할 수 없습니다';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return '매월 $day일';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => '영수증';
 
   @override

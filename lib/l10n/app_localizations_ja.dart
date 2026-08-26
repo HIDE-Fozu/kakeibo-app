@@ -537,6 +537,60 @@ class AppLocalizationsJa extends AppLocalizations {
   String get budgetRemainingLabel => '予算の残り';
 
   @override
+  String get settingsPaymentModeTitle => '支払い区分';
+
+  @override
+  String get settingsPaymentModeSubtitle => 'カード払いを「未払金」として扱い、引き落とし日にまとめます';
+
+  @override
+  String get paymentCash => '現金';
+
+  @override
+  String get entryPaymentPickerTitle => '支払い区分';
+
+  @override
+  String get paymentCardsTitle => 'カードの管理';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'カードがまだありません。右上の＋から、名称と引き落とし日を登録してください。';
+
+  @override
+  String get paymentCardAddTitle => 'カードを追加';
+
+  @override
+  String get paymentCardEditTitle => 'カードを編集';
+
+  @override
+  String get paymentCardNameLabel => '名称';
+
+  @override
+  String get paymentCardPayDayLabel => '引き落とし日';
+
+  @override
+  String get paymentCardRateLabel => 'あとから分割の実質年率（％）';
+
+  @override
+  String get paymentCardBusinessDayLabel => '引き落とし日が休業日のとき';
+
+  @override
+  String get businessDayRuleNext => '翌営業日';
+
+  @override
+  String get businessDayRulePrevious => '前営業日';
+
+  @override
+  String get businessDayRuleNone => 'そのまま';
+
+  @override
+  String get paymentCardInUseDeleteError => 'このカードは未払金から使われているため削除できません';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return '毎月$day日';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'レシート';
 
   @override

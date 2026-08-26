@@ -557,6 +557,62 @@ class AppLocalizationsPt extends AppLocalizations {
   String get budgetRemainingLabel => 'Orçamento restante';
 
   @override
+  String get settingsPaymentModeTitle => 'Formas de pagamento';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Registrar compras no cartão como pendentes e agrupá-las na cobrança';
+
+  @override
+  String get paymentCash => 'Dinheiro';
+
+  @override
+  String get entryPaymentPickerTitle => 'Forma de pagamento';
+
+  @override
+  String get paymentCardsTitle => 'Gerenciar cartões';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'Ainda sem cartões. Use + acima para adicionar nome e dia de cobrança.';
+
+  @override
+  String get paymentCardAddTitle => 'Adicionar cartão';
+
+  @override
+  String get paymentCardEditTitle => 'Editar cartão';
+
+  @override
+  String get paymentCardNameLabel => 'Nome';
+
+  @override
+  String get paymentCardPayDayLabel => 'Dia da cobrança';
+
+  @override
+  String get paymentCardRateLabel => 'CET para parcelar depois (%)';
+
+  @override
+  String get paymentCardBusinessDayLabel => 'Se o dia da cobrança não for útil';
+
+  @override
+  String get businessDayRuleNext => 'Próximo dia útil';
+
+  @override
+  String get businessDayRulePrevious => 'Dia útil anterior';
+
+  @override
+  String get businessDayRuleNone => 'Manter a data';
+
+  @override
+  String get paymentCardInUseDeleteError =>
+      'Este cartão é usado por pendências e não pode ser excluído';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return 'Dia $day de cada mês';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'Recibo';
 
   @override

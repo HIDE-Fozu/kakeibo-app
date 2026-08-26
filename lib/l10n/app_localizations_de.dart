@@ -558,6 +558,63 @@ class AppLocalizationsDe extends AppLocalizations {
   String get budgetRemainingLabel => 'Verbleibendes Budget';
 
   @override
+  String get settingsPaymentModeTitle => 'Zahlungsarten';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Kartenkäufe als offen führen und am Abbuchungstag bündeln';
+
+  @override
+  String get paymentCash => 'Bar';
+
+  @override
+  String get entryPaymentPickerTitle => 'Zahlungsart';
+
+  @override
+  String get paymentCardsTitle => 'Karten verwalten';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'Noch keine Karten. Oben mit + Name und Abbuchungstag anlegen.';
+
+  @override
+  String get paymentCardAddTitle => 'Karte hinzufügen';
+
+  @override
+  String get paymentCardEditTitle => 'Karte bearbeiten';
+
+  @override
+  String get paymentCardNameLabel => 'Name';
+
+  @override
+  String get paymentCardPayDayLabel => 'Abbuchungstag';
+
+  @override
+  String get paymentCardRateLabel => 'Effektivzins für spätere Raten (%)';
+
+  @override
+  String get paymentCardBusinessDayLabel =>
+      'Wenn der Abbuchungstag kein Geschäftstag ist';
+
+  @override
+  String get businessDayRuleNext => 'Nächster Geschäftstag';
+
+  @override
+  String get businessDayRulePrevious => 'Vorheriger Geschäftstag';
+
+  @override
+  String get businessDayRuleNone => 'Datum beibehalten';
+
+  @override
+  String get paymentCardInUseDeleteError =>
+      'Diese Karte wird von offenen Posten genutzt und kann nicht gelöscht werden';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return 'Jeden $day.';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'Beleg';
 
   @override

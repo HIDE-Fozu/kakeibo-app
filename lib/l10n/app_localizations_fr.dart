@@ -562,6 +562,63 @@ class AppLocalizationsFr extends AppLocalizations {
   String get budgetRemainingLabel => 'Budget restant';
 
   @override
+  String get settingsPaymentModeTitle => 'Moyens de paiement';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Suivre les achats par carte comme impayés et les regrouper au prélèvement';
+
+  @override
+  String get paymentCash => 'Espèces';
+
+  @override
+  String get entryPaymentPickerTitle => 'Moyen de paiement';
+
+  @override
+  String get paymentCardsTitle => 'Gérer les cartes';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'Aucune carte. Utilisez + en haut pour ajouter un nom et un jour de prélèvement.';
+
+  @override
+  String get paymentCardAddTitle => 'Ajouter une carte';
+
+  @override
+  String get paymentCardEditTitle => 'Modifier la carte';
+
+  @override
+  String get paymentCardNameLabel => 'Nom';
+
+  @override
+  String get paymentCardPayDayLabel => 'Jour de prélèvement';
+
+  @override
+  String get paymentCardRateLabel => 'TAEG pour paiement en plusieurs fois (%)';
+
+  @override
+  String get paymentCardBusinessDayLabel =>
+      'Si le jour de prélèvement est chômé';
+
+  @override
+  String get businessDayRuleNext => 'Jour ouvré suivant';
+
+  @override
+  String get businessDayRulePrevious => 'Jour ouvré précédent';
+
+  @override
+  String get businessDayRuleNone => 'Garder la date';
+
+  @override
+  String get paymentCardInUseDeleteError =>
+      'Cette carte est utilisée par des impayés et ne peut pas être supprimée';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return 'Le $day de chaque mois';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'Reçu';
 
   @override

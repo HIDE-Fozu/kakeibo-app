@@ -373,6 +373,30 @@
   "settingsBudgetSubtitle": "Show the remaining budget above the calendar",
   "settingsBudgetAmountTitle": "Budget amount",
   "budgetRemainingLabel": "Budget left",
+  "settingsPaymentModeTitle": "Payment methods",
+  "settingsPaymentModeSubtitle": "Track card purchases as unpaid and group them on the billing date",
+  "paymentCash": "Cash",
+  "entryPaymentPickerTitle": "Payment method",
+  "paymentCardsTitle": "Manage cards",
+  "paymentCardsEmptyMessage": "No cards yet. Use + above to add a name and billing day.",
+  "paymentCardAddTitle": "Add card",
+  "paymentCardEditTitle": "Edit card",
+  "paymentCardNameLabel": "Name",
+  "paymentCardPayDayLabel": "Billing day",
+  "paymentCardRateLabel": "APR for later installments (%)",
+  "paymentCardBusinessDayLabel": "If the billing day is a non-business day",
+  "businessDayRuleNext": "Next business day",
+  "businessDayRulePrevious": "Previous business day",
+  "businessDayRuleNone": "Keep the date",
+  "paymentCardInUseDeleteError": "This card is used by unpaid items and cannot be deleted",
+  "paymentCardBillingDaySummary": "Day {day} monthly",
+  "@paymentCardBillingDaySummary": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "calendarReceiptFallbackLabel": "Receipt",
   "calendarCategoryUnknown": "Unknown",
   "calendarCategoryArchivedLabel": "{name} (Archived)",

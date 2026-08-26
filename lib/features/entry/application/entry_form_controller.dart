@@ -8,6 +8,7 @@ import '../../../app/providers.dart';
 import '../../../data/db/enums.dart';
 import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
+import '../../../domain/services/payable_builder.dart';
 import '../../../domain/services/receipt/receipt_parser.dart';
 import '../../../domain/services/recurring_schedule.dart';
 import '../../../l10n/app_localizations.dart';
@@ -157,6 +158,10 @@ class EntryFormState {
   /// 「8/8に入力するが引き落としは毎月25日」のようなケースで上書きする。
   final int? recurringDay;
 
+  /// 支払い区分（カードid）。null=現金・即時払い。支払い区分モードON時のみ使う。
+  /// 非nullで保存すると、その取引は未払金になりカードの引き落とし日に乗る。
+  final int? paymentCardId;
+
   /// 保存を一度でも試したか。保存できない理由(saveHint)は**押してから**出す
   /// （2026-08-13のFB。常時出していると縦を1行ぶん占め、「カテゴリを追加」を
   /// 初期表示にすると画面が溢れる）。
@@ -192,6 +197,7 @@ class EntryFormState {
     this.formSeq = 0,
     this.recurringOn = false,
     this.recurringDay,
+    this.paymentCardId,
     this.saveAttempted = false,
   });
 
@@ -367,6 +373,7 @@ class EntryFormState {
     int? formSeq,
     bool? recurringOn,
     Object? recurringDay = _unset,
+    Object? paymentCardId = _unset,
     bool? saveAttempted,
   }) =>
       EntryFormState(
@@ -422,6 +429,9 @@ class EntryFormState {
         recurringDay: identical(recurringDay, _unset)
             ? this.recurringDay
             : recurringDay as int?,
+        paymentCardId: identical(paymentCardId, _unset)
+            ? this.paymentCardId
+            : paymentCardId as int?,
         saveAttempted: saveAttempted ?? this.saveAttempted,
       );
 }
@@ -1070,6 +1080,25 @@ class EntryFormController extends Notifier<EntryFormState?> {
 
   void selectDateCandidate(DateCandidate c) => state = _s.copyWith(date: c.date);
 
+  /// 支払い区分を選ぶ（null=現金・即時払い）。
+  void setPaymentCard(int? cardId) {
+    state = _s.copyWith(paymentCardId: cardId);
+  }
+
+  /// 支出をカードで払ったときに未払金を作る。支払い月は既定（月末締め翌月払い）。
+  /// 収入・カード未選択・モードOFFのときは何もしない。
+  Future<void> _createPayableIfCard(
+      EntryFormState s, int transactionId, int amountMinor) async {
+    final cardId = s.paymentCardId;
+    if (cardId == null || s.type != TxnType.expense) return;
+    await ref.read(payableRepositoryProvider).add(buildSinglePayable(
+          transactionId: transactionId,
+          cardId: cardId,
+          amountMinor: amountMinor,
+          purchaseDate: s.date,
+        ));
+  }
+
   Future<void> save() async {
     final s = _s;
     if (!s.canSave) throw StateError('金額とカテゴリが必要です');
@@ -1117,7 +1146,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       return;
     }
     final storedImage = _finalizeReceiptImage(s);
-    await repo.add(TransactionEntity(
+    final newId = await repo.add(TransactionEntity(
       type: s.type,
       amountYen: s.amountYen,
       date: s.date,
@@ -1127,6 +1156,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       source: s.source,
       imagePath: storedImage,
     ));
+    await _createPayableIfCard(s, newId, s.amountYen);
     if (s.recurringOn) {
       // 「毎月の費用/収入」: 今回の記帳を1回目として毎月ルールを同時作成。
       // lastGeneratedYm は「入力月」と「今日の前月」の遅い方 —— 過去日付で
@@ -1168,7 +1198,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       final m = (lineMemo != null && lineMemo.trim().isNotEmpty)
           ? lineMemo.trim()
           : (groupMemo.isEmpty ? null : groupMemo);
-      await repo.add(TransactionEntity(
+      final lineId = await repo.add(TransactionEntity(
         type: s.type,
         amountYen: amountYen,
         date: s.date,
@@ -1179,6 +1209,8 @@ class EntryFormController extends Notifier<EntryFormState?> {
         imagePath: image,
         splitGroupId: groupId,
       ));
+      // 内訳の各行も1件ずつ未払金にする（カード合計は月で足し合わさる）。
+      await _createPayableIfCard(s, lineId, amountYen);
       image = null;
     }
   }
@@ -1196,6 +1228,7 @@ class EntryFormController extends Notifier<EntryFormState?> {
       memo: s.memo,
       source: TxnSource.manual,
       memoExpanded: s.memoExpanded,
+      paymentCardId: s.paymentCardId,
     );
   }
 

@@ -536,6 +536,59 @@ class AppLocalizationsZh extends AppLocalizations {
   String get budgetRemainingLabel => '预算余额';
 
   @override
+  String get settingsPaymentModeTitle => '支付方式';
+
+  @override
+  String get settingsPaymentModeSubtitle => '将刷卡消费记为未付款，并在扣款日汇总';
+
+  @override
+  String get paymentCash => '现金';
+
+  @override
+  String get entryPaymentPickerTitle => '支付方式';
+
+  @override
+  String get paymentCardsTitle => '卡片管理';
+
+  @override
+  String get paymentCardsEmptyMessage => '还没有卡片。点击右上角 + 添加名称和扣款日。';
+
+  @override
+  String get paymentCardAddTitle => '添加卡片';
+
+  @override
+  String get paymentCardEditTitle => '编辑卡片';
+
+  @override
+  String get paymentCardNameLabel => '名称';
+
+  @override
+  String get paymentCardPayDayLabel => '扣款日';
+
+  @override
+  String get paymentCardRateLabel => '事后分期的年利率（%）';
+
+  @override
+  String get paymentCardBusinessDayLabel => '扣款日为非营业日时';
+
+  @override
+  String get businessDayRuleNext => '顺延至下一营业日';
+
+  @override
+  String get businessDayRulePrevious => '提前至上一营业日';
+
+  @override
+  String get businessDayRuleNone => '保持不变';
+
+  @override
+  String get paymentCardInUseDeleteError => '该卡片有未付款项，无法删除';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return '每月$day日';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => '小票';
 
   @override

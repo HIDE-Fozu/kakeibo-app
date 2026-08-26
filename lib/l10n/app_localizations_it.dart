@@ -559,6 +559,63 @@ class AppLocalizationsIt extends AppLocalizations {
   String get budgetRemainingLabel => 'Budget residuo';
 
   @override
+  String get settingsPaymentModeTitle => 'Metodi di pagamento';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Registra gli acquisti con carta come da pagare e raggruppali all’addebito';
+
+  @override
+  String get paymentCash => 'Contanti';
+
+  @override
+  String get entryPaymentPickerTitle => 'Metodo di pagamento';
+
+  @override
+  String get paymentCardsTitle => 'Gestisci carte';
+
+  @override
+  String get paymentCardsEmptyMessage =>
+      'Nessuna carta. Usa + in alto per aggiungere nome e giorno di addebito.';
+
+  @override
+  String get paymentCardAddTitle => 'Aggiungi carta';
+
+  @override
+  String get paymentCardEditTitle => 'Modifica carta';
+
+  @override
+  String get paymentCardNameLabel => 'Nome';
+
+  @override
+  String get paymentCardPayDayLabel => 'Giorno di addebito';
+
+  @override
+  String get paymentCardRateLabel => 'TAEG per rateizzare in seguito (%)';
+
+  @override
+  String get paymentCardBusinessDayLabel =>
+      'Se il giorno di addebito non è lavorativo';
+
+  @override
+  String get businessDayRuleNext => 'Giorno lavorativo successivo';
+
+  @override
+  String get businessDayRulePrevious => 'Giorno lavorativo precedente';
+
+  @override
+  String get businessDayRuleNone => 'Mantieni la data';
+
+  @override
+  String get paymentCardInUseDeleteError =>
+      'Questa carta è usata da voci da pagare e non può essere eliminata';
+
+  @override
+  String paymentCardBillingDaySummary(int day) {
+    return 'Il $day di ogni mese';
+  }
+
+  @override
   String get calendarReceiptFallbackLabel => 'Scontrino';
 
   @override
