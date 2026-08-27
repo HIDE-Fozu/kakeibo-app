@@ -58,14 +58,10 @@ void main() {
     await tester.tap(find.byKey(const Key('day-tab-memo')));
     await tester.pumpAndSettle();
 
-    /// 覆いの中に「落とす」ColoredBox があるか。
-    bool dimmed() => find
-        .descendant(
-          of: find.byKey(const Key('day-sheet-scrim')),
-          matching: find.byType(ColoredBox),
-        )
-        .evaluate()
-        .isNotEmpty;
+    /// 升目の上の「落とし」が出ているか（FB 2026-08-27でカレンダーの升目
+    /// だけに絞った。月見出し・サマリは落とさない）。
+    bool dimmed() =>
+        find.byKey(const Key('calendar-dim')).evaluate().isNotEmpty;
 
     await tester.tap(find.byKey(const Key('shopping-memo-pad')));
     await tester.pumpAndSettle();
@@ -76,6 +72,8 @@ void main() {
     // 編集中はスクリムが出ている
     expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget);
     expect(dimmed(), isTrue, reason: 'メモ編集中はスクリムを出す');
+    // 落とすのは升目だけ＝サマリの金額は読めるまま
+    expect(find.byKey(const Key('calendar-dim')), findsOneWidget);
 
     // 背景をタップして戻る。**キーボードはまだ閉じ切っていない**
     //（viewInsets はそのまま）状態で、落としはもう晴れていること。

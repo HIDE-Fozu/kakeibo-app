@@ -95,7 +95,12 @@ class CalendarScreen extends ConsumerWidget {
           // の白カードとして独立させる。旧「下半分を白いMaterial面」構成は撤去。
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: LayoutBuilder(builder: (context, box) {
+            // 落としは**升目の上だけ**（月見出しとサマリは読めるまま・
+            // FB 2026-08-27「スクリムはカレンダー部分だけに」）。
+            // 覆いの枠は常に置いて中身だけ差し替える。枠を出し入れすると
+            // TableCalendar の位置がずれて State ごと作り直される。
+            child: Stack(children: [
+            LayoutBuilder(builder: (context, box) {
               // セルは正方形・比率1（FB 2026-08-20）: 行高＝セル幅（幅/7）。
               // マージン(_kCellMargin)は四辺同値なので白カード自体も正方形になる。
               final cellSize = box.maxWidth / 7;
@@ -140,6 +145,17 @@ class CalendarScreen extends ConsumerWidget {
             ),
               );
             }),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: dimmed
+                    ? ColoredBox(
+                        key: const Key('calendar-dim'),
+                        color: kPaper.withValues(alpha: 0.72),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ),
+            ]),
           ),
           // 凡例は家事ドットの分だけ。固定費の予定（ゴースト）はルールがある限り
           // 毎月出るため凡例が常時表示になっていた（「ずっと出てる」FB 2026-08-16）。
@@ -188,10 +204,10 @@ class CalendarScreen extends ConsumerWidget {
                 child: backdrop,
               ),
             ),
-            // ②浮いている間だけ効く覆い。背景（カレンダー側）をタップすると
-            // 閉じてカレンダーに戻る。広げたとき／メモを編集中はうっすら
-            // 落として「カードが上に乗っている」ことを見せる。
-            // 通常位置では中身を空にして素通しにする。
+            // ②浮いている間だけ効く「タップして戻る面」。背景のどこを押しても
+            // 閉じてカレンダーに戻る（サマリや月見出しを押しても戻れるよう、
+            // 面は全面のまま）。**落とす**のは升目の上だけなので、ここは
+            // 透明で当たり判定だけを持つ。通常位置では中身を空にする。
             Positioned.fill(
               child: lifted
                   ? GestureDetector(
@@ -203,9 +219,7 @@ class CalendarScreen extends ConsumerWidget {
                         FocusManager.instance.primaryFocus?.unfocus();
                         ref.read(daySheetRaiseProvider.notifier).reset();
                       },
-                      child: dimmed
-                          ? ColoredBox(color: kPaper.withValues(alpha: 0.72))
-                          : const SizedBox.expand(),
+                      child: const SizedBox.expand(),
                     )
                   : const SizedBox.shrink(),
             ),
