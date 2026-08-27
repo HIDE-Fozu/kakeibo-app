@@ -41,15 +41,19 @@ void main() {
     expect(nodeAfter?.hasFocus, isTrue, reason: 'キーボードが閉じてしまう');
   });
 
-  /// FB 2026-08-27「メモからカレンダーに戻ったときホワイトアウトしてる時間が
-  /// 長すぎる」→「メモ開いてる時はスクリム入れよう。解除の動作を早めて」。
+  /// FB 2026-08-27 の3連発:
+  /// ①「ホワイトアウトしてる時間が長すぎる」→ 解除が遅い
+  /// ②「メモ開いてる時はスクリム入れよう。解除の動作を早めて」→ 出すのは要る
+  /// ③「つきいちではスクリムが入らないのに、メモは移動しない状態でも
+  ///    スクリムが入って不自然。カレンダーが見切れてタップできない時のみ」
   ///
-  /// スクリムは編集中に出す。問題は**解除の遅さ**だった。落とす条件を
-  /// キーボードの `viewInsets` に紐づけていたので、0 になるのは閉じる
-  /// アニメーションが終わった後＝カードはもう通常位置に戻っているのに
-  /// カレンダーだけ白いまま待たされていた。
-  /// フォーカスに紐づければ `unfocus()` と同じフレームで晴れる。
-  testWidgets('メモ編集中はスクリムを出し、解除はキーボードを待たない',
+  /// 答えは**出るのと消えるを非対称**にすること。
+  /// 出る = カードが実際に動いてから（`keyboard`）。フォーカスは一瞬で立つが
+  /// カードが動くのはキーボードが上がってからなので、フォーカスで出すと
+  /// 「動いていないのにスクリム」になる。
+  /// 消える = 編集をやめた瞬間（フォーカス）。insets の 0 を待つと閉じる
+  /// アニメーションぶん遅れる。
+  testWidgets('スクリムはカードが動いてから出て、やめた瞬間に消える',
       (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
@@ -63,19 +67,21 @@ void main() {
     bool dimmed() =>
         find.byKey(const Key('calendar-dim')).evaluate().isNotEmpty;
 
+    // ①フォーカスは立ったが、キーボードはまだ上がっていない＝カードは
+    //   動いていない。ここでスクリムを出してはいけない（つきいちと同じ見え方）。
     await tester.tap(find.byKey(const Key('shopping-memo-pad')));
     await tester.pumpAndSettle();
+    expect(dimmed(), isFalse,
+        reason: 'カードが動いていないのにスクリムが入る（つきいちと不整合）');
+
+    // ②キーボードが上がってカードが退避した＝カレンダーが見切れた
     tester.view.viewInsets = const FakeViewPadding(bottom: 900);
     addTearDown(tester.view.resetViewInsets);
     await tester.pumpAndSettle();
-
-    // 編集中はスクリムが出ている
     expect(find.byKey(const Key('day-sheet-scrim')), findsOneWidget);
-    expect(dimmed(), isTrue, reason: 'メモ編集中はスクリムを出す');
-    // 落とすのは升目だけ＝サマリの金額は読めるまま
-    expect(find.byKey(const Key('calendar-dim')), findsOneWidget);
+    expect(dimmed(), isTrue, reason: 'カレンダーが見切れたらスクリムを出す');
 
-    // 背景をタップして戻る。**キーボードはまだ閉じ切っていない**
+    // ③背景をタップして戻る。**キーボードはまだ閉じ切っていない**
     //（viewInsets はそのまま）状態で、落としはもう晴れていること。
     await tester.tapAt(const Offset(200, 200));
     await tester.pump();
