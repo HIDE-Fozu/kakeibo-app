@@ -69,7 +69,7 @@ class PaymentCardsPage extends ConsumerWidget {
       BuildContext context, WidgetRef ref, PaymentCardEntity? card) async {
     await Navigator.push(
       context,
-      MaterialPageRoute<void>(builder: (_) => PaymentCardEditPage(card: card)),
+      MaterialPageRoute<int>(builder: (_) => PaymentCardEditPage(card: card)),
     );
   }
 }
@@ -256,10 +256,13 @@ class _PaymentCardEditPageState extends ConsumerState<PaymentCardEditPage> {
       isArchived: widget.card?.isArchived ?? false,
     );
     if (widget.card == null) {
-      await repo.add(entity);
-    } else {
-      await repo.update(entity);
+      // 追加したカードをそのまま選べるよう、新しい id を返す
+      //（入力画面の支払い区分シートから呼ばれる・2026-08-28）。
+      final id = await repo.add(entity);
+      if (mounted) Navigator.pop(context, id);
+      return;
     }
+    await repo.update(entity);
     if (mounted) Navigator.pop(context);
   }
 

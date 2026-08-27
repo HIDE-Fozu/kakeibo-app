@@ -24,6 +24,7 @@ import 'receipt_review_panel.dart';
 import 'split_category_strip.dart';
 import 'split_entry_panel.dart';
 import 'subcategory_chips.dart';
+import '../../payment/presentation/payment_cards_page.dart';
 import '../../settings/application/settings_controller.dart';
 
 class EntryScreen extends ConsumerWidget {
@@ -193,6 +194,53 @@ class EntryScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
+                            // 支払い区分は日付のすぐ右（金額と日付の間）に置く
+                            //（2026-08-28要望）。名前の長いカードでも金額を
+                            // 潰さないよう幅を締め、はみ出す分はラベルを省略する。
+                            if (paymentMode &&
+                                state.type == TxnType.expense &&
+                                state.mode == EntryMode.create)
+                              const SizedBox(width: 6),
+                            // 支払い区分（モードON・支出・新規のときだけ）。
+                            // 押すと現金/登録カードから選ぶ。カード＝未払金になる。
+                            if (paymentMode &&
+                                state.type == TxnType.expense &&
+                                state.mode == EntryMode.create)
+                              ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 150),
+                                child: TextButton.icon(
+                                key: const Key('entry-payment-btn'),
+                                onPressed: () =>
+                                    _pickPaymentCard(context, ref, cards),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  visualDensity: VisualDensity.compact,
+                                  backgroundColor: state.paymentCardId != null
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                  foregroundColor: state.paymentCardId != null
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : null,
+                                ),
+                                icon: Icon(
+                                    state.paymentCardId == null
+                                        ? Icons.payments_outlined
+                                        : Icons.credit_card,
+                                    size: 18),
+                                label: Text(
+                                  cards
+                                          .where((c) =>
+                                              c.id == state.paymentCardId)
+                                          .firstOrNull
+                                          ?.name ??
+                                      l.paymentCash,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              ),
                             const SizedBox(width: 8),
                             // 金額は残り幅いっぱいで右寄せ。大きな額でも溢れないよう縮小。
                             Expanded(
@@ -339,42 +387,6 @@ class EntryScreen extends ConsumerWidget {
                           alignment: WrapAlignment.spaceBetween,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            // 支払い区分（モードON・支出・新規のときだけ）。
-                            // 押すと現金/登録カードから選ぶ。カード＝未払金になる。
-                            if (paymentMode &&
-                                state.type == TxnType.expense &&
-                                state.mode == EntryMode.create)
-                              TextButton.icon(
-                                key: const Key('entry-payment-btn'),
-                                onPressed: () =>
-                                    _pickPaymentCard(context, ref, cards),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8),
-                                  visualDensity: VisualDensity.compact,
-                                  backgroundColor: state.paymentCardId != null
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                  foregroundColor: state.paymentCardId != null
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : null,
-                                ),
-                                icon: Icon(
-                                    state.paymentCardId == null
-                                        ? Icons.payments_outlined
-                                        : Icons.credit_card,
-                                    size: 18),
-                                label: Text(
-                                  cards
-                                          .where((c) =>
-                                              c.id == state.paymentCardId)
-                                          .firstOrNull
-                                          ?.name ??
-                                      l.paymentCash,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
                             if (state.mode == EntryMode.create &&
                                 state.replacesTxIds == null)
                               TextButton.icon(
@@ -955,11 +967,32 @@ Future<void> _pickPaymentCard(
               selected: current == c.id,
               onTap: () => Navigator.pop(ctx, c.id),
             ),
+          // その場でカードを増やせるようにする（2026-08-28要望）。設定→
+          // カードの管理まで行かなくても、入力の流れを切らずに登録できる。
+          const Divider(height: 1),
+          ListTile(
+            key: const Key('payment-pick-add'),
+            leading: const Icon(Icons.add),
+            title: Text(l.paymentCardAddTitle),
+            // 「追加」を sentinel の -2 で伝える（現金は -1）。
+            onTap: () => Navigator.pop(ctx, -2),
+          ),
         ],
       ),
     ),
   );
   if (picked == null) return; // シートを閉じただけ
+  if (picked == -2) {
+    if (!context.mounted) return;
+    // 追加したカードはそのまま選んだ状態にする（選び直させない）。
+    final added = await Navigator.push<int>(
+      context,
+      MaterialPageRoute<int>(builder: (_) => const PaymentCardEditPage()),
+    );
+    if (added == null) return; // 追加をやめた
+    ref.read(entryFormControllerProvider.notifier).setPaymentCard(added);
+    return;
+  }
   ref
       .read(entryFormControllerProvider.notifier)
       .setPaymentCard(picked == -1 ? null : picked);

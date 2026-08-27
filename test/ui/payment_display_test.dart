@@ -169,4 +169,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('楽天カード 引き落とし'), findsOneWidget);
   });
+
+  testWidgets('支払い区分シートからその場でカードを追加でき、そのまま選ばれる',
+      (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness(prefs: paymentPrefs());
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+
+    // 入力画面へ（支払い区分は支出・新規のときだけ出る）
+    await tester.tap(find.byKey(const Key('fab-entry')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('entry-payment-btn')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('entry-payment-btn')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('payment-pick-add')));
+    await tester.pumpAndSettle();
+
+    // カードの追加ページがそのまま開く（設定まで行かない）
+    await tester.enterText(
+        find.byKey(const Key('payment-card-name')), 'ためしカード');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('payment-card-save')));
+    await tester.pumpAndSettle();
+
+    // 追加したカードが選ばれた状態で入力画面に戻っている
+    expect(find.byKey(const Key('entry-payment-btn')), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byKey(const Key('entry-payment-btn')),
+            matching: find.text('ためしカード')),
+        findsOneWidget);
+  });
 }
