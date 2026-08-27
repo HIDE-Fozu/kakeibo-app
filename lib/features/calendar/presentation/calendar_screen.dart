@@ -17,6 +17,7 @@ import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
 import '../../settings/application/settings_controller.dart';
+import '../../settings/presentation/budget_amount_dialog.dart';
 import '../application/calendar_providers.dart';
 import 'backup_banner.dart';
 import 'day_transaction_list.dart';
@@ -862,9 +863,9 @@ class _SummaryCard extends ConsumerWidget {
         ],
       ),
     );
-    if (!settings.paymentModeEnabled) return card;
-    // 数え方（買った日 / 引き落とし日）の切り替え。設定画面まで行かずに
-    // ここで変えられるようにする（見ている数字のすぐ横が一番わかりやすい）。
+    // 上部サマリまわりの設定（計算方法・予算）の入口。設定画面まで行かずに
+    // ここで変えられるようにする（見ている数字のすぐ横が一番わかりやすい・
+    // 2026-08-27要望）。キーは旧名のまま（数え方専用だった名残）。
     return Stack(
       children: [
         card,
@@ -874,7 +875,8 @@ class _SummaryCard extends ConsumerWidget {
           child: InkWell(
             key: const Key('summary-basis-gear'),
             customBorder: const CircleBorder(),
-            onTap: () => _pickSummaryBasis(context, ref, cashBasis),
+            onTap: () => _openSummarySettings(
+                context, ref, cashBasis, settings.paymentModeEnabled),
             child: const Padding(
               padding: EdgeInsets.all(6),
               child: Icon(Icons.settings, size: 16, color: kMuted),
@@ -884,6 +886,94 @@ class _SummaryCard extends ConsumerWidget {
       ],
     );
   }
+
+  /// 歯車の中身。計算方法（支払い区分モードのときだけ）と予算を並べる。
+  Future<void> _openSummarySettings(
+    BuildContext context,
+    WidgetRef ref,
+    bool cashBasis,
+    bool paymentMode,
+  ) async {
+    final l = AppLocalizations.of(context);
+    final picked = await showModalBottomSheet<_SummarySetting>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 計算方法は支払い区分モードのときだけ意味を持つ（カード払いを
+            // 未払金として持つかどうかの話なので）。
+            if (paymentMode)
+              ListTile(
+                key: const Key('summary-gear-basis'),
+                leading: const Icon(Icons.calculate_outlined),
+                title: Text(l.summaryBasisTitle),
+                onTap: () => Navigator.pop(ctx, _SummarySetting.basis),
+              ),
+            ListTile(
+              key: const Key('summary-gear-budget'),
+              leading: const Icon(Icons.savings_outlined),
+              title: Text(l.summaryGearBudget),
+              onTap: () => Navigator.pop(ctx, _SummarySetting.budget),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !context.mounted) return;
+    switch (picked) {
+      case _SummarySetting.basis:
+        await _pickSummaryBasis(context, ref, cashBasis);
+      case _SummarySetting.budget:
+        await _editBudget(context);
+    }
+  }
+
+  /// 予算のオンオフと金額。設定画面の同じ2行をここにも出す
+  ///（金額のダイアログは budget_amount_dialog.dart で共有）。
+  Future<void> _editBudget(BuildContext context) => showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(
+          child: Consumer(builder: (ctx, ref, _) {
+            final l = AppLocalizations.of(ctx);
+            final settings = ref.watch(appSettingsProvider);
+            final currency = ref.watch(currencyProvider);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  key: const Key('summary-budget-switch'),
+                  secondary: const Icon(Icons.savings_outlined),
+                  title: Text(l.settingsBudgetTitle),
+                  subtitle: Text(l.settingsBudgetSubtitle),
+                  value: settings.budgetEnabled,
+                  onChanged: (v) => ref
+                      .read(appSettingsProvider.notifier)
+                      .setBudgetEnabled(v),
+                ),
+                if (settings.budgetEnabled)
+                  ListTile(
+                    key: const Key('summary-budget-amount-tile'),
+                    contentPadding:
+                        const EdgeInsets.only(left: 72, right: 16),
+                    title: Text(l.settingsBudgetAmountTitle),
+                    trailing: Text(
+                      ref
+                          .watch(moneyFormatterProvider)
+                          .format(settings.monthlyBudgetMinor),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                    onTap: () =>
+                        editMonthlyBudget(ctx, ref, settings, currency),
+                  ),
+              ],
+            );
+          }),
+        ),
+      );
 
   Future<void> _pickSummaryBasis(
       BuildContext context, WidgetRef ref, bool cashBasis) async {
@@ -970,3 +1060,6 @@ class _SummaryCard extends ConsumerWidget {
         ],
       );
 }
+
+/// 上部サマリの歯車から開ける設定。
+enum _SummarySetting { basis, budget }

@@ -548,13 +548,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get summaryPaymentLabel => '지출액';
 
   @override
-  String get summaryBasisTitle => '상단 요약 계산 방식';
+  String get summaryBasisTitle => '계산 방법 변경';
 
   @override
-  String get summaryBasisCashOption => '지출액(결제일 기준)';
+  String get summaryBasisCashOption => '결제 시점으로 계산합니다.';
 
   @override
-  String get summaryBasisAccrualOption => '지출(구매일 기준)';
+  String get summaryBasisAccrualOption => '구매 시점으로 계산합니다.';
+
+  @override
+  String get summaryGearBudget => '예산 설정';
 
   @override
   String get paymentCardClosingDayLabel => '마감일';

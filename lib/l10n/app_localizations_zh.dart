@@ -545,13 +545,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get summaryPaymentLabel => '支付';
 
   @override
-  String get summaryBasisTitle => '顶部汇总的计算方式';
+  String get summaryBasisTitle => '更改计算方式';
 
   @override
-  String get summaryBasisCashOption => '支付（按扣款日计算）';
+  String get summaryBasisCashOption => '在付款时计算。';
 
   @override
-  String get summaryBasisAccrualOption => '支出（按消费日计算）';
+  String get summaryBasisAccrualOption => '在消费时计算。';
+
+  @override
+  String get summaryGearBudget => '预算设置';
 
   @override
   String get paymentCardClosingDayLabel => '结账日';

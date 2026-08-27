@@ -51,7 +51,11 @@ void main() {
     expect(find.descendant(of: cardFinder, matching: find.text('支払い')),
         findsOneWidget);
 
+    // 歯車は「上部サマリの設定」の入口になったので、計算方法を1段選ぶ
+    //（2026-08-27要望で予算の設定も同じ歯車から開くようにした）。
     await tester.tap(find.byKey(const Key('summary-basis-gear')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('summary-gear-basis')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('summary-basis-accrual')));
     await tester.pumpAndSettle();
@@ -61,17 +65,51 @@ void main() {
         findsOneWidget);
   });
 
-  testWidgets('モードOFF: 歯車は出ない（切り替える意味がない）', (tester) async {
+  testWidgets('モードOFF: 歯車は出るが、計算方法は並ばない（予算だけ）', (tester) async {
     setPhoneSurface(tester);
     final h = await createHarness();
     addTearDown(h.dispose);
     await pumpApp(tester, h);
-    expect(find.byKey(const Key('summary-basis-gear')), findsNothing);
     expect(
         find.descendant(
             of: find.byKey(const Key('month-summary-card')),
             matching: find.text('支出')),
         findsOneWidget);
+
+    // 歯車自体は予算の入口として常に出す（2026-08-27要望）。
+    await tester.tap(find.byKey(const Key('summary-basis-gear')));
+    await tester.pumpAndSettle();
+    // 計算方法はカード払いを未払金として持つかどうかの話なので、
+    // 支払い区分モードがオフのときは並べても意味がない。
+    expect(find.byKey(const Key('summary-gear-basis')), findsNothing);
+    expect(find.byKey(const Key('summary-gear-budget')), findsOneWidget);
+  });
+
+  testWidgets('歯車から予算をオンにして金額を入れられる', (tester) async {
+    setPhoneSurface(tester);
+    final h = await createHarness();
+    addTearDown(h.dispose);
+    await pumpApp(tester, h);
+
+    await tester.tap(find.byKey(const Key('summary-basis-gear')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('summary-gear-budget')));
+    await tester.pumpAndSettle();
+
+    // 金額行はオンにしてから出る（設定画面と同じ並び）
+    expect(find.byKey(const Key('summary-budget-amount-tile')), findsNothing);
+    await tester.tap(find.byKey(const Key('summary-budget-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('summary-budget-amount-tile')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.byKey(const Key('budget-amount-field')), '50000');
+    await tester.tap(find.byKey(const Key('budget-amount-save')));
+    await tester.pumpAndSettle();
+
+    expect(h.prefs.getBool('budgetEnabled'), isTrue);
+    expect(h.prefs.getInt('monthlyBudgetMinor'), 50000);
   });
 
   testWidgets('購入日の行に「未払」バッジ、引き落とし日に引き落とし行が出る',

@@ -562,13 +562,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summaryPaymentLabel => 'Paid';
 
   @override
-  String get summaryBasisTitle => 'How the summary counts';
+  String get summaryBasisTitle => 'Change the calculation method';
 
   @override
-  String get summaryBasisCashOption => 'Paid (count on the billing date)';
+  String get summaryBasisCashOption => 'Count it when the payment is made.';
 
   @override
-  String get summaryBasisAccrualOption => 'Spent (count on the purchase date)';
+  String get summaryBasisAccrualOption => 'Count it when the purchase is made.';
+
+  @override
+  String get summaryGearBudget => 'Budget settings';
 
   @override
   String get paymentCardClosingDayLabel => 'Closing day';

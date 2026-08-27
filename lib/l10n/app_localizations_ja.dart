@@ -546,13 +546,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get summaryPaymentLabel => '支払い';
 
   @override
-  String get summaryBasisTitle => '上部サマリの数え方';
+  String get summaryBasisTitle => '計算方法の変更';
 
   @override
-  String get summaryBasisCashOption => '支払い（引き落とし日で数える）';
+  String get summaryBasisCashOption => '支払いのタイミングで計算する。';
 
   @override
-  String get summaryBasisAccrualOption => '支出（買った日で数える）';
+  String get summaryBasisAccrualOption => '購入したタイミングで計算する。';
+
+  @override
+  String get summaryGearBudget => '予算の設定';
 
   @override
   String get paymentCardClosingDayLabel => '締め日';

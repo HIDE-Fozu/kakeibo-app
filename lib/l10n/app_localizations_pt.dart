@@ -567,13 +567,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get summaryPaymentLabel => 'Pago';
 
   @override
-  String get summaryBasisTitle => 'Como o resumo conta';
+  String get summaryBasisTitle => 'Alterar o método de cálculo';
 
   @override
-  String get summaryBasisCashOption => 'Pago (na data da cobrança)';
+  String get summaryBasisCashOption => 'Contar no momento do pagamento.';
 
   @override
-  String get summaryBasisAccrualOption => 'Gasto (na data da compra)';
+  String get summaryBasisAccrualOption => 'Contar no momento da compra.';
+
+  @override
+  String get summaryGearBudget => 'Definições do orçamento';
 
   @override
   String get paymentCardClosingDayLabel => 'Dia de fechamento';

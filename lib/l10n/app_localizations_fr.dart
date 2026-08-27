@@ -572,13 +572,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get summaryPaymentLabel => 'Payé';
 
   @override
-  String get summaryBasisTitle => 'Mode de calcul du récapitulatif';
+  String get summaryBasisTitle => 'Modifier le mode de calcul';
 
   @override
-  String get summaryBasisCashOption => 'Payé (au jour du prélèvement)';
+  String get summaryBasisCashOption => 'Compter au moment du paiement.';
 
   @override
-  String get summaryBasisAccrualOption => 'Dépensé (au jour de l’achat)';
+  String get summaryBasisAccrualOption => 'Compter au moment de l’achat.';
+
+  @override
+  String get summaryGearBudget => 'Réglages du budget';
 
   @override
   String get paymentCardClosingDayLabel => 'Date d’arrêté';

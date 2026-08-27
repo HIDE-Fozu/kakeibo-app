@@ -6,8 +6,8 @@
 ## 🎯 現在地
 
 - ブランチ **`feature/paper-design`**・**未push**。
-- **686テスト緑（skip 0）/ analyze 0**。
-- 実機 TI10B1 = 2.4.0(54) まで配備済み。**2.4.0(55)**（スクリムはカードが動いてから出す）が未配備。
+- **687テスト緑（skip 0）/ analyze 0**。
+- 実機 TI10B1 = 2.4.0(55) まで配備済み（スクリム挙動はOK確認済み）。**2.4.0(56)**（歯車＝サマリ設定入口・文言変更）が未配備。
 - 2.3.0(47) は App Store 審査中。本セッション分は 47 に入っていない。
 
 ---
@@ -147,6 +147,25 @@ final dimmed = raise > 0 || (keyboard && memoEditing);
 見張る。`dimmed` をフォーカスだけ／insets だけに戻すと、それぞれ別の
 assertion で落ちることを確認済み。
 
+### 上部サマリの歯車＝サマリの設定入口に（2026-08-27）
+
+FB「上部サマリの数え方→計算方法の変更」「そもそも計算方法の変更とか『予算の
+設定』もこの設定ボタンから開けるようにしたい」。
+
+- 文言（**9ロケール**すべて更新）:
+  - `summaryBasisTitle` = 「計算方法の変更」（旧「上部サマリの数え方」）
+  - `summaryBasisCashOption` = 「支払いのタイミングで計算する。」
+  - `summaryBasisAccrualOption` = 「購入したタイミングで計算する。」
+  - `summaryGearBudget` = 「予算の設定」（新規）
+- 歯車 → メニュー（計算方法の変更／予算の設定）→ それぞれのシート。
+  - ★**歯車は常に出す**ようにした（旧: 支払い区分モードONのときだけ）。
+    予算の入口を兼ねるため。メニュー内の「計算方法の変更」だけがモード依存。
+  - 予算シートのキーは `summary-budget-switch` / `summary-budget-amount-tile`
+    （設定画面の `budget-switch` などと**別名**にすること。HomeShell は
+    IndexedStack で設定画面も常時ツリーにいるので、同名だと find が2件になる）。
+- 金額ダイアログは `lib/features/settings/presentation/budget_amount_dialog.dart`
+  に切り出して設定画面と共有（`editMonthlyBudget()`）。
+
 ### 見た目が変わっていないことの確認
 
 `memo_shots_test` / `design_shots_test` を修正前後で撮って突き合わせ:
@@ -220,7 +239,7 @@ assertion で落ちることを確認済み。
 
 ## 動かし方
 
-- テスト: `flutter test`（686件・skip 0）
+- テスト: `flutter test`（687件・skip 0）
 - スクショ: `flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/memo_shots_test.dart -d <sim-id>`
   → `build/qa_screens/<日付>/`

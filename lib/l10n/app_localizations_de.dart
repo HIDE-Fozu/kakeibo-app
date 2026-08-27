@@ -568,13 +568,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get summaryPaymentLabel => 'Gezahlt';
 
   @override
-  String get summaryBasisTitle => 'Wie die Übersicht zählt';
+  String get summaryBasisTitle => 'Berechnungsmethode ändern';
 
   @override
-  String get summaryBasisCashOption => 'Gezahlt (am Abbuchungstag)';
+  String get summaryBasisCashOption => 'Zum Zeitpunkt der Zahlung rechnen.';
 
   @override
-  String get summaryBasisAccrualOption => 'Ausgegeben (am Kaufdatum)';
+  String get summaryBasisAccrualOption => 'Zum Zeitpunkt des Kaufs rechnen.';
+
+  @override
+  String get summaryGearBudget => 'Budget einstellen';
 
   @override
   String get paymentCardClosingDayLabel => 'Abrechnungstag';

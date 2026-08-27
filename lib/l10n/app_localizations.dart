@@ -1099,20 +1099,26 @@ abstract class AppLocalizations {
   /// No description provided for @summaryBasisTitle.
   ///
   /// In en, this message translates to:
-  /// **'How the summary counts'**
+  /// **'Change the calculation method'**
   String get summaryBasisTitle;
 
   /// No description provided for @summaryBasisCashOption.
   ///
   /// In en, this message translates to:
-  /// **'Paid (count on the billing date)'**
+  /// **'Count it when the payment is made.'**
   String get summaryBasisCashOption;
 
   /// No description provided for @summaryBasisAccrualOption.
   ///
   /// In en, this message translates to:
-  /// **'Spent (count on the purchase date)'**
+  /// **'Count it when the purchase is made.'**
   String get summaryBasisAccrualOption;
+
+  /// No description provided for @summaryGearBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget settings'**
+  String get summaryGearBudget;
 
   /// No description provided for @paymentCardClosingDayLabel.
   ///

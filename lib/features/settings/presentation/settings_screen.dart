@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -19,6 +18,7 @@ import '../application/settings_controller.dart';
 import '../../chores/presentation/chore_notification_settings_page.dart';
 import '../../recurring/presentation/recurring_rules_page.dart';
 import '../../payment/presentation/payment_cards_page.dart';
+import 'budget_amount_dialog.dart';
 import 'category_manage_page.dart';
 import 'theme_color_sheet.dart';
 import 'restore_picker_page.dart';
@@ -213,7 +213,7 @@ class SettingsScreen extends ConsumerWidget {
                 style: const TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w600),
               ),
-              onTap: () => _editBudget(context, ref, settings, currency),
+              onTap: () => editMonthlyBudget(context, ref, settings, currency),
             ),
           const Divider(),
           ListTile(
@@ -294,28 +294,6 @@ class SettingsScreen extends ConsumerWidget {
     );
     if (picked == null) return;
     await ref.read(appSettingsProvider.notifier).setLocale(options[picked]);
-  }
-
-  /// 予算額の入力。入力は主単位（円・ドル）で、保存は最小単位。
-  Future<void> _editBudget(
-    BuildContext context,
-    WidgetRef ref,
-    SettingsState settings,
-    Currency currency,
-  ) async {
-    final per = currency.minorPerUnit;
-    final entered = await showDialog<String>(
-      context: context,
-      builder: (_) => _BudgetAmountDialog(
-        initialMajor: settings.monthlyBudgetMinor == 0
-            ? ''
-            : (settings.monthlyBudgetMinor ~/ per).toString(),
-        currency: currency,
-      ),
-    );
-    if (entered == null) return;
-    final major = int.tryParse(entered) ?? 0;
-    await ref.read(appSettingsProvider.notifier).setMonthlyBudget(major * per);
   }
 
   Future<void> _pickCurrency(
@@ -500,58 +478,6 @@ Future<void> showDataPolicyDialog(BuildContext context) => showDialog<void>(
         );
       },
     );
-
-/// 予算額の入力ダイアログ。controller はダイアログ自身が持つ
-///（呼び出し側で dispose すると閉じるアニメーション中に使われて落ちる）。
-class _BudgetAmountDialog extends StatefulWidget {
-  final String initialMajor;
-  final Currency currency;
-  const _BudgetAmountDialog({
-    required this.initialMajor,
-    required this.currency,
-  });
-
-  @override
-  State<_BudgetAmountDialog> createState() => _BudgetAmountDialogState();
-}
-
-class _BudgetAmountDialogState extends State<_BudgetAmountDialog> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.initialMajor);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Text(l.settingsBudgetAmountTitle),
-      content: TextField(
-        key: const Key('budget-amount-field'),
-        controller: _controller,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        decoration: InputDecoration(prefixText: '${widget.currency.symbol} '),
-        onSubmitted: (v) => Navigator.pop(context, v),
-      ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.commonCancel)),
-        FilledButton(
-          key: const Key('budget-amount-save'),
-          onPressed: () => Navigator.pop(context, _controller.text),
-          child: Text(l.commonSave),
-        ),
-      ],
-    );
-  }
-}
 
 class _ExportPassphraseDialog extends StatefulWidget {
   const _ExportPassphraseDialog();
