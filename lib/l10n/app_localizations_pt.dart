@@ -570,7 +570,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get summaryBasisTitle => 'Alterar o método de cálculo';
 
   @override
+  String get summaryBasisCashName => 'Regime de caixa';
+
+  @override
   String get summaryBasisCashOption => 'Contar no momento do pagamento.';
+
+  @override
+  String get summaryBasisAccrualName => 'Regime de competência';
 
   @override
   String get summaryBasisAccrualOption => 'Contar no momento da compra.';

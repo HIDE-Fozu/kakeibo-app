@@ -571,7 +571,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get summaryBasisTitle => 'Cambiar el método de cálculo';
 
   @override
+  String get summaryBasisCashName => 'Criterio de caja';
+
+  @override
   String get summaryBasisCashOption => 'Contar en el momento del pago.';
+
+  @override
+  String get summaryBasisAccrualName => 'Criterio de devengo';
 
   @override
   String get summaryBasisAccrualOption => 'Contar en el momento de la compra.';

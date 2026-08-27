@@ -571,7 +571,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get summaryBasisTitle => 'Berechnungsmethode ändern';
 
   @override
+  String get summaryBasisCashName => 'Kassenprinzip';
+
+  @override
   String get summaryBasisCashOption => 'Zum Zeitpunkt der Zahlung rechnen.';
+
+  @override
+  String get summaryBasisAccrualName => 'Abgrenzungsprinzip';
 
   @override
   String get summaryBasisAccrualOption => 'Zum Zeitpunkt des Kaufs rechnen.';

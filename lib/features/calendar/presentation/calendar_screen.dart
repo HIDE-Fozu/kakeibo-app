@@ -991,17 +991,21 @@ class _SummaryCard extends ConsumerWidget {
             ),
             // RadioListTile の onChanged は非推奨（RadioGroup へ移行中）。
             // 選んだ瞬間に閉じるだけなので ListTile ＋チェックで足りる。
+            // 見出しは会計用語（現金主義/発生主義）、その下に何がどうなるかを
+            // 一文で置く。用語だけだと通じず、説明だけだと何の話か分からない。
             ListTile(
               key: const Key('summary-basis-cash'),
               leading: Icon(cashBasis ? Icons.check : null, size: 20),
-              title: Text(l.summaryBasisCashOption),
+              title: Text(l.summaryBasisCashName),
+              subtitle: Text(l.summaryBasisCashOption),
               selected: cashBasis,
               onTap: () => Navigator.pop(ctx, true),
             ),
             ListTile(
               key: const Key('summary-basis-accrual'),
               leading: Icon(cashBasis ? null : Icons.check, size: 20),
-              title: Text(l.summaryBasisAccrualOption),
+              title: Text(l.summaryBasisAccrualName),
+              subtitle: Text(l.summaryBasisAccrualOption),
               selected: !cashBasis,
               onTap: () => Navigator.pop(ctx, false),
             ),

@@ -1102,11 +1102,23 @@ abstract class AppLocalizations {
   /// **'Change the calculation method'**
   String get summaryBasisTitle;
 
+  /// No description provided for @summaryBasisCashName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash basis'**
+  String get summaryBasisCashName;
+
   /// No description provided for @summaryBasisCashOption.
   ///
   /// In en, this message translates to:
   /// **'Count it when the payment is made.'**
   String get summaryBasisCashOption;
+
+  /// No description provided for @summaryBasisAccrualName.
+  ///
+  /// In en, this message translates to:
+  /// **'Accrual basis'**
+  String get summaryBasisAccrualName;
 
   /// No description provided for @summaryBasisAccrualOption.
   ///

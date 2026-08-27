@@ -551,7 +551,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get summaryBasisTitle => '계산 방법 변경';
 
   @override
+  String get summaryBasisCashName => '현금주의';
+
+  @override
   String get summaryBasisCashOption => '결제 시점으로 계산합니다.';
+
+  @override
+  String get summaryBasisAccrualName => '발생주의';
 
   @override
   String get summaryBasisAccrualOption => '구매 시점으로 계산합니다.';

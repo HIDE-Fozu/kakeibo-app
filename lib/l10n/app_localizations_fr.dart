@@ -575,7 +575,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get summaryBasisTitle => 'Modifier le mode de calcul';
 
   @override
+  String get summaryBasisCashName => 'Comptabilité de caisse';
+
+  @override
   String get summaryBasisCashOption => 'Compter au moment du paiement.';
+
+  @override
+  String get summaryBasisAccrualName => 'Comptabilité d’engagement';
 
   @override
   String get summaryBasisAccrualOption => 'Compter au moment de l’achat.';

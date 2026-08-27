@@ -572,7 +572,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get summaryBasisTitle => 'Cambia il metodo di calcolo';
 
   @override
+  String get summaryBasisCashName => 'Principio di cassa';
+
+  @override
   String get summaryBasisCashOption => 'Conteggia al momento del pagamento.';
+
+  @override
+  String get summaryBasisAccrualName => 'Principio di competenza';
 
   @override
   String get summaryBasisAccrualOption => 'Conteggia al momento dell’acquisto.';

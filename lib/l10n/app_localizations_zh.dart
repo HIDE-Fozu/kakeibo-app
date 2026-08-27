@@ -548,7 +548,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get summaryBasisTitle => '更改计算方式';
 
   @override
+  String get summaryBasisCashName => '收付实现制';
+
+  @override
   String get summaryBasisCashOption => '在付款时计算。';
+
+  @override
+  String get summaryBasisAccrualName => '权责发生制';
 
   @override
   String get summaryBasisAccrualOption => '在消费时计算。';

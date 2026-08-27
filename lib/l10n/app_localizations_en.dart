@@ -565,7 +565,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summaryBasisTitle => 'Change the calculation method';
 
   @override
+  String get summaryBasisCashName => 'Cash basis';
+
+  @override
   String get summaryBasisCashOption => 'Count it when the payment is made.';
+
+  @override
+  String get summaryBasisAccrualName => 'Accrual basis';
 
   @override
   String get summaryBasisAccrualOption => 'Count it when the purchase is made.';

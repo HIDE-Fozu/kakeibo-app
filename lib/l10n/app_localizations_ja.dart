@@ -549,7 +549,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get summaryBasisTitle => '計算方法の変更';
 
   @override
+  String get summaryBasisCashName => '現金主義';
+
+  @override
   String get summaryBasisCashOption => '支払いのタイミングで計算する。';
+
+  @override
+  String get summaryBasisAccrualName => '発生主義';
 
   @override
   String get summaryBasisAccrualOption => '購入したタイミングで計算する。';
