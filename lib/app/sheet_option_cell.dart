@@ -34,10 +34,11 @@ class SheetOptionCell extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Material(
-        // 枠の中を紙より明るくして、ブロックが面として浮いて見えるようにする。
-        color: selected
-            ? scheme.primary.withValues(alpha: 0.06)
-            : kCard,
+        // 選んである方も**塗りは変えない**。薄い主色を敷くとシートの地色と
+        // 混じって、かえってどれが選択中か読みづらい
+        //（FB 2026-08-28「選択してる場所は青背景にしないで」）。
+        // 選択は枠の色・太さと文字色だけで示す。
+        color: kCard,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
