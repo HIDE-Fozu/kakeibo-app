@@ -5,6 +5,7 @@ import '../../../app/cell_dropdown.dart';
 import '../../../app/keyboard_done_bar.dart';
 import '../../../app/l10n_providers.dart';
 import '../../../app/navigation.dart';
+import '../../../app/sheet_option_cell.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme.dart';
 import '../../../core/category_emoji.dart';
@@ -951,29 +952,29 @@ Future<void> _pickPaymentCard(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
+          const SizedBox(height: 4),
+          SheetOptionCell(
             key: const Key('payment-pick-cash'),
             leading: const Icon(Icons.payments_outlined),
-            title: Text(l.paymentCash),
+            title: l.paymentCash,
             selected: current == null,
             // 「選ばない」を返すため、現金は sentinel の -1 で伝える。
             onTap: () => Navigator.pop(ctx, -1),
           ),
           for (final c in cards)
-            ListTile(
+            SheetOptionCell(
               key: Key('payment-pick-${c.id}'),
               leading: const Icon(Icons.credit_card),
-              title: Text(c.name),
+              title: c.name,
               selected: current == c.id,
               onTap: () => Navigator.pop(ctx, c.id),
             ),
           // その場でカードを増やせるようにする（2026-08-28要望）。設定→
           // カードの管理まで行かなくても、入力の流れを切らずに登録できる。
-          const Divider(height: 1),
-          ListTile(
+          SheetOptionCell(
             key: const Key('payment-pick-add'),
             leading: const Icon(Icons.add),
-            title: Text(l.paymentCardAddTitle),
+            title: l.paymentCardAddTitle,
             // 「追加」を sentinel の -2 で伝える（現金は -1）。
             onTap: () => Navigator.pop(ctx, -2),
           ),

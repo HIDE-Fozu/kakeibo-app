@@ -13,6 +13,7 @@ import '../../../domain/entities.dart';
 import '../../../domain/money/civil_date.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../app/navigation.dart';
+import '../../../app/sheet_option_cell.dart';
 import '../../chores/application/chore_providers.dart';
 import '../../chores/presentation/chore_day_section.dart';
 import '../../entry/application/entry_form_controller.dart';
@@ -904,18 +905,18 @@ class _SummaryCard extends ConsumerWidget {
           children: [
             // 計算方法は支払い区分モードのときだけ意味を持つ（カード払いを
             // 未払金として持つかどうかの話なので）。
+            const SizedBox(height: 4),
             if (paymentMode)
-              ListTile(
+              SheetOptionCell(
                 key: const Key('summary-gear-basis'),
                 leading: const Icon(Icons.calculate_outlined),
-                title: Text(l.summaryBasisTitle),
+                title: l.summaryBasisTitle,
                 onTap: () => Navigator.pop(ctx, _SummarySetting.basis),
               ),
-            if (paymentMode) const _SheetRule(),
-            ListTile(
+            SheetOptionCell(
               key: const Key('summary-gear-budget'),
               leading: const Icon(Icons.savings_outlined),
-              title: Text(l.summaryGearBudget),
+              title: l.summaryGearBudget,
               onTap: () => Navigator.pop(ctx, _SummarySetting.budget),
             ),
           ],
@@ -993,29 +994,27 @@ class _SummaryCard extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
             const _SheetRule(),
+            const SizedBox(height: 8),
             // RadioListTile の onChanged は非推奨（RadioGroup へ移行中）。
-            // 選んだ瞬間に閉じるだけなので ListTile ＋チェックで足りる。
+            // 選んだ瞬間に閉じるだけなので四辺を囲ったブロック＋チェックで足りる。
             // 見出しは会計用語（現金主義/発生主義）、その下に何がどうなるかを
             // 一文で置く。用語だけだと通じず、説明だけだと何の話か分からない。
-            ListTile(
+            SheetOptionCell(
               key: const Key('summary-basis-cash'),
               leading: Icon(cashBasis ? Icons.check : null, size: 20),
-              title: Text(l.summaryBasisCashName),
-              subtitle: Text(l.summaryBasisCashOption),
+              title: l.summaryBasisCashName,
+              subtitle: l.summaryBasisCashOption,
               selected: cashBasis,
               onTap: () => Navigator.pop(ctx, true),
             ),
-            const _SheetRule(),
-            ListTile(
+            SheetOptionCell(
               key: const Key('summary-basis-accrual'),
               leading: Icon(cashBasis ? null : Icons.check, size: 20),
-              title: Text(l.summaryBasisAccrualName),
-              subtitle: Text(l.summaryBasisAccrualOption),
+              title: l.summaryBasisAccrualName,
+              subtitle: l.summaryBasisAccrualOption,
               selected: !cashBasis,
               onTap: () => Navigator.pop(ctx, false),
             ),
-            // 最後の1本まで引くと、下端が開いたままにならずセルとして閉じる。
-            const _SheetRule(),
           ],
         ),
       ),
