@@ -911,6 +911,7 @@ class _SummaryCard extends ConsumerWidget {
                 title: Text(l.summaryBasisTitle),
                 onTap: () => Navigator.pop(ctx, _SummarySetting.basis),
               ),
+            if (paymentMode) const _SheetRule(),
             ListTile(
               key: const Key('summary-gear-budget'),
               leading: const Icon(Icons.savings_outlined),
@@ -985,10 +986,13 @@ class _SummaryCard extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // 見出しと選択肢を罫線で区切り、選択肢1つ1つを枠のあるセルに見せる
+            //（FB 2026-08-28「ヘッダーも分かりづらい。罫線でUIを分けて」）。
             ListTile(
               title: Text(l.summaryBasisTitle,
                   style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
+            const _SheetRule(),
             // RadioListTile の onChanged は非推奨（RadioGroup へ移行中）。
             // 選んだ瞬間に閉じるだけなので ListTile ＋チェックで足りる。
             // 見出しは会計用語（現金主義/発生主義）、その下に何がどうなるかを
@@ -1001,6 +1005,7 @@ class _SummaryCard extends ConsumerWidget {
               selected: cashBasis,
               onTap: () => Navigator.pop(ctx, true),
             ),
+            const _SheetRule(),
             ListTile(
               key: const Key('summary-basis-accrual'),
               leading: Icon(cashBasis ? null : Icons.check, size: 20),
@@ -1009,6 +1014,8 @@ class _SummaryCard extends ConsumerWidget {
               selected: !cashBasis,
               onTap: () => Navigator.pop(ctx, false),
             ),
+            // 最後の1本まで引くと、下端が開いたままにならずセルとして閉じる。
+            const _SheetRule(),
           ],
         ),
       ),
@@ -1067,3 +1074,13 @@ class _SummaryCard extends ConsumerWidget {
 
 /// 上部サマリの歯車から開ける設定。
 enum _SummarySetting { basis, budget }
+
+/// ボトムシートの区切り線。選択肢1つ1つを枠のあるセルに見せる
+///（FB 2026-08-28）。紙デザインの罫線色に合わせる。
+class _SheetRule extends StatelessWidget {
+  const _SheetRule();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, thickness: 0.8, color: kLine);
+}
